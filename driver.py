@@ -2,10 +2,10 @@ import universe
 reload(universe)
 from universe import *
 
-#import mass_conversion
-#reload(mass_conversion)
-#from mass_conversion import *
-#
+import mass_conversion
+reload(mass_conversion)
+from mass_conversion import *
+
 #import catalog
 #reload(catalog)
 #from catalog import *
@@ -36,18 +36,21 @@ from universe import *
 u = UnivMariana()
 
 
+###################################################################################
+# conversion from stellar mass to halo mass
+
+#massConversion = MassConversion(ref="Kravstov14")
+#massConversion = MassConversion(ref="PC11")
 
 
-
+massConversion = MassConversionKravtsov14()
+#massConversion.plot()
 
 
 
 
 '''
-###################################################################################
-# conversion from stellar mass to halo mass
 
-massConversion = MassConversion()
 
 ##################################################################################
 # theoretical pixel noise power spectrum
