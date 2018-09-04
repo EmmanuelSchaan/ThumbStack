@@ -57,14 +57,13 @@ class MassConversionKravtsov14(object):
       result = 10.**result
       return result
 
+   ##################################################################################
 
    def plot(self):
-
       fig=plt.figure(0)
       ax=fig.add_subplot(111)
       #
       ax.loglog(self.mVir, self.mStar, '.')
-
       #
       ax.set_xlabel(r'$M_\text{vir}$ [$M_\odot$]')
       ax.set_ylabel(r'$M_\star$ [$M_\odot$]')

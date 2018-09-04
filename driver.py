@@ -35,16 +35,14 @@ from mass_conversion import *
 
 u = UnivMariana()
 
-
 ###################################################################################
-# conversion from stellar mass to halo mass
-
-#massConversion = MassConversion(ref="Kravstov14")
-#massConversion = MassConversion(ref="PC11")
-
+# M*-Mh relation
 
 massConversion = MassConversionKravtsov14()
 #massConversion.plot()
+
+###################################################################################
+# Loading catalog
 
 
 

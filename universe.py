@@ -274,7 +274,7 @@ class Universe(object):
       plt.loglog(self.K, self.sp.get_pk(k=self.K, z=z), label='nonlinear')
       plt.loglog(self.K, self.sp.get_pklin(k=self.K, z=z), label='linear')
       plt.legend()
-      plt.xlabel(r"$k$ $[h\mathrm{Mpc}^{-1}]$")
+      plt.xlabel(r"$k$ $[h / \mathrm{Mpc}]$")
       plt.ylabel(r"$P$ $[(\mathrm{Mpc}/h)^3]$")
       plt.show()
 
@@ -558,21 +558,28 @@ class Universe(object):
       plt.show()
 
 
-#   ##################################################################################
-#   # Velocity fluctuations
-#
-#   def RMSVelocity(self, R, z, W3d):
-#      """R in h^-1 Mpc, comoving scale, output is the rms velocity in (km/s)
-#      """
-#      F = (self.K**3) * ( np.array(map(W3d, self.K * R))**2 ) / (2* np.pi**2)  # dimensionless
-#      F *= self.Plin_z(z) / self.K**2
-#      F *= ( self.OmM*(1.+z)**3 / (self.Hubble(1./(1.+z))/self.Hubble(1.))**2 )**(2.*5./9.)   # f**2, where f = Omega_m(z)**5/9
-#      F *= ( self.Hubble(1./(1.+z))/(1.+z) )**2
-#      dlnK = ( (self.K[1:]-self.K[:-1]) / self.K[:-1] )   # dimensionless
-#      Itrap = np.sum( dlnK * ( F[:-1] + F[1:] ) ) * 0.5
-#      return np.sqrt(Itrap)
-#
-#
+   ##################################################################################
+   # Velocity fluctuations
+
+   def RMSVelocity(self, R, z, W3d):
+      """Computes |v|_RMS in km/s.
+      Input R in Mpc/h comoving.
+      Assumes linear (Zel'dovich) relation between velocity and density,
+      and uses the linear matter power spectrum.
+      """
+      def integrand(lnk):
+         k = np.exp(lnk)
+         result = k**3 / (2* np.pi**2) # d^3k/(2pi)^3 = dlnk*k^3/(2 pi^2) [(h/Mpc)^3]
+         result *= np.abs(W3d(k*R))**2 # window function [dimless]
+         result *= self.sp.get_pklin(k, z)  / k**2 # velocity power spectrum [(Mpc/h)^5]
+         result *= self.bg.Omega_m(z)**(2.*5./9.) # f**2, with f = Omega_m(z)**5/9
+         result *= (self.hubble(z) / (1.+z))**2 # (a*H(a))**2 [(km/s/(Mpc/h))^2]
+         return result
+      result = integrate.quad(integrand, np.log(self.kMin), np.log(self.kMax), epsabs=0., epsrel=1.e-3)[0]
+      result = np.sqrt(result)
+      return result
+
+
 #   def RMSErrorRecVel(self, R, z, W3d):
 #      """R in h^-1 Mpc, comoving scale, output is the rms error on reconstructed velocity in (km/s)
 #      """

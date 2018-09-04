@@ -1,19 +1,19 @@
 from headers import *
 
 ##################################################################################
-##################################################################################
+
 
 class Catalog(object):
-
+   
    def __init__(self, U, MassConversion):
-
-      self.U = U
-      self.MassConversion = MassConversion
+ 
+       self.U = U
+       self.MassConversion = MassConversion
 
       # galaxy or cluster catalog name
       #self.name = "cmasssouth"
       #self.nameLong = "CMASS South"
-
+      
       # path to the complete catalog with halo masses
       #self.path = "./output/"+self.name+"/objects.txt"
 
