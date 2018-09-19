@@ -6,10 +6,10 @@ import mass_conversion
 reload(mass_conversion)
 from mass_conversion import *
 
-#import catalog
-#reload(catalog)
-#from catalog import *
-#
+import catalog
+reload(catalog)
+from catalog import *
+
 #import cmb_map
 #reload(cmb_map)
 #from cmb_map import *
@@ -44,12 +44,24 @@ massConversion = MassConversionKravtsov14()
 ###################################################################################
 # Loading catalog
 
+# Mariana
+cmassSM = CMASS_S_Mariana(u, massConversion, save=False)
+cmassNM = CMASS_N_Mariana(u, massConversion, save=False)
+
+# Kendrick
+cmassSK = CMASS_S_Kendrick(u, massConversion, save=False)
+cmassNK = CMASS_N_Kendrick(u, massConversion, save=False)
+#
+lowzSK = LOWZ_S_Kendrick(u, massConversion, save=False)
+lowzNK = LOWZ_N_Kendrick(u, massConversion, save=False)
+
+
+
+
 
 
 
 '''
-
-
 ##################################################################################
 # theoretical pixel noise power spectrum
 

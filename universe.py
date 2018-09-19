@@ -312,15 +312,26 @@ class Universe(object):
       plt.ylabel(r"$t(z)$ [Gyr]")
       plt.show()
 
-   def plotLinearGrowth(self, zMax=10.):
+   def plotLinearGrowthFactor(self, zMax=10.):
       z = np.linspace(0., zMax, 512)
-      plt.plot(1. + z, self.bg.scale_independent_growth_factor(z), '-', label=r'$D(a)$')
+      plt.plot(1. + z, self.bg.scale_independent_growth_factor(z), '-', label=r'$D(z)$')
       plt.plot(1. + z, 1./(1.+z), '--', label=r'$a(z)$')
       plt.legend(loc=1)
       plt.xscale('log')
       plt.yscale('log')
       plt.xlabel(r"$1+z$")
-      plt.ylabel(r"Linear growth rate")
+      plt.ylabel(r"Linear growth factor $D$")
+      plt.show()
+
+   def plotLinearGrowthRate(self, zMax=10.):
+      z = np.linspace(0., zMax, 512)
+      plt.plot(1. + z, self.bg.scale_independent_growth_rate(z), '-', label=r'$f(z)$')
+      plt.plot(1. + z, self.bg.Omega_m(z)**(5./9.), '--', label=r'$\Omega_m(z)^{5/9}$')
+      plt.legend(loc=4)
+      plt.xscale('log')
+      plt.yscale('log')
+      plt.xlabel(r"$1+z$")
+      plt.ylabel(r"Linear growth rate $f$")
       plt.show()
 
    def plotThermo(self):
@@ -561,19 +572,39 @@ class Universe(object):
    ##################################################################################
    # Velocity fluctuations
 
-   def RMSVelocity(self, R, z, W3d):
-      """Computes |v|_RMS in km/s.
+   
+   def v3dRms(self, R, z, W3d):
+      """RMS of the 3d velocity: |v^{3d}|_{RMS} in km/s.
       Input R in Mpc/h comoving.
-      Assumes linear (Zel'dovich) relation between velocity and density,
-      and uses the linear matter power spectrum.
+      Assumes linear (Zel'dovich) relation between velocity and density:
+      v = a H(a) f(a) delta(k) / k
+      Uses the linear matter power spectrum.
       """
       def integrand(lnk):
          k = np.exp(lnk)
          result = k**3 / (2* np.pi**2) # d^3k/(2pi)^3 = dlnk*k^3/(2 pi^2) [(h/Mpc)^3]
          result *= np.abs(W3d(k*R))**2 # window function [dimless]
          result *= self.sp.get_pklin(k, z)  / k**2 # velocity power spectrum [(Mpc/h)^5]
-         result *= self.bg.Omega_m(z)**(2.*5./9.) # f**2, with f = Omega_m(z)**5/9
+         result *= self.bg.scale_independent_growth_rate(z)**2 # f**2
          result *= (self.hubble(z) / (1.+z))**2 # (a*H(a))**2 [(km/s/(Mpc/h))^2]
+         return result
+      result = integrate.quad(integrand, np.log(self.kMin), np.log(self.kMax), epsabs=0., epsrel=1.e-3)[0]
+      result = np.sqrt(result)
+      return result
+
+
+   def disp3dRms(self, R, z, W3d):
+      """RMS of the 3d Lagrangian displacement: |\psi^{3d}|_{RMS} in Mpc/h.
+      Input R in Mpc/h comoving.
+      Assumes linear (Zel'dovich) relation between displacement and density:
+      psi = delta(k) / k
+      Uses the linear matter power spectrum.
+      """
+      def integrand(lnk):
+         k = np.exp(lnk)
+         result = k**3 / (2* np.pi**2) # d^3k/(2pi)^3 = dlnk*k^3/(2 pi^2) [(h/Mpc)^3]
+         result *= np.abs(W3d(k*R))**2 # window function [dimless]
+         result *= self.sp.get_pklin(k, z)  / k**2 # velocity power spectrum [(Mpc/h)^5]
          return result
       result = integrate.quad(integrand, np.log(self.kMin), np.log(self.kMax), epsabs=0., epsrel=1.e-3)[0]
       result = np.sqrt(result)
@@ -593,22 +624,13 @@ class Universe(object):
 #      Itrap = np.sum( dlnK * ( F[:-1] + F[1:] ) ) * 0.5
 #      return np.sqrt(Itrap)
 #
-#   def growthLogDerivativeF(self, z):
-#      return ( self.OmM*(1.+z)**3 / (self.OmM*(1.+z)**3+(1. - self.OmM)) )**(5./9.)
-#
 #   def convertVelToDisp(self, z):
 #      """multiply a velocity at redshift z by this factor to get the displacement at that redshift
 #      v in km/s, displacement in Mpc/h
 #      """
 #      factor = self.Hubble(z)/(1.+z)*self.growthLogDerivativeF(z)
 #      return 1./factor
-#
-#   def RMSDisplacement(self, R, z, W3d):
-#      """R in h^-1 Mpc, comoving scale, output is the rms displacement in (Mpc/h)
-#      """
-#      result = self.RMSVelocity(R, z, W3d)
-#      result *= self.convertVelToDisp(z)
-#      return result
+
 #
 ##   # variance of vRadial_RMS^2, the average vRadial^2 on a spherical volume
 ##   # with radius R in comoving Mpc/h
