@@ -45,20 +45,26 @@ massConversion = MassConversionKravtsov14()
 # Loading catalog
 
 # Mariana
-cmassSM = CMASS_S_Mariana(u, massConversion, save=False)
-cmassNM = CMASS_N_Mariana(u, massConversion, save=False)
+catalog = CMASS_S_Mariana(u, massConversion, save=False)
+catalog.plotHistograms()
+#catalog = CMASS_N_Mariana(u, massConversion, save=True)
+#catalog.plotHistograms()
+## Kendrick
+#catalog = CMASS_S_Kendrick(u, massConversion, save=True)
+#catalog.plotHistograms()
+#catalog = CMASS_N_Kendrick(u, massConversion, save=True)
+#catalog.plotHistograms()
+##
+#catalog = LOWZ_S_Kendrick(u, massConversion, save=True)
+#catalog.plotHistograms()
+#catalog = LOWZ_N_Kendrick(u, massConversion, save=True)
+#catalog.plotHistograms()
 
-# Kendrick
-cmassSK = CMASS_S_Kendrick(u, massConversion, save=False)
-cmassNK = CMASS_N_Kendrick(u, massConversion, save=False)
-#
-lowzSK = LOWZ_S_Kendrick(u, massConversion, save=False)
-lowzNK = LOWZ_N_Kendrick(u, massConversion, save=False)
 
 
-
-
-
+#catalog.printProperties()
+#catalog.compareV1dRms()
+#catalog.plotHistograms()
 
 
 '''

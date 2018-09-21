@@ -33,6 +33,11 @@ baseMap = enmap.read_map(path)
 print "Set up interpolation"
 baseMap = utils.interpol_prefilter(baseMap, inplace=True)
 
+#########################################################################
+#########################################################################
+# Do I understand the map? ie mean, std dev, units, plot?
+
+
 # print map size in deg, nb of pixels, angular resolution in arcmin
 # get units, rescale the color plot, get a power spectrum
 print "T map has mean", np.mean(baseMap[0]), " st.d dev.", np.std(baseMap[0])
@@ -76,12 +81,17 @@ for i in range(3):
 
 
 #########################################################################
+#########################################################################
 # Extract postage stamp map at desired location
 
 # define geometry of small square maps to be extracted
 # here 1deg * 1deg, with 0.25arcmin pixel
+# the center of the small square map will be specified later
 # car: not equal area, but equally-spaced coordinates
 # cea: equal area pixels, but coordinates are not equally spaced
+# previous kSZ paper: went out to 5arcmin
+# Planck paper CV: went out to 18 arcmin
+# probably good to extract bigger stamp than needed for now
 shape, wcs = enmap.geometry(np.array([[-1,-1],[1,1]])*utils.degree, res=0.25*utils.arcmin, proj='cea')
 stampMap = enmap.zeros(shape, wcs)
 

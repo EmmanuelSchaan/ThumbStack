@@ -132,7 +132,7 @@ class Universe(object):
       from Henry 2000, from Nakamura & Suto 1997
       usual 3.*(12.*pi)**(2./3.) / 20. = 1.686 if OmM=1.
       """
-      x = ( 1./self.OmM - 1. )**(1./3.)
+      x = ( 1./self.bg.Omega0_m - 1. )**(1./3.)
       x /= 1.+z
       dc = 3.*(12.*np.pi)**(2./3.) / 20.
       dc *= 1. - 0.0123* np.log( 1. + x**3 )
@@ -147,8 +147,8 @@ class Universe(object):
       gives 337 at z=0 for OmM= 0.3
       Omega = rhocrit(z)/rho_matter(z)
       """
-      Omega = self.OmM*(1.+z)**3
-      Omega /= self.OmM*(1.+z)**3 + (1. - self.OmM)
+      Omega = self.bg.Omega0_m*(1.+z)**3
+      Omega /= self.bg.Omega0_m*(1.+z)**3 + (1. - self.bg.Omega0_m)
       x = Omega - 1.
       Dvir = 18*np.pi**2 + 82.*x - 39.*x**2
       # convert between rho_m(z) and rho_crit(z)
@@ -161,7 +161,7 @@ class Universe(object):
       from Henry 2000, from Nakamura & Suto 1997
       usual 18*pi**2 if OmM=1.
       """
-      x = ( 1./self.OmM - 1. )**(1./3.)
+      x = ( 1./self.bg.Omega0_m - 1. )**(1./3.)
       x /= 1.+z
       Dvir = 18*np.pi**2 * ( 1. + 0.4093* x**2.71572 )
       return Dvir
@@ -174,7 +174,7 @@ class Universe(object):
       usual 18*pi**2 if OmM=1.
       Omega = rhocrit(z)/rho_matter(z).
       """
-      f = self.OmM * (1.+z)**3 / ( self.OmM * (1.+z)**3 + (1. - self.OmM) )
+      f = self.bg.Omega0_m * (1.+z)**3 / ( self.bg.Omega0_m * (1.+z)**3 + (1. - self.bg.Omega0_m) )
       return 18.*np.pi**2 + 82.*(f-1.) - 39.*(f-1.)**2
 
 
@@ -182,7 +182,7 @@ class Universe(object):
       """Comoving virial and scale radii (Mpc/h)
       input mass is mvir (Msun/h)
       """
-      Rvir = ( 3.*m / (4*np.pi*self.rhocrit_z(z)*self.Deltacrit_z(z)) )**(1./3.)  # in h^-1 Mpc
+      Rvir = ( 3.*m / (4*np.pi*self.rho_crit(z)*self.Deltacrit_z(z)) )**(1./3.)  # in h^-1 Mpc
       return Rvir
    
    
@@ -618,7 +618,7 @@ class Universe(object):
 #      F = (self.K**3) * ( np.array(map(W3d, self.K * R))**2 ) / (2* np.pi**2)  # dimensionless
 #      F *= self.Plin_z(z) / self.K**2
 #      F *= 2.* (1. - CorrCoeff)
-#      F *= ( self.OmM*(1.+z)**3 / (self.Hubble(1./(1.+z))/self.Hubble(1.))**2 )**(2.*5./9.)   # f**2, where f = Omega_m(z)**5/9
+#      F *= ( self.bg.Omega0_m*(1.+z)**3 / (self.Hubble(1./(1.+z))/self.Hubble(1.))**2 )**(2.*5./9.)   # f**2, where f = Omega_m(z)**5/9
 #      F *= ( self.Hubble(1./(1.+z))/(1.+z) )**2
 #      dlnK = ( (self.K[1:]-self.K[:-1]) / self.K[:-1] )   # dimensionless
 #      Itrap = np.sum( dlnK * ( F[:-1] + F[1:] ) ) * 0.5
@@ -645,7 +645,7 @@ class Universe(object):
 ##         result = self.fPlin_z(k, z) / k**2
 ##         result *= self.fPlin_z(k*np.sqrt(1 - 2.*x*mu + x**2), z) / (k*np.sqrt(1 - 2.*x*mu + x**2))**2
 ##
-##         factor = ( self.OmM*(1.+z)**3 / (self.Hubble(1./(1.+z))/self.Hubble(1.))**2 )**(2.*5./9.)   # f**2, where f = Omega_m(z)**5/9
+##         factor = ( self.bg.Omega0_m*(1.+z)**3 / (self.Hubble(1./(1.+z))/self.Hubble(1.))**2 )**(2.*5./9.)   # f**2, where f = Omega_m(z)**5/9
 ##         factor *= ( self.Hubble(1./(1.+z))/(1.+z) )**2 # (a*H)**2
 ##
 ##         result *= factor**2
@@ -677,7 +677,7 @@ class Universe(object):
 #         result = self.fPlin_z(k, z) / k**2
 #         result *= self.fPlin_z(np.sqrt(k**2 - 2.*k*K*mu + K**2), z) / (k**2 - 2.*k*K*mu + K**2)
 #
-#         factor = ( self.OmM*(1.+z)**3 / (self.Hubble(1./(1.+z))/self.Hubble(1.))**2 )**(2.*5./9.)   # f**2, where f = Omega_m(z)**5/9
+#         factor = ( self.bg.Omega0_m*(1.+z)**3 / (self.Hubble(1./(1.+z))/self.Hubble(1.))**2 )**(2.*5./9.)   # f**2, where f = Omega_m(z)**5/9
 #         factor *= ( self.Hubble(1./(1.+z))/(1.+z) )**2 # (a*H)**2
 #
 #         result *= factor**2
