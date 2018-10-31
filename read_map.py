@@ -22,7 +22,7 @@ import rotfuncs
 
 
 # load a healpy map
-path = "/global/cscratch1/sd/eschaan/ksz_act_planck/data/maps/planck_act_coadd_2018_08_10/"
+path = "/global/cscratch1/sd/eschaan/ksz_act_planck/data/planck_act_coadd_2018_08_10/"
 path += "f150_daynight_all_map_mono.fits"
 
 print "Read map"

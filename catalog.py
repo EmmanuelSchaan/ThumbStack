@@ -295,7 +295,7 @@ class Catalog(object):
    def plotHistograms(self):
       z0 = np.mean(self.Z)
       s2v1d = self.U.v3dRms(0., z0, W3d_sth)**2 / 3.
-      '''
+      
       # redshifts
       self.histogram(self.Z, nBins=71, lim=(0., 1.), name='z', nameLatex=r'$z$')
       
@@ -314,7 +314,7 @@ class Catalog(object):
 
       # virial masses
       self.histogram(self.Mvir, nBins=71, lim=(1.e12, 1.e15), name='mvir', nameLatex=r'$M_\text{vir}$ [M$_\odot$]', semilogx=True)
-      '''
+      
       # comoving virial radius
       # need masses in Msun/h
       Par = zip(self.Mvir*self.U.bg.h, self.Z)
