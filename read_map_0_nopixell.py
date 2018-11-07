@@ -9,11 +9,7 @@ import cmb
 reload(cmb)
 from cmb import *
 
-#from enlib import enmap, utils, powspec
-from pixell import enmap, utils, powspec, enplot
-
-import healpy as hp
-
+from enlib import enmap, utils, powspec
 # copy rotfuncs.py somewhere on your python path,
 # so you can import it
 import rotfuncs
@@ -30,10 +26,6 @@ path += "f150_daynight_all_map_mono.fits"
 print "Read map"
 baseMap = enmap.read_map(path)
 
-print("Map properties:")
-print("nTQU, nY, nX = "+str(baseMap.shape))
-print("WCS attributes: "+str(baseMap.wcs))
-
 # setup the interpolation algorithm,
 # done once for all, to speed up subsequent calls
 print "Set up interpolation"
@@ -43,70 +35,30 @@ tStop = time()
 print "took", tStop-tStart, "sec"
 
 
-#########################################################################
-# Naive plots of the maps
-
-# temperature
+# take a quick look in temperature,
+# to check that the source is there
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 im=ax.imshow(baseMap[0], vmin=-1.*np.std(baseMap[0].flatten()), vmax=1.*np.std(baseMap[0].flatten()))   # T
 fig.savefig("./figures/tests/full_map_T.pdf")
 fig.clf()
 
-# Q polarization
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 im=ax.imshow(baseMap[1], vmin=-1.*np.std(baseMap[1].flatten()), vmax=1.*np.std(baseMap[1].flatten()))   # T
 fig.savefig("./figures/tests/full_map_Q.pdf")
 fig.clf()
 
-# U polarization
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 im=ax.imshow(baseMap[2], vmin=-1.*np.std(baseMap[2].flatten()), vmax=1.*np.std(baseMap[2].flatten()))   # T
 fig.savefig("./figures/tests/full_map_U.pdf")
 fig.clf()
 
-
-#########################################################################
-#########################################################################
-
-
-# convert map to healpix, so that I can check the power spectrum
-print("Convert CAR to healpix, to plot")
-hMap = enmap.to_healpix(baseMap)
-
-nSide = hp.get_nside(hMap)
-print("Nside = "+str(nSide))
-
-
-# plot the map
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-#
-hp.mollview(hMap, coord=None, cbar=True, unit='')
-#
-fig.savefig("./figures/test/mollweide.pdf")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #########################################################################
 #########################################################################
 # can I try reading the map as a healpy map?
-# First need to convert CAR map to a healpy map
+#---> No, doesn't work!
 #
 #import healpy as hp
 #hMap = hp.read_map(path)
