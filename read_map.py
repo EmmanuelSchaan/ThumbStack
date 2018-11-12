@@ -32,9 +32,14 @@ path = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coad
 pathMap = path + "f150_daynight_all_map_mono.fits"
 pathHit = path + "f150_daynight_all_div_mono.fits"
 
+
 print "Read map"
 baseMap = enmap.read_map(pathMap)
 hitMap = enmap.read_map(pathHit)
+
+print("Map properties:")
+print("nTQU, nY, nX = "+str(baseMap.shape))
+print("WCS attributes: "+str(baseMap.wcs))
 
 print("Map properties:")
 print("nTQU, nY, nX = "+str(baseMap.shape))
@@ -111,6 +116,7 @@ nSide = hp.get_nside(hMap)
 print("Nside = "+str(nSide))
 
 
+
 # Hit map
 fig=plt.figure(0)
 #
@@ -185,13 +191,6 @@ fig.clf()
 #hp.azeqview(hMap[0], fig=0, min=mean-sigma, max=mean+sigma, title="T", coord=None, cbar=True, unit='')
 #fig.savefig("./figures/tests/azeqview_T.pdf")
 #fig.clf()
-
-
-
-
-
-# add CMASS galaxies on top?
-#projscatter(theta, phi)     # plot points at coord (theta, phi)
 
 
 
