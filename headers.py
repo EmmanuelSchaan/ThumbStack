@@ -46,6 +46,8 @@ pyfftw.interfaces.cache.enable() # so subsequent FFTs use the wisdom from the fi
 import classylss
 import classylss.binding as CLASS
 
+import healpy as hp
+
 ##################################################################################
 # for pretty plots
 

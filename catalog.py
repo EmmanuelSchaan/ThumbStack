@@ -203,6 +203,27 @@ class Catalog(object):
    ##################################################################################
    ##################################################################################
    
+   def plotFootprint(self):
+      """Overlay a scatter plot of the catalog positions on top of a healpix map,
+      here the AdvACT hit count map.
+      """
+      fig=plt.figure(0)
+      #
+      # hit count map for AdvACT
+      path = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/healpix_f150_daynight_all_div_mono.fits"
+      hHitMap = hp.read_map(path)
+      hp.mollview(np.log(np.abs(hHitMap)+1.e-5), fig=0, title="", coord=None, cbar=False, unit='')
+      #
+      # scatter plot of the catalog
+      hp.projscatter(self.RA, self.DEC, alpha=0.01, lonlat=True, marker='.', c='r', rasterized=True)
+      #
+      fig.savefig(self.pathFig+"/footprint_"+self.name+".pdf", dpi=1200)
+      fig.clf()
+
+
+   ##################################################################################
+   ##################################################################################
+   
    def printProperties(self):
       print "Catalog: "+self.nameLong
       print "Number of objects = "+str(self.nObj)

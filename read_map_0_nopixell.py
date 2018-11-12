@@ -9,18 +9,10 @@ import cmb
 reload(cmb)
 from cmb import *
 
-#from enlib import enmap, utils, powspec
-from pixell import enmap, utils, powspec, enplot
-
-import healpy as hp
-
+from enlib import enmap, utils, powspec
 # copy rotfuncs.py somewhere on your python path,
 # so you can import it
 import rotfuncs
-
-
-# for cori
-plt.switch_backend('Agg')
 
 
 #########################################################################
@@ -29,16 +21,10 @@ plt.switch_backend('Agg')
 
 # load a healpy map
 path = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/"
-pathMap = path + "f150_daynight_all_map_mono.fits"
-pathHit = path + "f150_daynight_all_div_mono.fits"
+path += "f150_daynight_all_map_mono.fits"
 
 print "Read map"
-baseMap = enmap.read_map(pathMap)
-hitMap = enmap.read_map(pathHit)
-
-print("Map properties:")
-print("nTQU, nY, nX = "+str(baseMap.shape))
-print("WCS attributes: "+str(baseMap.wcs))
+baseMap = enmap.read_map(path)
 
 # setup the interpolation algorithm,
 # done once for all, to speed up subsequent calls
@@ -48,150 +34,34 @@ baseMap = utils.interpol_prefilter(baseMap, inplace=True)
 tStop = time()
 print "took", tStop-tStart, "sec"
 
-#########################################################################
-# Plot the map using enplot
 
-'''
-enplot.plot(baseMap, oname="./figures/tests/planck_act_coadd_2018_08_10_f150.pdf", quantile=0.16)
-# range = (0.1, 0.4, 0.2)
-# min = 0
-# max = 1
-'''
-
-#!!! Not working, probably because of my PIL version
-plots = enplot.get_plots(baseMap)
-enplot.write("./figures/tests/planck_act_coadd_2018_08_10_f150.png",plots)
-
-
-
-
-
-
-
-
-
-#########################################################################
-# Naive imshow plots of the maps
-
-# temperature
+# take a quick look in temperature,
+# to check that the source is there
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 im=ax.imshow(baseMap[0], vmin=-1.*np.std(baseMap[0].flatten()), vmax=1.*np.std(baseMap[0].flatten()))   # T
-fig.savefig("./figures/tests/imshow_T.pdf")
+fig.savefig("./figures/tests/full_map_T.pdf")
 fig.clf()
 
-# Q polarization
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 im=ax.imshow(baseMap[1], vmin=-1.*np.std(baseMap[1].flatten()), vmax=1.*np.std(baseMap[1].flatten()))   # T
-fig.savefig("./figures/tests/imshow_Q.pdf")
+fig.savefig("./figures/tests/full_map_Q.pdf")
 fig.clf()
 
-# U polarization
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 im=ax.imshow(baseMap[2], vmin=-1.*np.std(baseMap[2].flatten()), vmax=1.*np.std(baseMap[2].flatten()))   # T
-fig.savefig("./figures/tests/imshow_U.pdf")
+fig.savefig("./figures/tests/full_map_U.pdf")
 fig.clf()
-
 
 #########################################################################
 #########################################################################
-# convert map to healpix, to plot and check the power spectrum
-
-
-print("Convert CAR to healpix, to plot")
-hMap = enmap.to_healpix(baseMap)
-hHitMap = enmap.to_healpix(hitMap)
-
-# save the hit count map to file, for plotting purposes
-hp.write_map(path+"healpix_f150_daynight_all_div_mono.fits", hHitMap)
-
-nSide = hp.get_nside(hMap)
-print("Nside = "+str(nSide))
-
-
-# Hit map
-fig=plt.figure(0)
+# can I try reading the map as a healpy map?
+#---> No, doesn't work!
 #
-#hp.mollview(hHitMap, fig=0, min=0., max=0.2*np.max(hHitMap), title="hit", coord=None, cbar=True, unit='')
-hp.mollview(np.log(np.abs(hHitMap)+1.e-5), fig=0, title="", coord=None, cbar=False, unit='')
-fig.savefig("./figures/tests/mollweide_hit_log.pdf")
-fig.clf()
-
-
-# T
-mean = np.mean(hMap[0])
-sigma = np.std(hMap[0])
-#
-fig=plt.figure(0)
-hp.mollview(hMap[0], fig=0, min=mean-sigma, max=mean+sigma, title="T", coord=None, cbar=True, unit='')
-fig.savefig("./figures/tests/mollweide_T.pdf")
-fig.clf()
-
-# Q
-mean = np.mean(hMap[1])
-sigma = np.std(hMap[1])
-#
-fig=plt.figure(0)
-hp.mollview(hMap[1], fig=0, min=mean-sigma, max=mean+sigma, title="Q", coord=None, cbar=True, unit='')
-fig.savefig("./figures/tests/mollweide_Q.pdf")
-fig.clf()
-
-# U
-mean = np.mean(hMap[2])
-sigma = np.std(hMap[2])
-#
-fig=plt.figure(0)
-hp.mollview(hMap[2], fig=0, min=mean-sigma, max=mean+sigma, title="U", coord=None, cbar=True, unit='')
-fig.savefig("./figures/tests/mollweide_U.pdf")
-fig.clf()
-
-
-## Other projections
-#
-## T
-#mean = np.mean(hMap[0])
-#sigma = np.std(hMap[0])
-##
-#fig=plt.figure(0)
-#hp.cartview(hMap[0], fig=0, min=mean-sigma, max=mean+sigma, title="T", coord=None, cbar=True, unit='')
-#fig.savefig("./figures/tests/cartview_T.pdf")
-#fig.clf()
-#
-## T
-#mean = np.mean(hMap[0])
-#sigma = np.std(hMap[0])
-##
-#fig=plt.figure(0)
-#hp.orthview(hMap[0], fig=0, min=mean-sigma, max=mean+sigma, title="T", coord=None, cbar=True, unit='')
-#fig.savefig("./figures/tests/orthview_T.pdf")
-#fig.clf()
-#
-## T
-#mean = np.mean(hMap[0])
-#sigma = np.std(hMap[0])
-##
-#fig=plt.figure(0)
-#hp.gnomview(hMap[0], fig=0, min=mean-sigma, max=mean+sigma, title="T", coord=None, cbar=True, unit='')
-#fig.savefig("./figures/tests/gnomview_T.pdf")
-#fig.clf()
-#
-## T
-#mean = np.mean(hMap[0])
-#sigma = np.std(hMap[0])
-##
-#fig=plt.figure(0)
-#hp.azeqview(hMap[0], fig=0, min=mean-sigma, max=mean+sigma, title="T", coord=None, cbar=True, unit='')
-#fig.savefig("./figures/tests/azeqview_T.pdf")
-#fig.clf()
-
-
-
-
-
-# add CMASS galaxies on top?
-#projscatter(theta, phi)     # plot points at coord (theta, phi)
+#import healpy as hp
+#hMap = hp.read_map(path)
 
 
 
