@@ -42,37 +42,72 @@ massConversion = MassConversionKravtsov14()
 #massConversion.plot()
 
 ###################################################################################
-# Loading catalog
+# Loading catalogs
 
 # Mariana
-catalog = CMASS_S_Mariana(u, massConversion, save=False)
-#catalog.plotHistograms()
-#catalog.plotFootprint()
+cmassSMariana = CMASS_S_Mariana(u, massConversion, save=False)
+#cmassSMariana.plotHistograms()
+#cmassSMariana.plotFootprint()
 #
-catalog = CMASS_N_Mariana(u, massConversion, save=False)
-#catalog.plotHistograms()
-#catalog.plotFootprint()
+cmassNMariana = CMASS_N_Mariana(u, massConversion, save=False)
+#cmassNMariana.plotHistograms()
+#cmassNMariana.plotFootprint()
+#
+# combined catalog
+cmassMariana = CMASS_S_Mariana(u, massConversion, save=False)
+cmassMariana.addCatalog(cmassNMariana)
+#cmassMariana.plotHistograms()
+#cmassMariana.plotFootprint()
+
 
 # Kendrick
-catalog = CMASS_S_Kendrick(u, massConversion, save=False)
-#catalog.plotHistograms()
-#catalog.plotFootprint()
+
+# CMASS
+cmassSKendrick = CMASS_S_Kendrick(u, massConversion, save=False)
+#cmassSKendrick.plotHistograms()
+#cmassSKendrick.plotFootprint()
 #
-catalog = CMASS_N_Kendrick(u, massConversion, save=False)
-#catalog.plotHistograms()
-#catalog.plotFootprint()
+cmassNKendrick = CMASS_N_Kendrick(u, massConversion, save=False)
+#cmassNKendrick.plotHistograms()
+#cmassNKendrick.plotFootprint()
 #
-catalog = LOWZ_S_Kendrick(u, massConversion, save=False)
-#catalog.plotHistograms()
-#catalog.plotFootprint()
+# combined catalog
+cmassKendrick = CMASS_S_Kendrick(u, massConversion, save=False)
+cmassKendrick.addCatalog(cmassNKendrick)
+#cmassKendrick.plotHistograms()
+#cmassKendrick.plotFootprint()
+
+# LOWZ
+lowzSKendrick = LOWZ_S_Kendrick(u, massConversion, save=False)
+#lowzSKendrick.plotHistograms()
+#lowzSKendrick.plotFootprint()
 #
-catalog = LOWZ_N_Kendrick(u, massConversion, save=False)
-#catalog.plotHistograms()
-#catalog.plotFootprint()
+lowzNKendrick = LOWZ_N_Kendrick(u, massConversion, save=False)
+#lowzNKendrick.plotHistograms()
+#lowzNKendrick.plotFootprint()
+#
+# combined catalog
+lowzKendrick = LOWZ_S_Kendrick(u, massConversion, save=False)
+lowzKendrick.addCatalog(lowzNKendrick)
+#lowzKendrick.plotHistograms()
+#lowzKendrick.plotFootprint()
+
+# BOSS = CMASS + LOWZ
+bossKendrick = CMASS_S_Kendrick(u, massConversion, save=False)
+bossKendrick.addCatalog(cmassNKendrick)
+bossKendrick.addCatalog(lowzSKendrick)
+bossKendrick.addCatalog(lowzNKendrick)
+#lowzKendrick.plotHistograms()
+#lowzKendrick.plotFootprint()
+
 
 # Other functions coded up
 #catalog.printProperties()
 #catalog.compareV1dRms()
+
+
+
+
 
 
 '''

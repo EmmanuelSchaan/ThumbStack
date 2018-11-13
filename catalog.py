@@ -199,6 +199,98 @@ class Catalog(object):
       self.Mvir = data[:,20]  # [M_sun]
 
 
+   ##################################################################################
+   ##################################################################################
+   
+   def addCatalog(self, newCat, newName="", newNameLong=""):
+      """Combines the current catalog with a new catalog newCat.
+      """
+      # update the name of the combined catalog
+      self.name = newName
+      self.nameLong = newNameLong
+
+      # Output path
+      self.pathOut = "./output/catalog/"+self.name
+      if not os.path.exists(self.pathOut):
+         os.makedirs(self.pathOut)
+      # catalog path
+      self.pathOutCatalog = self.pathOut + "/catalog.txt"
+      
+      # Figures path
+      self.pathFig = "./figures/catalog/"+self.name
+      if not os.path.exists(self.pathFig):
+         os.makedirs(self.pathFig)
+   
+      # number of objects
+      self.nObj += newCat.nObj
+      #
+      # sky coordinates and redshift
+      self.RA = np.concatenate((self.RA, newCat.RA)) # [deg]
+      self.DEC = np.concatenate((self.DEC, newCat.DEC))   # [deg]
+      self.Z = np.concatenate((self.Z, newCat.Z))
+      #
+      # observed cartesian coordinates
+      self.coordX = np.concatenate((self.coordX, newCat.coordX))   # [Mpc/h]
+      self.coordY = np.concatenate((self.coordY, newCat.coordY))   # [Mpc/h]
+      self.coordZ = np.concatenate((self.coordZ, newCat.coordZ))   # [Mpc/h]
+      #
+      # displacement from difference,
+      # not including the Kaiser displacement,
+      # from differences of the observed and reconstructed fields
+      self.dX = np.concatenate((self.dX, newCat.dX))  # [Mpc/h]
+      self.dY = np.concatenate((self.dY, newCat.dY))   # [Mpc/h]
+      self.dZ = np.concatenate((self.dZ, newCat.dZ))  # [Mpc/h]
+      #
+      # Kaiser-only displacement
+      # originally from differences of the observed and reconstructed fields
+      self.dXKaiser = np.concatenate((self.dXKaiser, newCat.dXKaiser))  # [Mpc/h] from cartesian catalog difference
+      self.dYKaiser = np.concatenate((self.dYKaiser, newCat.dYKaiser))   # [Mpc/h]
+      self.dZKaiser = np.concatenate((self.dZKaiser, newCat.dZKaiser))   # [Mpc/h]
+      #
+      # velocity in cartesian coordinates
+      self.vX = np.concatenate((self.vX, newCat.vX))   #[km/s]
+      self.vY = np.concatenate((self.vY, newCat.vY))   #[km/s]
+      self.vZ = np.concatenate((self.vZ, newCat.vZ))  #[km/s]
+      #
+      # velocity in spherical coordinates,
+      # from catalog of spherical displacements
+      self.vR = np.concatenate((self.vR, newCat.vR))  # [km/s]   from spherical catalo
+      self.vTheta = np.concatenate((self.vTheta, newCat.vTheta))   # [km/s]
+      self.vPhi = np.concatenate((self.vPhi, newCat.vPhi))  # [km/s]
+      #
+      # Stellar masses
+      self.Mstellar = np.concatenate((self.Mstellar, newCat.Mstellar))   # [M_sun], from Maraston et al
+      #
+      # Halo mass
+      self.hasM = np.concatenate((self.hasM, newCat.hasM))
+      self.Mvir = np.concatenate((self.Mvir, newCat.Mvir))  # [M_sun]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
    ##################################################################################
    ##################################################################################
