@@ -4,6 +4,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+# to copy files
+from shutil import copyfile
 from scipy import special, optimize, integrate, stats
 from scipy.interpolate import UnivariateSpline, RectBivariateSpline, interp1d, interp2d, BarycentricInterpolator
 from time import time

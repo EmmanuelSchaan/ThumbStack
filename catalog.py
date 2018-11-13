@@ -5,17 +5,16 @@ from headers import *
 
 class Catalog(object):
 
-   def __init__(self, U, MassConversion, save=False):
+   def __init__(self, U, MassConversion, name="test", nameLong=None, pathInCatalog="", save=False):
 
       self.U = U
       self.MassConversion = MassConversion
-
-      # galaxy or cluster catalog name
-      #self.name = "cmasssouth"
-      #self.nameLong = "CMASS South"
-      
-      # path to the input catalog
-      #self.pathInCatalog = "./input/?.txt"
+      self.name = name
+      if nameLong is None:
+         self.nameLong = self.name
+      else:
+         self.nameLong = nameLong
+      self.pathInCatalog = pathInCatalog
       
       # Output path
       self.pathOut = "./output/catalog/"+self.name
@@ -37,6 +36,26 @@ class Catalog(object):
       
       self.loadCatalog()
    
+
+   ##################################################################################
+   ##################################################################################
+
+   def copy(self, name="test", nameLong=None):
+      """Copy a catalog class, with the option of changing the name.
+      """
+      # First copy the output catalog
+      # new catalog path
+      newPathOut = "./output/catalog/"+name
+      if not os.path.exists(newPathOut):
+         os.makedirs(newPathOut)
+      newPathOutCatalog = newPathOut + "/catalog.txt"
+      # copy the output catalog
+      copyfile(self.pathOutCatalog, newPathOutCatalog)
+      
+      # Then copy the catalog properties
+      newCat = Catalog(self.U, self.MassConversion, name=name, nameLong=nameLong, pathInCatalog=self.pathInCatalog, save=False)
+      return newCat
+
 
    ##################################################################################
    ##################################################################################
@@ -202,25 +221,9 @@ class Catalog(object):
    ##################################################################################
    ##################################################################################
    
-   def addCatalog(self, newCat, newName="", newNameLong=""):
+   def addCatalog(self, newCat, save=False):
       """Combines the current catalog with a new catalog newCat.
       """
-      # update the name of the combined catalog
-      self.name = newName
-      self.nameLong = newNameLong
-
-      # Output path
-      self.pathOut = "./output/catalog/"+self.name
-      if not os.path.exists(self.pathOut):
-         os.makedirs(self.pathOut)
-      # catalog path
-      self.pathOutCatalog = self.pathOut + "/catalog.txt"
-      
-      # Figures path
-      self.pathFig = "./figures/catalog/"+self.name
-      if not os.path.exists(self.pathFig):
-         os.makedirs(self.pathFig)
-   
       # number of objects
       self.nObj += newCat.nObj
       #
@@ -265,7 +268,10 @@ class Catalog(object):
       self.hasM = np.concatenate((self.hasM, newCat.hasM))
       self.Mvir = np.concatenate((self.Mvir, newCat.Mvir))  # [M_sun]
 
-
+      # Write the full catalog to the output path, if needed
+      if save:
+         self.writeCatalog()
+   
 
 
 
@@ -450,97 +456,97 @@ class Catalog(object):
 
 ##################################################################################
 ##################################################################################
-
-class CMASS_S_Mariana(Catalog):
-   
-   def __init__(self, U, MassConversion, save=False):
-      # galaxy or cluster catalog
-      self.name = "cmass_s_mariana"
-      self.nameLong = "CMASS S M"
-      
-      # path to the input catalog
-      self.pathInCatalog = "../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt"
-   
-      super(CMASS_S_Mariana, self).__init__(U, MassConversion, save=save)
-
-
-##################################################################################
-
-class CMASS_N_Mariana(Catalog):
-   
-   def __init__(self, U, MassConversion, save=False):
-      # galaxy or cluster catalog
-      self.name = "cmass_n_mariana"
-      self.nameLong = "CMASS N M"
-      
-      # path to the input catalog
-      self.pathInCatalog = "../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt"
-   
-      super(CMASS_N_Mariana, self).__init__(U, MassConversion, save=save)
-
-
-##################################################################################
-##################################################################################
-
-class CMASS_S_Kendrick(Catalog):
-   
-   def __init__(self, U, MassConversion, save=False):
-      # galaxy or cluster catalog
-      self.name = "cmass_s_kendrick"
-      self.nameLong = "CMASS S K"
-      
-      # path to the input catalog
-      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_S_kendrick.txt"
-   
-      super(CMASS_S_Kendrick, self).__init__(U, MassConversion, save=save)
-
-
-##################################################################################
-
-class CMASS_N_Kendrick(Catalog):
-   
-   def __init__(self, U, MassConversion, save=False):
-      # galaxy or cluster catalog
-      self.name = "cmass_n_kendrick"
-      self.nameLong = "CMASS N K"
-      
-      # path to the input catalog
-      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_N_kendrick.txt"
-   
-      super(CMASS_N_Kendrick, self).__init__(U, MassConversion, save=save)
-
-
-##################################################################################
-
-class LOWZ_S_Kendrick(Catalog):
-   
-   def __init__(self, U, MassConversion, save=False):
-      # galaxy or cluster catalog
-      self.name = "lowz_s_kendrick"
-      self.nameLong = "LOWZ S K"
-      
-      # path to the input catalog
-      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_S_kendrick.txt"
-   
-      super(LOWZ_S_Kendrick, self).__init__(U, MassConversion, save=save)
-
-
-##################################################################################
-
-class LOWZ_N_Kendrick(Catalog):
-   
-   def __init__(self, U, MassConversion, save=False):
-      # galaxy or cluster catalog
-      self.name = "lowz_n_kendrick"
-      self.nameLong = "LOWZ N K"
-      
-      # path to the input catalog
-      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_N_kendrick.txt"
-   
-      super(LOWZ_N_Kendrick, self).__init__(U, MassConversion, save=save)
-
-
-##################################################################################
-##################################################################################
-
-
+#
+#class CMASS_S_Mariana(Catalog):
+#
+#   def __init__(self, U, MassConversion, save=False):
+#      # galaxy or cluster catalog
+#      self.name = "cmass_s_mariana"
+#      self.nameLong = "CMASS S M"
+#
+#      # path to the input catalog
+#      self.pathInCatalog = "../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt"
+#
+#      super(CMASS_S_Mariana, self).__init__(U, MassConversion, save=save)
+#
+#
+###################################################################################
+#
+#class CMASS_N_Mariana(Catalog):
+#
+#   def __init__(self, U, MassConversion, save=False):
+#      # galaxy or cluster catalog
+#      self.name = "cmass_n_mariana"
+#      self.nameLong = "CMASS N M"
+#
+#      # path to the input catalog
+#      self.pathInCatalog = "../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt"
+#
+#      super(CMASS_N_Mariana, self).__init__(U, MassConversion, save=save)
+#
+#
+###################################################################################
+###################################################################################
+#
+#class CMASS_S_Kendrick(Catalog):
+#
+#   def __init__(self, U, MassConversion, save=False):
+#      # galaxy or cluster catalog
+#      self.name = "cmass_s_kendrick"
+#      self.nameLong = "CMASS S K"
+#
+#      # path to the input catalog
+#      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_S_kendrick.txt"
+#
+#      super(CMASS_S_Kendrick, self).__init__(U, MassConversion, save=save)
+#
+#
+###################################################################################
+#
+#class CMASS_N_Kendrick(Catalog):
+#
+#   def __init__(self, U, MassConversion, save=False):
+#      # galaxy or cluster catalog
+#      self.name = "cmass_n_kendrick"
+#      self.nameLong = "CMASS N K"
+#
+#      # path to the input catalog
+#      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_N_kendrick.txt"
+#
+#      super(CMASS_N_Kendrick, self).__init__(U, MassConversion, save=save)
+#
+#
+###################################################################################
+#
+#class LOWZ_S_Kendrick(Catalog):
+#
+#   def __init__(self, U, MassConversion, save=False):
+#      # galaxy or cluster catalog
+#      self.name = "lowz_s_kendrick"
+#      self.nameLong = "LOWZ S K"
+#
+#      # path to the input catalog
+#      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_S_kendrick.txt"
+#
+#      super(LOWZ_S_Kendrick, self).__init__(U, MassConversion, save=save)
+#
+#
+###################################################################################
+#
+#class LOWZ_N_Kendrick(Catalog):
+#
+#   def __init__(self, U, MassConversion, save=False):
+#      # galaxy or cluster catalog
+#      self.name = "lowz_n_kendrick"
+#      self.nameLong = "LOWZ N K"
+#
+#      # path to the input catalog
+#      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_N_kendrick.txt"
+#
+#      super(LOWZ_N_Kendrick, self).__init__(U, MassConversion, save=save)
+#
+#
+###################################################################################
+###################################################################################
+#
+#
