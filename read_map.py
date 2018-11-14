@@ -45,16 +45,12 @@ print("Map properties:")
 print("nTQU, nY, nX = "+str(baseMap.shape))
 print("WCS attributes: "+str(baseMap.wcs))
 
-# setup the interpolation algorithm,
-# done once for all, to speed up subsequent calls
-print "Set up interpolation"
-tStart = time()
-baseMap = utils.interpol_prefilter(baseMap, inplace=True)
-tStop = time()
-print "took", tStop-tStart, "sec"
+
+
 
 #########################################################################
 # Plot the map using enplot
+#!!! Not working, probably because of my PIL version
 
 '''
 enplot.plot(baseMap, oname="./figures/tests/planck_act_coadd_2018_08_10_f150.pdf", quantile=0.16)
@@ -63,21 +59,14 @@ enplot.plot(baseMap, oname="./figures/tests/planck_act_coadd_2018_08_10_f150.pdf
 # max = 1
 '''
 
-#!!! Not working, probably because of my PIL version
+'''
 plots = enplot.get_plots(baseMap)
 enplot.write("./figures/tests/planck_act_coadd_2018_08_10_f150.png",plots)
-
-
-
-
-
-
-
-
+'''
 
 #########################################################################
 # Naive imshow plots of the maps
-
+'''
 # temperature
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
@@ -98,25 +87,27 @@ ax=fig.add_subplot(111)
 im=ax.imshow(baseMap[2], vmin=-1.*np.std(baseMap[2].flatten()), vmax=1.*np.std(baseMap[2].flatten()))   # T
 fig.savefig("./figures/tests/imshow_U.pdf")
 fig.clf()
+'''
 
-
+#########################################################################
 #########################################################################
 #########################################################################
 # convert map to healpix, to plot and check the power spectrum
 
-
-print("Convert CAR to healpix, to plot")
+print("Convert from CAR to healpix")
 hMap = enmap.to_healpix(baseMap)
 hHitMap = enmap.to_healpix(hitMap)
 
 # save the hit count map to file, for plotting purposes
-hp.write_map(path+"healpix_f150_daynight_all_div_mono.fits", hHitMap)
+#hp.write_map(path+"healpix_f150_daynight_all_div_mono.fits", hHitMap)
 
 nSide = hp.get_nside(hMap)
 print("Nside = "+str(nSide))
 
 
-
+#########################################################################
+# Plot maps
+'''
 # Hit map
 fig=plt.figure(0)
 #
@@ -191,6 +182,192 @@ fig.clf()
 #hp.azeqview(hMap[0], fig=0, min=mean-sigma, max=mean+sigma, title="T", coord=None, cbar=True, unit='')
 #fig.savefig("./figures/tests/azeqview_T.pdf")
 #fig.clf()
+'''
+
+
+
+#########################################################################
+# Read in the Planck lensing mask, to remove the Milky Way
+
+pathPlanckLensingMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/COM_Mask_Lensing_2048_R2.00.fits"
+planckMask = hp.read_map(pathPlanckLensingMask)
+
+planckMask = hp.ud_grade(planckMask, 4096)
+
+
+# plot the Planck mask in Galactic coordinates
+fig=plt.figure(0)
+hp.mollview(planckMask, fig=0, title="Planck lensing mask", coord=None, cbar=True, unit='')
+fig.savefig("./figures/tests/planck_lensing_mask_G.pdf")
+fig.clf()
+
+
+# rotate it to equatorial coordinates
+rot = hp.Rotator(coord=['G','C'])  # Transforms galactic to equatorial coordinates
+planckMask = rot.rotate_map(planckMask)
+
+
+fig=plt.figure(0)
+hp.mollview(planckMask, fig=0, title="Planck lensing mask", coord=None, cbar=True, unit='')
+fig.savefig("./figures/tests/planck_lensing_mask_C.pdf")
+fig.clf()
+
+
+# rethreshold the mask, to make it zeros and ones
+planckMask = (planckMask>0.999).astype(np.float)
+
+
+fig=plt.figure(0)
+hp.mollview(planckMask, fig=0, title="Planck lensing mask", coord=None, cbar=True, unit='')
+fig.savefig("./figures/tests/planck_lensing_mask_C_thresh.pdf")
+fig.clf()
+
+# save the Planck lensing mask, rotated
+hp.write_map(path+"Planck_lensing_mask_4096_equatorial_coord.fits", hHitMap)
+
+
+#########################################################################
+# Mask the temperature map
+
+# mask T, Q, U
+hMap[0] *= planckMask
+hMap[1] *= planckMask
+hMap[2] *= planckMask
+
+# masked T
+mean = np.mean(hMap[0])
+sigma = np.std(hMap[0])
+#
+fig=plt.figure(0)
+hp.mollview(hMap[0], fig=0, min=mean-3.*sigma, max=mean+3.*sigma, title="T", coord=None, cbar=True, unit='')
+fig.savefig("./figures/tests/mollweide_T_masked.pdf")
+fig.clf()
+
+
+#########################################################################
+# Measure power spectrum
+
+
+# print map size in deg, nb of pixels, angular resolution in arcmin
+# get units, rescale the color plot, get a power spectrum
+print "T map has mean", np.mean(hMap[0]), " st.d dev.", np.std(hMap[0])
+
+# convert map units from Jy to K?
+
+# Adjust the lMin and lMax to the assumptions of the analysis
+# CMB S3 specs
+#cmb = StageIVCMB(beam=1., noise=1., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
+#cmb = ACTPolCMB()
+cmb = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=True)
+
+nu = 150.e9 # freq in Hz
+#cmb.dBdT(nu, cmb.Tcmb)
+
+
+
+
+
+
+def powerSpectrum(hMap, hMask=None, theory=[], fsCl=None, nBins=51, lRange=None, plot=False, path="./figures/tests/test_power.pdf", save=True):
+   """Compute the power spectrum of a healpix map.
+   """
+   
+   nSide = hp.get_nside(hMap)
+   if hMask is not None:
+      hMap *= hMask
+
+   # define ell bins
+   lMax = 3 * nSide - 1
+   if lRange is None:
+      lEdges = np.logspace(np.log10(1.), np.log10(lMax), nBins, 10.)
+   else:
+      lEdges = np.logspace(np.log10(lRange[0]), np.log10(lRange[-1]), nBins, 10.)
+
+   # Unbinned power spectrum
+   power = hp.anafast(hMap)
+   power = np.nan_to_num(power)
+
+   # corresponding ell values
+   ell = np.arange(len(power))
+
+   # Bin the power spectrum
+   Cl, lEdges, binIndices = stats.binned_statistic(ell, power, statistic='mean', bins=lEdges)
+   
+   # correct for fsky from the mask
+   if hMask is not None:
+      fsky = np.sum(hMask) / len(hMask)
+      Cl /= fsky
+
+   # bin centers
+   lCen, lEdges, binIndices = stats.binned_statistic(ell, ell, statistic='mean', bins=lEdges)
+   # when bin is empty, replace lCen by a naive expectation
+   lCenNaive = 0.5*(lEdges[:-1]+lEdges[1:])
+   lCen[np.where(np.isnan(lCen))] = lCenNaive[np.where(np.isnan(lCen))]
+   # number of modes
+   Nmodes, lEdges, binIndices = stats.binned_statistic(ell, 2*ell+1, statistic='sum', bins=lEdges)
+   Nmodes = np.nan_to_num(Nmodes)
+
+   # 1sigma uncertainty on Cl
+   if fsCl is None:
+      sCl = Cl*np.sqrt(2)
+   else:
+      sCl = np.array(map(fsCl, lCen))
+   sCl /= np.sqrt(Nmodes)
+   sCl = np.nan_to_num(sCl)
+
+   if plot:
+      factor = 1. # lCen**2
+      
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      ax.errorbar(lCen, factor*Cl, yerr=factor* sCl, c='b', fmt='.')
+      ax.errorbar(lCen, -factor*Cl, yerr=factor* sCl, c='r', fmt='.')
+      #
+      for f in theory:
+         L = np.logspace(np.log10(1.), np.log10(np.max(ell)), 201, 10.)
+         ClExpected = np.array(map(f, L))
+         ax.plot(L, factor*ClExpected, 'k')
+      #
+#         ax.axhline(0.)
+      ax.set_xscale('log', nonposx='clip')
+      ax.set_yscale('log', nonposy='clip')
+      #ax.set_xlim(1.e1, 4.e4)
+      #ax.set_ylim(1.e-5, 2.e5)
+      ax.set_xlabel(r'$\ell$')
+      #ax.set_ylabel(r'$\ell^2 C_\ell$')
+      ax.set_ylabel(r'$C_\ell$')
+      #
+      if save==True:
+         print "saving plot to "+path
+         fig.savefig(path, bbox_inches='tight')
+         fig.clf()
+      else:
+         plt.show()
+
+   return lCen, Cl, sCl
+
+
+
+## test my power spectrum code: generate a GRF, then take its power spectrum
+#cl = np.array(map(cmb.flensedTT, np.arange(3*nSide-1)))
+#cl = np.nan_to_num(cl)
+#testMap = hp.synfast(cl, nside=nSide)
+#lCen, Cl, sCl = powerSpectrum(testMap, theory=[cmb.flensedTT], fsCl=None, nBins=101, lRange=None, plot=True, path="./figures/tests/check_synfast_anafast.pdf", save=True)
+
+# Plot the power spectrum
+lCen, Cl, sCl = powerSpectrum(hMap[0], theory=[cmb.flensedTT, cmb.fdetectorNoise, cmb.fatmosphericNoiseTT, cmb.ftotalTT], fsCl=None, nBins=101, lRange=None, plot=True, path="./figures/tests/power_T_masked.pdf", save=True)
+
+# Plot the power spectrum, after weighting the map by the hit count
+#lCen, Cl, sCl = powerSpectrum(hMap[0] * hHitMap / np.mean(hHitMap), theory=[cmb.flensedTT, cmb.fdetectorNoise, cmb.fatmosphericNoiseTT, cmb.ftotalTT], fsCl=None, nBins=101, lRange=None, plot=True, path="./figures/tests/power_T_hitcountweighted.pdf", save=True)
+
+
+
+
+
+
+
+
 
 
 
@@ -199,14 +376,7 @@ fig.clf()
 # Do I understand the map? i.e. mean, std dev, units, plot?
 
 
-# print map size in deg, nb of pixels, angular resolution in arcmin
-# get units, rescale the color plot, get a power spectrum
-print "T map has mean", np.mean(baseMap[0]), " st.d dev.", np.std(baseMap[0])
 
-# convert map units from Jy to K?
-cmb = CMB()
-nu = 150.e9 # freq in Hz
-#cmb.dBdT(nu, cmb.Tcmb)
 
 
 # get the map of coordinate values
@@ -280,34 +450,6 @@ for i in range(3):
    print "- done with i="+str(i+1)+" of 3"
 '''
 
-#########################################################################
-# use healpix to get power spectrum and everything?
-'''
-# convert map to healpix, so that I can check the power spectrum
-healpMap = enmap.to_healpix(baseMap)
-
-## get power spectrum
-#Cl = hp.anafast(masked_pl, lmax = 1500)
-#pixwinf = hp.pixwin(N_side)[0:len(Cl)]
-#Cl = Cl / (pixwinf **2)
-#
-## Number of bins and range
-#Nbins = 8
-#lmin = 30
-#lmax = 1200
-#
-## binning
-#bins = np.round(np.linspace(lmin, lmax, Nbins+1)) bins = bins.astype(int)
-#lcenterbin = np.zeros(len(bins)-1)
-#binnedCl = np.zeros(len(bins)-1)
-#
-## binning
-#for k in range(0, len(bins)-1):
-#lmaxvec = np.arange(bins[k], bins[k+1], 1) lcenterbin[k] = np.round(0.5 * (bins[k] + bins[k+1])) for l in lmaxvec:
-#binnedCl[k] += Cl[l]
-#binnedCl[k] = binnedCl[k] / len(lmaxvec)
-'''
-
 
 #########################################################################
 # Play with the powspec class
@@ -376,6 +518,15 @@ matshow(map_zoom_nn[0]); show()
 #########################################################################
 #########################################################################
 # Extract postage stamp map at desired location
+'''
+# setup the interpolation algorithm,
+# done once for all, to speed up subsequent calls
+print "Set up interpolation"
+tStart = time()
+baseMap = utils.interpol_prefilter(baseMap, inplace=True)
+tStop = time()
+print "took", tStop-tStart, "sec"
+
 
 # define geometry of small square maps to be extracted
 # here 1deg * 1deg, with 0.25arcmin pixel
@@ -415,7 +566,7 @@ ax=fig.add_subplot(111)
 ax.imshow(stampMap[0])
 #
 fig.savefig("./figures/tests/stamp.pdf")
-
+'''
 
 
 #########################################################################
