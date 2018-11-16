@@ -9,60 +9,53 @@ import cmb
 reload(cmb)
 from cmb import *
 
-from enlib import enmap, utils, powspec
+#from enlib import enmap, utils, powspec
+from pixell import enmap, utils, powspec, enplot
+
+import healpy as hp
+
 # copy rotfuncs.py somewhere on your python path,
 # so you can import it
 import rotfuncs
 
 
-#########################################################################
-#########################################################################
-# Look at full map
+# for cori
+plt.switch_backend('Agg')
 
-# load a healpy map
-path = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/"
-path += "f150_daynight_all_map_mono.fits"
+
+#########################################################################
+#########################################################################
+
+# path for figures
+pathFig = "./figures/cmb_map/planck_act_coadd_2018_08_10/"
+
+# path for output
+pathOut = "./output/cmb_map/planck_act_coadd_2018_08_10/"
+
+
+#########################################################################
+# CMB power spectra
+
+cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=True)
+cmb7_3 = StageIVCMB(beam=7.3, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=True)
+
+
+
+#########################################################################
+# load maps
+
+# path for maps
+pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/"
+pathMap = pathIn + "f150_daynight_all_map_mono.fits"
+pathHit = pathIn + "f150_daynight_all_div_mono.fits"
 
 print "Read map"
-baseMap = enmap.read_map(path)
+baseMap = enmap.read_map(pathMap)
+#hitMap = enmap.read_map(pathHit)
 
-# setup the interpolation algorithm,
-# done once for all, to speed up subsequent calls
-print "Set up interpolation"
-tStart = time()
-baseMap = utils.interpol_prefilter(baseMap, inplace=True)
-tStop = time()
-print "took", tStop-tStart, "sec"
-
-
-# take a quick look in temperature,
-# to check that the source is there
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-im=ax.imshow(baseMap[0], vmin=-1.*np.std(baseMap[0].flatten()), vmax=1.*np.std(baseMap[0].flatten()))   # T
-fig.savefig("./figures/tests/full_map_T.pdf")
-fig.clf()
-
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-im=ax.imshow(baseMap[1], vmin=-1.*np.std(baseMap[1].flatten()), vmax=1.*np.std(baseMap[1].flatten()))   # T
-fig.savefig("./figures/tests/full_map_Q.pdf")
-fig.clf()
-
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-im=ax.imshow(baseMap[2], vmin=-1.*np.std(baseMap[2].flatten()), vmax=1.*np.std(baseMap[2].flatten()))   # T
-fig.savefig("./figures/tests/full_map_U.pdf")
-fig.clf()
-
-#########################################################################
-#########################################################################
-# can I try reading the map as a healpy map?
-#---> No, doesn't work!
-#
-#import healpy as hp
-#hMap = hp.read_map(path)
-
+print("Map properties:")
+print("nTQU, nY, nX = "+str(baseMap.shape))
+print("WCS attributes: "+str(baseMap.wcs))
 
 
 #########################################################################
@@ -70,21 +63,62 @@ fig.clf()
 # Do I understand the map? i.e. mean, std dev, units, plot?
 
 
-# print map size in deg, nb of pixels, angular resolution in arcmin
-# get units, rescale the color plot, get a power spectrum
-print "T map has mean", np.mean(baseMap[0]), " st.d dev.", np.std(baseMap[0])
-
-# convert map units from Jy to K?
-cmb = CMB()
-nu = 150.e9 # freq in Hz
-#cmb.dBdT(nu, cmb.Tcmb)
+#########################################################################
+# Plot the map using enplot
 
 
+'''
+# Not tested
+enplot.plot(baseMap, oname="./figures/tests/planck_act_coadd_2018_08_10_f150.pdf", quantile=0.16)
+# range = (0.1, 0.4, 0.2)
+# min = 0
+# max = 1
+'''
+
+
+plots = enplot.get_plots(baseMap)
+enplot.write(pathFig+"pixell_planck_act_coadd_2018_08_10_f150",plots)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
 # get the map of coordinate values
 pos = baseMap.posmap()
 dec = pos[0]
 ra = pos[1]
-
+'''
 
 '''
 def quickPowerEnlib(map1, map2 = None, window = None, binningParams = (200, 10000, 40), return2dPower = False):
@@ -124,6 +158,34 @@ def quickPowerEnlib(map1, map2 = None, window = None, binningParams = (200, 1000
             'power2d' : power2d if return2dPower else None}
 '''
 
+
+
+#########################################################################
+# Naive imshow plots of the maps
+'''
+# temperature
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+im=ax.imshow(baseMap[0], vmin=-1.*np.std(baseMap[0].flatten()), vmax=1.*np.std(baseMap[0].flatten()))   # T
+fig.savefig("./figures/tests/imshow_T.pdf")
+fig.clf()
+
+# Q polarization
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+im=ax.imshow(baseMap[1], vmin=-1.*np.std(baseMap[1].flatten()), vmax=1.*np.std(baseMap[1].flatten()))   # T
+fig.savefig("./figures/tests/imshow_Q.pdf")
+fig.clf()
+
+# U polarization
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+im=ax.imshow(baseMap[2], vmin=-1.*np.std(baseMap[2].flatten()), vmax=1.*np.std(baseMap[2].flatten()))   # T
+fig.savefig("./figures/tests/imshow_U.pdf")
+fig.clf()
+'''
+
+
 #########################################################################
 # use my map class to get nice plots
 '''
@@ -149,34 +211,6 @@ for i in range(3):
 #   fig.savefig("./figures/tests/act_planck_coadd_"+str(i)+".pdf")
 #   fig.clf()
    print "- done with i="+str(i+1)+" of 3"
-'''
-
-#########################################################################
-# use healpix to get power spectrum and everything?
-'''
-# convert map to healpix, so that I can check the power spectrum
-healpMap = enmap.to_healpix(baseMap)
-
-## get power spectrum
-#Cl = hp.anafast(masked_pl, lmax = 1500)
-#pixwinf = hp.pixwin(N_side)[0:len(Cl)]
-#Cl = Cl / (pixwinf **2)
-#
-## Number of bins and range
-#Nbins = 8
-#lmin = 30
-#lmax = 1200
-#
-## binning
-#bins = np.round(np.linspace(lmin, lmax, Nbins+1)) bins = bins.astype(int)
-#lcenterbin = np.zeros(len(bins)-1)
-#binnedCl = np.zeros(len(bins)-1)
-#
-## binning
-#for k in range(0, len(bins)-1):
-#lmaxvec = np.arange(bins[k], bins[k+1], 1) lcenterbin[k] = np.round(0.5 * (bins[k] + bins[k+1])) for l in lmaxvec:
-#binnedCl[k] += Cl[l]
-#binnedCl[k] = binnedCl[k] / len(lmaxvec)
 '''
 
 
@@ -247,6 +281,15 @@ matshow(map_zoom_nn[0]); show()
 #########################################################################
 #########################################################################
 # Extract postage stamp map at desired location
+'''
+# setup the interpolation algorithm,
+# done once for all, to speed up subsequent calls
+print "Set up interpolation"
+tStart = time()
+baseMap = utils.interpol_prefilter(baseMap, inplace=True)
+tStop = time()
+print "took", tStop-tStart, "sec"
+
 
 # define geometry of small square maps to be extracted
 # here 1deg * 1deg, with 0.25arcmin pixel
@@ -286,7 +329,7 @@ ax=fig.add_subplot(111)
 ax.imshow(stampMap[0])
 #
 fig.savefig("./figures/tests/stamp.pdf")
-
+'''
 
 
 #########################################################################
