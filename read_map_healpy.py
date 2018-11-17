@@ -59,18 +59,18 @@ print("WCS attributes: "+str(baseMap.wcs))
 
 #########################################################################
 #########################################################################
-# convert map to healpix, to plot and check the power spectrum
+# convert map to healpix
 
 print("Convert from CAR to healpix")
 hMap = enmap.to_healpix(baseMap)
 hHitMap = enmap.to_healpix(hitMap)
 
-# save the hit count map to file, for plotting purposes
-#hp.write_map(pathIn+"healpix_f150_daynight_all_div_mono.fits", hHitMap, overwrite=True)
+# Save healpix maps to files
+hp.write_map(pathIn+"healpix_f150_daynight_all_map_mono.fits", hMap, overwrite=True)
+hp.write_map(pathIn+"healpix_f150_daynight_all_div_mono.fits", hHitMap, overwrite=True)
 
 nSide = hp.get_nside(hMap)
 print("Nside = "+str(nSide))
-
 
 
 #########################################################################
