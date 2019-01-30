@@ -39,7 +39,6 @@ pathOut = "./output/cmb_map/planck_act_coadd_2018_08_10/"
 cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=True)
 cmb7_3 = StageIVCMB(beam=7.3, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=True)
 
-
 #########################################################################
 # load maps
 
@@ -47,10 +46,12 @@ cmb7_3 = StageIVCMB(beam=7.3, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Tr
 pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/"
 pathMap = pathIn + "f150_daynight_all_map_mono.fits"
 pathHit = pathIn + "f150_daynight_all_div_mono.fits"
+pathPSMask = pathIn + "source_mask_s16_simonecat_sn5_cross_20171105.fits"
 
-print "Read map"
+print "Read maps"
 baseMap = enmap.read_map(pathMap)
 hitMap = enmap.read_map(pathHit)
+psMask = enmap.read_map(pathPSMask)
 
 print("Map properties:")
 print("nTQU, nY, nX = "+str(baseMap.shape))
@@ -64,10 +65,15 @@ print("WCS attributes: "+str(baseMap.wcs))
 print("Convert from CAR to healpix")
 hMap = enmap.to_healpix(baseMap)
 hHitMap = enmap.to_healpix(hitMap)
+hPSMask = enmap.to_healpix(psMask)
+
+# re-threshold the PS mask
+hPSMask = (hPSMask>0.95).astype(np.float)
 
 # Save healpix maps to files
 hp.write_map(pathIn+"healpix_f150_daynight_all_map_mono.fits", hMap, overwrite=True)
 hp.write_map(pathIn+"healpix_f150_daynight_all_div_mono.fits", hHitMap, overwrite=True)
+hp.write_map(pathIn+"healpix_pointsourcemask.fits", hPSMask, overwrite=True)
 
 nSide = hp.get_nside(hMap)
 print("Nside = "+str(nSide))
@@ -78,8 +84,18 @@ print("Nside = "+str(nSide))
 '''
 hMap = hp.ud_grade(hMap, 1024)
 hHitMap = hp.ud_grade(hHitMap, 1024)
+hPSMap = hp.ud_grade(hPSMap, 1024)
 nSide = hp.get_nside(hMap)
 '''
+
+#########################################################################
+# plot the PS mask
+
+fig=plt.figure(0)
+hp.mollview(hPSMask, fig=0, title="Point source mask", max=np.max(hPSMask), coord=None, cbar=False, unit='')
+fig.savefig(pathFig+"psmask.pdf")
+fig.clf()
+
 
 #########################################################################
 # Plot the hit count map
@@ -99,7 +115,6 @@ fig.clf()
 #########################################################################
 # Generate a footprint mask from the hit map
 
-
 # copy the masked temperature map
 footMask = hHitMap.copy()
 
@@ -114,14 +129,12 @@ fig.clf()
 # save the footprint to file
 hp.write_map(pathIn+"footprint_mask.fits", footMask, overwrite=True)
 
-
 # read the footprint mask
 footMask = hp.read_map(pathIn+"footprint_mask.fits")
 
 
 #########################################################################
 # Mask the Milky Way with a Planck mask
-
 
 # Read the Planck lensing mask
 #pathPlanckLensingMask = pathIn+"/COM_Mask_Lensing_2048_R2.00.fits"
@@ -169,7 +182,6 @@ fig.clf()
 # save the Planck mask, rotated
 hp.write_map(pathIn+"Planck_mask_4096_equatorial_coord.fits", planckMask, overwrite=True)
 
-
 # read the Planck mask
 planckMask = hp.read_map(pathIn+"Planck_mask_4096_equatorial_coord.fits")
 
@@ -186,7 +198,6 @@ hp.mollview(fullMask, fig=0, title="Full mask", coord=None, cbar=True, unit='')
 fig.savefig(pathFig+"mask_foot_planck.pdf")
 fig.clf()
 
-
 # Gaussian smooth the mask
 sigma = 4. * np.pi/180. # sigma in rad. We will truncate at around 2 sigmas
 fullMask = hp.smoothing(fullMask, sigma=sigma)
@@ -199,21 +210,38 @@ fig.clf()
 # threshold the mask
 fullMask = (fullMask>0.95).astype(np.float)
 
+# combine it with the point source mask
+fullMask *= hPSMask
+
 fig=plt.figure(0)
 hp.mollview(fullMask, fig=0, title="Footprint", coord=None, cbar=True, unit='')
 fig.savefig(pathFig+"mask_foot_planck_thresh.pdf")
 fig.clf()
 
 # save the full mask
-hp.write_map(pathIn+"mask_foot_planck.fits", fullMask, overwrite=True)
-
+hp.write_map(pathIn+"mask_foot_planck_ps.fits", fullMask, overwrite=True)
 
 # read the full mask
-fullMask = hp.read_map(pathIn+"mask_foot_planck.fits")
-
+fullMask = hp.read_map(pathIn+"mask_foot_planck_ps.fits")
 
 fSky = np.sum(fullMask) / len(fullMask)
 print "unmasked fsky =", fSky
+
+
+
+
+## convert to CAR and save
+# use pixell.reproject.enmap_from_healpix, or pixell.reproject.enmap_from_healpix_interp
+#carFullMask = enmap.to_car(fullMask)  # this function does not exist
+#enmap.write_map(pathIn+"mask_foot_planck_ps_car.fits", carFullMask)
+
+
+
+
+
+
+
+
 
 
 #########################################################################

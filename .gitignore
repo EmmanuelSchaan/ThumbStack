@@ -4,6 +4,7 @@
 
 # python compiled files
 *.pyc
+*.pdf
 
 # all output files
 output/
