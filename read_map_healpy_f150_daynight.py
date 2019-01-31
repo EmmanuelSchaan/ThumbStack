@@ -10,7 +10,7 @@ reload(cmb)
 from cmb import *
 
 #from enlib import enmap, utils, powspec
-from pixell import enmap, utils, powspec, enplot
+from pixell import enmap, utils, powspec, enplot, reproject
 
 import healpy as hp
 
@@ -27,10 +27,10 @@ plt.switch_backend('Agg')
 #########################################################################
 
 # path for figures
-pathFig = "./figures/cmb_map/planck_act_coadd_2018_08_10/"
+pathFig = "./figures/cmb_map/planck_act_coadd_2018_08_10/f150_daynight/"
 
 # path for output
-pathOut = "./output/cmb_map/planck_act_coadd_2018_08_10/"
+pathOut = "./output/cmb_map/planck_act_coadd_2018_08_10/f150_daynight/"
 
 
 #########################################################################
@@ -102,13 +102,13 @@ fig.clf()
 
 fig=plt.figure(0)
 hp.mollview(hHitMap, fig=0, title="Hit count", max=0.5*np.max(hHitMap), coord=None, cbar=True, unit='')
-fig.savefig(pathFig+"hit_0.5max.pdf")
+fig.savefig(pathFig+"f150_hit_0.5max.pdf")
 fig.clf()
 
 fig=plt.figure(0)
 logHit = np.log10(np.abs(hHitMap)+1.e-5)
 hp.mollview(logHit, fig=0, title="Hit count", min=np.min(logHit), max=np.max(logHit), coord=None, cbar=False, unit='')
-fig.savefig(pathFig+"hit_log.pdf")
+fig.savefig(pathFig+"f150_hit_log.pdf")
 fig.clf()
 
 
@@ -123,14 +123,14 @@ footMask = (footMask<>0.).astype(np.float)
 
 fig=plt.figure(0)
 hp.mollview(footMask, fig=0, title="Footprint", coord=None, cbar=True, unit='')
-fig.savefig(pathFig+"footmask.pdf")
+fig.savefig(pathFig+"f150_footmask.pdf")
 fig.clf()
 
 # save the footprint to file
-hp.write_map(pathIn+"footprint_mask.fits", footMask, overwrite=True)
+hp.write_map(pathIn+"f150_footprint_mask.fits", footMask, overwrite=True)
 
 # read the footprint mask
-footMask = hp.read_map(pathIn+"footprint_mask.fits")
+footMask = hp.read_map(pathIn+"f150_footprint_mask.fits")
 
 
 #########################################################################
@@ -195,7 +195,7 @@ print "fsky =", np.sum(fullMask) / len(fullMask)
 
 fig=plt.figure(0)
 hp.mollview(fullMask, fig=0, title="Full mask", coord=None, cbar=True, unit='')
-fig.savefig(pathFig+"mask_foot_planck.pdf")
+fig.savefig(pathFig+"f150_mask_foot_planck.pdf")
 fig.clf()
 
 # Gaussian smooth the mask
@@ -204,7 +204,7 @@ fullMask = hp.smoothing(fullMask, sigma=sigma)
 
 fig=plt.figure(0)
 hp.mollview(fullMask, fig=0, title="Footprint", coord=None, cbar=True, unit='')
-fig.savefig(pathFig+"mask_foot_planck_smoothed.pdf")
+fig.savefig(pathFig+"f150_mask_foot_planck_smoothed.pdf")
 fig.clf()
 
 # threshold the mask
@@ -215,33 +215,28 @@ fullMask *= hPSMask
 
 fig=plt.figure(0)
 hp.mollview(fullMask, fig=0, title="Footprint", coord=None, cbar=True, unit='')
-fig.savefig(pathFig+"mask_foot_planck_thresh.pdf")
+fig.savefig(pathFig+"f150_mask_foot_planck_thresh.pdf")
 fig.clf()
 
 # save the full mask
-hp.write_map(pathIn+"mask_foot_planck_ps.fits", fullMask, overwrite=True)
+hp.write_map(pathIn+"f150_mask_foot_planck_ps.fits", fullMask, overwrite=True)
 
 # read the full mask
-fullMask = hp.read_map(pathIn+"mask_foot_planck_ps.fits")
+fullMask = hp.read_map(pathIn+"f150_mask_foot_planck_ps.fits")
 
 fSky = np.sum(fullMask) / len(fullMask)
 print "unmasked fsky =", fSky
 
 
-
-
-## convert to CAR and save
-# use pixell.reproject.enmap_from_healpix, or pixell.reproject.enmap_from_healpix_interp
-#carFullMask = enmap.to_car(fullMask)  # this function does not exist
-#enmap.write_map(pathIn+"mask_foot_planck_ps_car.fits", carFullMask)
-
-
-
-
-
-
-
-
+# convert to CAR
+carFullMask = reproject.enmap_from_healpix(fullMask, hitMap.shape, hitMap.wcs, rot=None)
+# re-threshold
+carFullMask = (carFullMask>0.95).astype(np.float)
+# save
+enmap.write_map(pathIn+"f150_mask_foot_planck_ps_car.fits", carFullMask)
+# check that fsky is the same
+checkFSky = np.sum(carFullMask) / (carFullMask.shape[1] * carFullMask.shape[2])
+print "checking unmasked fSky =", checkFSky
 
 
 #########################################################################
@@ -250,11 +245,11 @@ print "unmasked fsky =", fSky
 fig=plt.figure(0)
 logHit = np.log10(np.abs(fullMask * hHitMap)+1.e-5)
 hp.mollview(logHit, fig=0, title="Hit count", min=np.min(logHit), max=np.max(logHit), coord=None, cbar=False, unit='')
-fig.savefig(pathFig+"masked_hit_log.pdf")
+fig.savefig(pathFig+"f150_masked_hit_log.pdf")
 fig.clf()
 
 # save this map to file, for later illustrations
-hp.write_map(pathIn+"masked_hit_log.fits", logHit, overwrite=True)
+hp.write_map(pathIn+"f150_masked_hit_log.fits", logHit, overwrite=True)
 
 
 #########################################################################
@@ -271,7 +266,7 @@ sigma = np.std(hMap[0]) / fSky
 #
 fig=plt.figure(0)
 hp.mollview(hMap[0], fig=0, min=mean-3.*sigma, max=mean+3.*sigma, title="T", coord=None, cbar=True, unit='')
-fig.savefig(pathFig+"T_masked.pdf")
+fig.savefig(pathFig+"f150_T_masked.pdf")
 fig.clf()
 
 # plot masked Q
@@ -280,7 +275,7 @@ sigma = np.std(hMap[1]) / fSky
 #
 fig=plt.figure(0)
 hp.mollview(hMap[1], fig=0, min=mean-3.*sigma, max=mean+3.*sigma, title="Q", coord=None, cbar=True, unit='')
-fig.savefig(pathFig+"Q_masked.pdf")
+fig.savefig(pathFig+"f150_Q_masked.pdf")
 fig.clf()
 
 # plot masked U
@@ -289,7 +284,7 @@ sigma = np.std(hMap[2]) / fSky
 #
 fig=plt.figure(0)
 hp.mollview(hMap[2], fig=0, min=mean-3.*sigma, max=mean+3.*sigma, title="U", coord=None, cbar=True, unit='')
-fig.savefig(pathFig+"U_masked.pdf")
+fig.savefig(pathFig+"f150_U_masked.pdf")
 fig.clf()
 
 
@@ -400,7 +395,7 @@ fdetectorNoise = lambda l: cmb1_4.fdetectorNoise(l) * cmb1_4.fbeam(l)**2
 ftotal = lambda l: cmb1_4.ftotal(l) * cmb1_4.fbeam(l)**2
 
 # Plot the power spectrum
-lCen, Cl, sCl = powerSpectrum(hMap[0], mask=fullMask, theory=[ftotal], fsCl=None, nBins=101, lRange=None, plot=True, path=pathFig+"power_T_masked.pdf", save=True)
+lCen, Cl, sCl = powerSpectrum(hMap[0], mask=fullMask, theory=[ftotal], fsCl=None, nBins=101, lRange=None, plot=True, path=pathFig+"f150_power_T_masked.pdf", save=True)
 
 
 #########################################################################
@@ -452,7 +447,7 @@ ax.errorbar(lCen, lCen**2 * Cl, yerr=lCen**2 * sCl, c='b', fmt='.', label=r'ACT+
 ax.set_ylim((1.e2, 1.e5))
 ax.legend(loc=3)
 #
-fig.savefig(pathFig+"power_ACTPlanck_vs_P143.pdf")
+fig.savefig(pathFig+"f150_power_ACTPlanck_vs_P143.pdf")
 fig.clf()
 
 

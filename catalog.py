@@ -271,30 +271,6 @@ class Catalog(object):
       # Write the full catalog to the output path, if needed
       if save:
          self.writeCatalog()
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

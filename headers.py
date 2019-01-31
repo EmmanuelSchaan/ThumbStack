@@ -19,6 +19,19 @@ from time import time
 from copy import copy
 import sys
 
+
+# For CMB maps
+#from enlib import enmap, utils, powspec
+from pixell import enmap, utils, powspec, enplot
+import healpy as hp
+# copy rotfuncs.py somewhere on your python path,
+# so you can import it
+import rotfuncs
+
+
+
+
+
 # parallelizing "map"
 # version that works when the function is a class module
 from pathos.multiprocessing import ProcessingPool as Pool
