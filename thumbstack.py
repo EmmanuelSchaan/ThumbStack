@@ -5,8 +5,9 @@ from headers import *
 
 class ThumbStack(object):
 
-   def __init__(self, U, Catalog, pathMap="", pathMask="", pathHit="", name="test", nameLong=None, save=False):
-
+   def __init__(self, U, Catalog, pathMap="", pathMask="", pathHit="", name="test", nameLong=None, save=False, nProc=1):
+      
+      self.nProc = nProc
       self.U = U
       self.Catalog = Catalog
       self.name = name
@@ -31,11 +32,13 @@ class ThumbStack(object):
       if not os.path.exists(self.pathFig):
          os.makedirs(self.pathFig)
       
+      self.loadMaps()
+      self.loadAPRadii()
       
       if save:
          pass
       
-      self.loadMaps()
+      
 
 
 
@@ -43,6 +46,18 @@ class ThumbStack(object):
 
 
    ##################################################################################
+   ##################################################################################
+   
+   def loadAPRadii(self):
+   
+      # radii to use for AP filter: comoving Mpc/h
+      nRAp = 15
+      rApMinMpch = 1. # arcmin
+      rApMaxMpch = 10. # arcmin
+      self.RApMpch = np.linspace(rApMinMpch, rApMaxMpch, nRAps)
+   
+   
+   
    ##################################################################################
 
    def loadMaps(self):
@@ -55,9 +70,11 @@ class ThumbStack(object):
 
       # setup the interpolation algorithm,
       # done once for all, to speed up subsequent calls
-      print "Set up map interpolation"
+      print "Set up map interpolations"
       tStart = time()
       self.cmbMap = utils.interpol_prefilter(self.cmbMap, inplace=True)
+      self.cmbMask = utils.interpol_prefilter(self.cmbMask, inplace=True)
+      self.cmbHit = utils.interpol_prefilter(self.cmbHit, inplace=True)
       tStop = time()
       print "took", tStop-tStart, "sec"
 
@@ -103,5 +120,98 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def filterStamp(self, stampMap):
-      pass
+   def diskRingFilter(self, stampMap, stampMask, stampHit, r0, r1, test=False):
+      """Apply an AP filter (disk minus ring) to a stamp map.
+      The output is the mean pixel temperature among the pixels in the disk.
+      r0 and r1 are the radius of the disk and ring in radians.
+      """
+      # coordinates of the square map (between -1 and 1 deg, or whatever the size is)
+      # output map position [{dec,ra},ny,nx]
+      opos = stampMap.posmap()
+      # local coordinates in rad.
+      # zero is at the center of the map
+      dec = opos[0,:,:]
+      ra = opos[1,:,:]
+      radius = np.sqrt(ra**2 + dec**2)
+      
+      # filter
+      inDisk = 1.*(radius<=theta0)
+      inRing = 1.*(radius>theta0)*(radius<=theta1)
+      filter = inDisk / np.sum(inDisk) - inRing / np.sum(inRing)
+      # count nb of pixels where filter is strictly positive
+      nbPix = len(np.where(filter>0.)[0])
+      # estimate area of strictly positive part of filter
+      pixArea = ra.area / len(ra.flatten()) # in sr
+      diskArea = np.sum(inDisk) * pixArea  # disk area in sr
+      
+      # apply the filter to the maps
+      filtMap = np.sum(filter * stampMap)
+      filtMask = np.sum(filter * stampMask)
+      filtVar = np.sum(filter**2 / stampHit) # to get the variance (arbitrary units)
+      
+      print "  ie area of "+str(diskArea)+" sr"
+
+      if test:
+         print "- nb of pixels where filter>0: "+str(nbPix)
+         
+         print "- disk-ring filter sums over pixels to "+str(np.sum(filter))
+         print "  (should be 0; to be compared with "+str(len(filter.flatten()))+")"
+
+         print "- filter on map:"+str(filtMap)+" muK"
+         print "- filter on mask:"+str(filtMask)+" muK"
+         print "- filter on inverse hit:"+str(filtHit)+" muK"
+
+      return filtMap, filtMask, filtVar, diskArea
+
+
+   ##################################################################################
+
+
+   def doFiltering(self):
+      
+      # initialize arrays
+      self.filtMap = np.zeros((self.Catalog.nObj, self.nRAp))
+      self.filtMask = np.zeros((self.Catalog.nObj, self.nRAp))
+      self.filtVar = np.zeros((self.Catalog.nObj, self.nRAp))
+      self.diskArea = np.zeros((self.Catalog.nObj, self.nRAp))
+      
+      
+      # analysis to be done for each object
+      def analyzeObject(iObj):
+         # Object coordinates
+         ra = self.RA[iObj]   # in deg
+         dec = self.DEC[iObj] # in deg
+         z = self.Z[iObj]
+         
+         # extract postage stamp around it
+         stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=1., dyDeg=1., resArcmin=0.25, proj='cea')
+         
+         # create arrays of filter values for the given object
+         filtMap = np.zeros(self.nRAp)
+         filtMask = np.zeros(self.nRAp)
+         filtVar = np.zeros(self.nRAp)
+         diskArea = np.zeros(self.nRAp)
+         
+         # loop over the radii for the AP filter
+         for iRAp in range(self.nRAp):
+            # disk radius in comoving Mpc/h
+            rApMpch = self.RApMpch[iRAp]
+            # convert to radians at the given redshift
+            r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
+            # choose an equal area AP filter
+            r1 = r0 * np.sqrt(2.)
+            # perform the filtering
+            filtMap[iRAp], filtMask[iRAp], filtVar[iRAp], diskArea[iRAp] = self.diskRingFilter(stampMap, stampMask, stampHit, r0, r1, test=False)
+         return filtMap, filtMask, filtVar, diskArea
+
+
+      # loop over objects in the catalog
+#      pool = Pool(self.nProc)
+#      result = np.array(pool.map(analyzeObject, range(self.Catalog.nObj)))
+      result = np.array(map(analyzeObject, range(self.Catalog.nObj)))
+      self.filtMap = result[:,0,:].copy()
+      self.filtMask = result[:,1,:]
+      self.filtVar = result[:,2,:]
+      self.diskArea = result[:,3,:]
+
+

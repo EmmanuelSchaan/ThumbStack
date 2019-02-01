@@ -101,7 +101,7 @@ ipos = rotfuncs.recenter(opos[::-1], [0,0,sourcecoord[0],sourcecoord[1]])[::-1]
 stampMap = baseMap.at(ipos, prefilter=False, mask_nan=False)
 
 # save the map
-enmap.write_map("./output/tests/stamp_map.fits", stampMap)
+#enmap.write_map("./output/tests/stamp_map.fits", stampMap)
 
 
 # take a quick look in temperature,
@@ -112,6 +112,66 @@ ax=fig.add_subplot(111)
 ax.imshow(stampMap[0])
 #
 fig.savefig("./figures/tests/stamp.pdf")
+
+
+
+#########################################################################
+
+# implement the disk - ring filter
+
+# local coordinates in rad.
+# zero is at the center of the map
+dec = opos[0,:,:]
+ra = opos[1,:,:]
+radius = np.sqrt(ra**2 + dec**2)
+
+theta0 = 1./60. * np.pi/180.
+theta1 = theta0 * np.sqrt(2.)
+
+# filter map
+inDisk = 1.*(radius<=theta0)
+inRing = 1.*(radius>theta0)*(radius<=theta1)
+filter = inDisk / np.sum(inDisk)
+filter -= inRing / np.sum(inRing)
+
+# check that the filter integrates to zero
+print "- disk-ring filter sums over pixels to "+str(np.sum(filter))
+print "  (should be 0; to be compared with "+str(len(filter.flatten()))+")"
+
+# output of the filter
+filtOutput = np.sum(filter * stampMap)
+print "- output of the matched filtering:"+str(filtOutput)+" muK"
+
+
+# mean variance of the filter
+varFilter = np.sum(filter**2 * 1./stampHit)
+print "- mean var from weight map:"+str(varFilter)+" (arbitrary unit)"
+
+# count nb of pixels where filter is strictly positive
+nbPix = len(np.where(filter>0.)[0])
+print "- nb of pixels where filter>0: "+str(nbPix)
+
+# estimate area of strictly positive part of filter
+pixArea = ra.area / len(ra.flatten()) # in sr
+diskArea = np.sum(inDisk) * pixArea  # disk area in sr
+print "  ie area of "+str(diskArea)+" sr"
+#filtArea *= (self.U.ComovDist(1./(1.+z0), 1.) /(1.+z0) )**2
+#print "  ie "+str(diskArea)+"(Mpc/h)^2 physical at z="+str(z0)
+
+#print "- stellar mass: "+str(self.Catalog.Mstellar[iobj])+" Msun"
+#print "- halo mass: "+str(self.Catalog.Mvir[iobj])+" Msun"
+#print "- reconstructed velocity: "+str(self.Catalog.velR[iobj])+" km/s"
+
+## just for testing purpose
+#expectedTSZ = self.TSZ[iobj] / filtArea
+#expectedKSZ = self.Tau[iobj] * (self.Catalog.velR[iobj]/3.e5) * 2.726e6 / filtArea
+#print "- expected tSZ signal: "+str(expectedTSZ)+" muK"
+#print "- expected kSZ signal: "+str(expectedKSZ)+" muK"
+#print "- output of the matched filtering:"+str(filtOutput)+" muK"
+
+
+
+
 
 
 
