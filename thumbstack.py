@@ -36,7 +36,7 @@ class ThumbStack(object):
       self.loadAPRadii()
       
       if save:
-         pass
+         self.doFiltering()
       
       
 
@@ -51,10 +51,10 @@ class ThumbStack(object):
    def loadAPRadii(self):
    
       # radii to use for AP filter: comoving Mpc/h
-      nRAp = 15
-      rApMinMpch = 1. # arcmin
-      rApMaxMpch = 10. # arcmin
-      self.RApMpch = np.linspace(rApMinMpch, rApMaxMpch, nRAps)
+      self.nRAp = 15
+      self.rApMinMpch = 1. # arcmin
+      self.rApMaxMpch = 10. # arcmin
+      self.RApMpch = np.linspace(self.rApMinMpch, self.rApMaxMpch, self.nRAp)
    
    
    
@@ -114,13 +114,13 @@ class ThumbStack(object):
       stampMask = self.cmbMask.at(ipos, prefilter=False, mask_nan=False)
       stampHit = self.cmbHit.at(ipos, prefilter=False, mask_nan=False)
 
-      return stampMap, stampMask, stampHit
+      return opos, stampMap, stampMask, stampHit
 
 
 
    ##################################################################################
 
-   def diskRingFilter(self, stampMap, stampMask, stampHit, r0, r1, test=False):
+   def diskRingFilter(self, opos, stampMap, stampMask, stampHit, r0, r1, test=False):
       """Apply an AP filter (disk minus ring) to a stamp map.
       The output is the mean pixel temperature among the pixels in the disk.
       r0 and r1 are the radius of the disk and ring in radians.
@@ -178,13 +178,15 @@ class ThumbStack(object):
       
       # analysis to be done for each object
       def analyzeObject(iObj):
+         print "- analyzing object" + str(iObj)
+         
          # Object coordinates
-         ra = self.RA[iObj]   # in deg
-         dec = self.DEC[iObj] # in deg
-         z = self.Z[iObj]
+         ra = self.Catalog.RA[iObj]   # in deg
+         dec = self.Catalog.DEC[iObj] # in deg
+         z = self.Catalog.Z[iObj]
          
          # extract postage stamp around it
-         stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=1., dyDeg=1., resArcmin=0.25, proj='cea')
+         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=1., dyDeg=1., resArcmin=0.25, proj='cea')
          
          # create arrays of filter values for the given object
          filtMap = np.zeros(self.nRAp)
@@ -201,7 +203,7 @@ class ThumbStack(object):
             # choose an equal area AP filter
             r1 = r0 * np.sqrt(2.)
             # perform the filtering
-            filtMap[iRAp], filtMask[iRAp], filtVar[iRAp], diskArea[iRAp] = self.diskRingFilter(stampMap, stampMask, stampHit, r0, r1, test=False)
+            filtMap[iRAp], filtMask[iRAp], filtVar[iRAp], diskArea[iRAp] = self.diskRingFilter(opos, stampMap, stampMask, stampHit, r0, r1, test=False)
          return filtMap, filtMask, filtVar, diskArea
 
 

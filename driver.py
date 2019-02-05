@@ -10,6 +10,10 @@ import catalog
 reload(catalog)
 from catalog import *
 
+import thumbstack
+reload(thumbstack)
+from thumbstack import *
+
 #import cmb_map
 #reload(cmb_map)
 #from cmb_map import *
@@ -65,7 +69,7 @@ cmassMariana.addCatalog(cmassNMariana, save=True)
 
 ###################################################################################
 # Kendrick
-
+'''
 # CMASS
 cmassSKendrick = Catalog(u, massConversion, name="cmass_s_kendrick", nameLong="CMASS S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_S_kendrick.txt", save=False)
 #cmassSKendrick.plotHistograms()
@@ -103,7 +107,7 @@ bossKendrick.addCatalog(lowzSKendrick, save=True)
 bossKendrick.addCatalog(lowzNKendrick, save=True)
 #bossKendrick.plotHistograms()
 #bossKendrick.plotFootprint()
-
+'''
 ###################################################################################
 
 #
@@ -168,6 +172,21 @@ bossKendrick.addCatalog(lowzNKendrick, save=True)
 ##catalog.printProperties()
 ##catalog.compareV1dRms()
 #
+
+
+###################################################################################
+# Read CMB maps and do filtering
+
+# Planck + ACT 150GHz day and night
+pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/"
+pathMap = pathIn + "f150_daynight_all_map_mono.fits"
+pathHit = pathIn + "f150_daynight_all_div_mono.fits"
+pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"   #"source_mask_s16_simonecat_sn5_cross_20171105.fits"
+name = cmassMariana.nameLong + "_pactf150daynight"
+
+
+ts = ThumbStack(u, cmassMariana, pathMap=pathMap, pathMask=pathMask, pathHit=pathHit, name=name, nameLong=None, save=True, nProc=1)
+
 
 
 
