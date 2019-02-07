@@ -1,3 +1,4 @@
+'''
 import numpy as np, time
 import matplotlib.pyplot as pl
 
@@ -9,13 +10,46 @@ import rotfuncs
 # then some synlink magic...
 # it all happened in seconds when Sigurd did it :)
 from enlib import enmap, utils
+'''
+from headers import *
+
+# Planck + ACT 150GHz day and night
+pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/"
+pathMap = pathIn + "f150_daynight_all_map_mono.fits"
+pathHit = pathIn + "f150_daynight_all_div_mono.fits"
+pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"
 
 # load a healpy map
-bigmap = enmap.read_map("f090_daynight_act_map_mono_0.fits")
+bigmap = enmap.read_map(pathHit)
 
 # setup the interpolation algorithm,
 # done once for all, to speed up subsequent calls
 bigmap = utils.interpol_prefilter(bigmap, inplace=True)
+
+
+##########################################################################
+
+# Get map value at specific location on the sky
+ra = 22. # deg
+dec = 0. # deg
+sourcecoord = np.array([dec, ra])*utils.degree
+bigmap.at(sourcecoord, prefilter=False, mask_nan=False)
+
+
+
+#It should be (dec,ra). Note that enmap.at() uses interpolation to get that value. If you want to get the value at the nearest pixel, I would do
+#y,x = enmap.sky2pix(np.array([dec,ra])*utils.degree)
+#then round it however you like, and then access it with imap[...,y,x]. These are all approximate of course. If you want something that has been written a bit more carefully, you should consider
+#pixell.reproject.postage_stamp (https://github.com/simonsobs/pixell/blob/master/pixell/reproject.py#L13 )
+#whose central pixel should have what you need. One still needs to worry about pixel window from interpolation.
+
+
+
+
+
+
+
+##########################################################################
 
 # define geometry of small square maps to be extracted
 # here 1deg * 1deg, with 0.25arcmin pixel

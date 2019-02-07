@@ -36,6 +36,7 @@ class ThumbStack(object):
       self.loadAPRadii()
       
       if save:
+         self.createOverlapFlag()
          self.doFiltering()
       
       
@@ -80,6 +81,31 @@ class ThumbStack(object):
 
 
    ##################################################################################
+   
+   def createOverlapFlag(self):
+   
+   
+      pass
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   ##################################################################################
+   
 
    def extractStamp(self, ra, dec, dxDeg=1., dyDeg=1., resArcmin=0.25, proj='cea'):
       """Extracts a small CEA or CAR map around the given position, with the given angular size and resolution.
@@ -127,7 +153,7 @@ class ThumbStack(object):
       """
       # coordinates of the square map (between -1 and 1 deg, or whatever the size is)
       # output map position [{dec,ra},ny,nx]
-      opos = stampMap.posmap()
+#      opos = stampMap.posmap()
       # local coordinates in rad.
       # zero is at the center of the map
       dec = opos[0,:,:]
@@ -135,24 +161,23 @@ class ThumbStack(object):
       radius = np.sqrt(ra**2 + dec**2)
       
       # filter
-      inDisk = 1.*(radius<=theta0)
-      inRing = 1.*(radius>theta0)*(radius<=theta1)
+      inDisk = 1.*(radius<=r0)
+      inRing = 1.*(radius>r0)*(radius<=r1)
       filter = inDisk / np.sum(inDisk) - inRing / np.sum(inRing)
       # count nb of pixels where filter is strictly positive
       nbPix = len(np.where(filter>0.)[0])
       # estimate area of strictly positive part of filter
-      pixArea = ra.area / len(ra.flatten()) # in sr
+      pixArea = ra.area() / len(ra.flatten()) # in sr
       diskArea = np.sum(inDisk) * pixArea  # disk area in sr
       
       # apply the filter to the maps
       filtMap = np.sum(filter * stampMap)
       filtMask = np.sum(filter * stampMask)
       filtVar = np.sum(filter**2 / stampHit) # to get the variance (arbitrary units)
-      
-      print "  ie area of "+str(diskArea)+" sr"
 
       if test:
          print "- nb of pixels where filter>0: "+str(nbPix)
+         print "  ie area of "+str(diskArea)+" sr"
          
          print "- disk-ring filter sums over pixels to "+str(np.sum(filter))
          print "  (should be 0; to be compared with "+str(len(filter.flatten()))+")"
