@@ -78,6 +78,7 @@ def sky2map(dec, ra=45.):
 
 
 # check the hit map as a function of dec, at fixed ra = 0
+# this uses interpolation with the nearest pixels
 def sky2map(dec, ra=45.):
    # interpolate the map to the given sky coordinates
    sourcecoord = np.array([dec, ra])*utils.degree

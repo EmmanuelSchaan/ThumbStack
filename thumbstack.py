@@ -37,11 +37,7 @@ class ThumbStack(object):
       
       if save:
          self.createOverlapFlag()
-         self.doFiltering()
-      
-      
-
-
+#         self.doFiltering()
 
 
 
@@ -82,25 +78,37 @@ class ThumbStack(object):
 
    ##################################################################################
    
-   def createOverlapFlag(self):
-   
-   
-      pass
-   
-   
-   
-   
-   
-   
-   
-   
-   
+   # check the hit map as a function of dec, at fixed ra = 0
+   # this uses interpolation with the nearest pixels
+   def sky2map(self, ra, dec, map):
+      '''Gives the map value at coordinates (ra, dec).
+      The value is interpolated between the nearest pixels.
+      Will return 0 if the coordinates requested are outside the map
+      '''
+      # interpolate the map to the given sky coordinates
+      sourcecoord = np.array([dec, ra]) * utils.degree
+      return map.at(sourcecoord, prefilter=False, mask_nan=False)
    
    
    
-   
-   
-   
+   def createOverlapFlag(self, nProc=1):
+      
+      # find if a given object overlaps with the CMB hit map
+      def foverlap(iObj, thresh=1.e-5):
+         '''Returns 1. if the object overlaps with the hit map and 0. otherwise.
+         '''
+         ra = self.Catalog.RA[iObj]
+         dec = self.Catalog.DEC[iObj]
+         hit = self.sky2map(ra, dec, self.cmbHit)
+         result = np.float(hit>thresh)
+         return result
+      
+      # loop over all objects
+      if nProc==1:
+         self.overlapFlag = np.array(map(foverlap, range(self.Catalog.nObj)))
+      else:
+         poll = Pool(nProc)
+         self.overlapFlag = np.array(pool.map(foverlap, range(self.Catalog.nObj)))
    
    
    
