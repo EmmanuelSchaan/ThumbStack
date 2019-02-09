@@ -35,6 +35,17 @@ from thumbstack import *
 #from posterior_alpha import *
 
 ##################################################################################
+
+nProc = 32 # 1 haswell node on cori
+
+
+
+
+
+
+
+##################################################################################
+##################################################################################
 # cosmological parameters
 
 u = UnivMariana()
@@ -186,6 +197,16 @@ name = cmassMariana.nameLong + "_pactf150daynight"
 
 
 ts = ThumbStack(u, cmassMariana, pathMap=pathMap, pathMask=pathMask, pathHit=pathHit, name=name, nameLong=None, save=True, nProc=1)
+
+
+
+
+
+## test multiprocessing
+#f = lambda x: 0.
+#
+#pool = Pool(3)
+#pool.map(f, range(3))
 
 
 

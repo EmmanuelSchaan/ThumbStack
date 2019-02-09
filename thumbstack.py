@@ -36,8 +36,12 @@ class ThumbStack(object):
       self.loadAPRadii()
       
       if save:
-         self.createOverlapFlag()
-#         self.doFiltering()
+         self.saveOverlapFlag(nProc=self.nProc)
+      self.loadOverlapFlag()
+      
+      if save:
+         self.doFiltering(nProc=self.nProc)
+
 
 
 
@@ -91,24 +95,43 @@ class ThumbStack(object):
    
    
    
-   def createOverlapFlag(self, nProc=1):
-      
+   def saveOverlapFlag(self, nProc=1):
+      print "Create overlap flag"
       # find if a given object overlaps with the CMB hit map
       def foverlap(iObj, thresh=1.e-5):
          '''Returns 1. if the object overlaps with the hit map and 0. otherwise.
          '''
+         if iObj%10000==0:
+            print "-", iObj
          ra = self.Catalog.RA[iObj]
          dec = self.Catalog.DEC[iObj]
          hit = self.sky2map(ra, dec, self.cmbHit)
-         result = np.float(hit>thresh)
-         return result
+         return np.float(hit>thresh)
       
-      # loop over all objects
-      if nProc==1:
-         self.overlapFlag = np.array(map(foverlap, range(self.Catalog.nObj)))
-      else:
-         poll = Pool(nProc)
-         self.overlapFlag = np.array(pool.map(foverlap, range(self.Catalog.nObj)))
+      
+      
+
+#      # loop over all objects
+#      tStart = time()
+#      if nProc==1:
+#         overlapFlag = np.array(map(foverlap, range(self.Catalog.nObj)))
+#      else:
+#         pool = Pool(nProc)
+#         overlapFlag = np.array(pool.map(foverlap, range(self.Catalog.nObj)))
+#      tStop = time()
+
+
+      tStart = time()
+      with sharedmem.MapReduce() as pool:
+         overlapFlag = np.array(pool.map(foverlap, range(self.Catalog.nObj)))
+      tStop = time()
+      print "took", tStop-tStart, "sec"
+      print "Out of", self.Catalog.nObj, "objects,", np.sum(overlapFlag), "overlap, ie a fraction", np.sum(overlapFlag)/self.Catalog.nObj
+      np.savetxt(self.pathOut+"/overlap_flag.txt", overlapFlag)
+   
+   
+   def loadOverlapFlag(self):
+      self.overlapFlag = np.genfromtxt(self.pathOut+"/overlap_flag.txt")
    
    
    
@@ -200,7 +223,7 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def doFiltering(self):
+   def doFiltering(self, nProc=1):
       
       # initialize arrays
       self.filtMap = np.zeros((self.Catalog.nObj, self.nRAp))
@@ -211,15 +234,9 @@ class ThumbStack(object):
       
       # analysis to be done for each object
       def analyzeObject(iObj):
-         print "- analyzing object" + str(iObj)
          
-         # Object coordinates
-         ra = self.Catalog.RA[iObj]   # in deg
-         dec = self.Catalog.DEC[iObj] # in deg
-         z = self.Catalog.Z[iObj]
-         
-         # extract postage stamp around it
-         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=1., dyDeg=1., resArcmin=0.25, proj='cea')
+         if iObj%1000==0:
+            print "-", iObj
          
          # create arrays of filter values for the given object
          filtMap = np.zeros(self.nRAp)
@@ -227,23 +244,39 @@ class ThumbStack(object):
          filtVar = np.zeros(self.nRAp)
          diskArea = np.zeros(self.nRAp)
          
-         # loop over the radii for the AP filter
-         for iRAp in range(self.nRAp):
-            # disk radius in comoving Mpc/h
-            rApMpch = self.RApMpch[iRAp]
-            # convert to radians at the given redshift
-            r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
-            # choose an equal area AP filter
-            r1 = r0 * np.sqrt(2.)
-            # perform the filtering
-            filtMap[iRAp], filtMask[iRAp], filtVar[iRAp], diskArea[iRAp] = self.diskRingFilter(opos, stampMap, stampMask, stampHit, r0, r1, test=False)
+         # only do the analysis if the object overlaps with the CMB map
+         if self.overlapFlag[iObj]:
+            # Object coordinates
+            ra = self.Catalog.RA[iObj]   # in deg
+            dec = self.Catalog.DEC[iObj] # in deg
+            z = self.Catalog.Z[iObj]
+            
+            # extract postage stamp around it
+            opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=1., dyDeg=1., resArcmin=0.25, proj='cea')
+            
+            # loop over the radii for the AP filter
+            for iRAp in range(self.nRAp):
+               # disk radius in comoving Mpc/h
+               rApMpch = self.RApMpch[iRAp]
+               # convert to radians at the given redshift
+               r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
+               # choose an equal area AP filter
+               r1 = r0 * np.sqrt(2.)
+               # perform the filtering
+               filtMap[iRAp], filtMask[iRAp], filtVar[iRAp], diskArea[iRAp] = self.diskRingFilter(opos, stampMap, stampMask, stampHit, r0, r1, test=False)
+   
          return filtMap, filtMask, filtVar, diskArea
 
 
-      # loop over objects in the catalog
-#      pool = Pool(self.nProc)
-#      result = np.array(pool.map(analyzeObject, range(self.Catalog.nObj)))
-      result = np.array(map(analyzeObject, range(self.Catalog.nObj)))
+      # loop over all objects in catalog
+      tStart = time()
+      if nProc==1:
+         result = np.array(map(analyzeObject, range(self.Catalog.nObj)))
+      else:
+         pool = Pool(nProc)
+         result = np.array(pool.map(analyzeObject, range(self.Catalog.nObj)))
+      tStop = time()
+      print "took", tStop-tStart, "sec"
       self.filtMap = result[:,0,:].copy()
       self.filtMask = result[:,1,:]
       self.filtVar = result[:,2,:]

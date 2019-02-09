@@ -36,7 +36,9 @@ import rotfuncs
 # version that works when the function is a class module
 from pathos.multiprocessing import ProcessingPool as Pool
 #from multiprocess import Pool
-# import sharedmem   # library from Yu Feng to fork rather than pickle
+
+# Yu Feng's version of multiprocessing, relying on forking rather than pickling
+import sharedmem
 
 import vegas   # for Monte Carlo integration, for CMB lens reconstruction
 #import gvar as gv
