@@ -4,7 +4,6 @@ from headers import *
 #  Mathematical functions
 
 
-
 def W3d_sth(x):
    """Fourier transform of a 3d spherical top hat window function.
    Use x = k*R as input,
@@ -81,7 +80,6 @@ def intExpForm(input):
       return mantissa + 'e' + exponent
 
 
-
 def floatExpForm(input):
    """same as intExpForm, except always leaves the decimal point
    """
@@ -96,5 +94,10 @@ def floatExpForm(input):
       return mantissa
    else:
       return mantissa + 'e' + exponent
+
+
+##################################################################################
+
+
 
 

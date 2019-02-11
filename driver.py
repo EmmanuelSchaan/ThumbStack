@@ -34,6 +34,16 @@ from thumbstack import *
 #reload(posterior_alpha)
 #from posterior_alpha import *
 
+
+
+# running on cori
+# 68 cores per knl node, 32 cores per haswell node
+#salloc -N 3 --qos=interactive -C haswell -t 04:00:00 -L SCRATCH
+
+# for cori
+plt.switch_backend('Agg')
+
+
 ##################################################################################
 
 nProc = 32 # 1 haswell node on cori
@@ -210,11 +220,40 @@ ts = ThumbStack(u, cmassSMariana, pathMap=pathMap, pathMask=pathMask, pathHit=pa
 
 
 
-## test multiprocessing
-#f = lambda x: 0.
+
+
+
+
+'''
+mask = ts.catalogMask(overlap=True, mVir=None, extraSelection=1.)
+
+
+
+ts.filtMap[np.where(np.isfinite(ts.filtMap)==False)] = 0.
+
+
+      # mask highest masses?
+      Y = Y[~mask]
+      TSZ = TSZ[~mask]
+      KSZ = KSZ[~mask]
+      Nobj = len(KSZ)
+
+
+
+
+ts.medianFiltMap = np.median(ts.filtMap, axis=0)
+
+
+
+
+
+
+fig=plt.figure(0)
+ax=fig.subplot(111)
 #
-#pool = Pool(3)
-#pool.map(f, range(3))
+ax.plot(ts.RApMpch, ts.medianFiltMap)
+'''
+
 
 
 
