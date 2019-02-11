@@ -24,23 +24,22 @@ class ThumbStack(object):
       if not os.path.exists(self.pathOut):
          os.makedirs(self.pathOut)
 
-#      # catalog path
-#      self.pathOutCatalog = self.pathOut + "/catalog.txt"
-
       # Figures path
       self.pathFig = "./figures/catalog/"+self.name
       if not os.path.exists(self.pathFig):
          os.makedirs(self.pathFig)
-      
-      self.loadMaps()
+   
+   
+      self.loadMaps(nProc=self.nProc)
       self.loadAPRadii()
       
-      if save:
-         self.saveOverlapFlag(nProc=self.nProc)
+#      if save:
+#         self.saveOverlapFlag(nProc=self.nProc)
       self.loadOverlapFlag()
       
       if save:
-         self.doFiltering(nProc=self.nProc)
+         self.saveFiltering(nProc=self.nProc)
+      self.loadFiltering()
 
 
 
@@ -52,30 +51,35 @@ class ThumbStack(object):
    def loadAPRadii(self):
    
       # radii to use for AP filter: comoving Mpc/h
-      self.nRAp = 15
+      self.nRAp = 7  #15
       self.rApMinMpch = 1. # arcmin
-      self.rApMaxMpch = 10. # arcmin
+      self.rApMaxMpch = 5  #10. # arcmin
       self.RApMpch = np.linspace(self.rApMinMpch, self.rApMaxMpch, self.nRAp)
    
    
    
    ##################################################################################
 
-   def loadMaps(self):
+   def loadMaps(self, nProc=1):
+      ''' Couldn't be parallelized with sharedmem:
+      OverflowError: cannot serialize a string larger than 2 GiB
+      '''
+      tStart = time()
+
       print "Read CMB map"
       self.cmbMap = enmap.read_map(self.pathMap)
       print "Read CMB mask"
       self.cmbMask = enmap.read_map(self.pathMask)
-      print "Read hit count map"
+      print "Read CMB hit"
       self.cmbHit = enmap.read_map(self.pathHit)
-
+      
+      print "Set up interpolations"
       # setup the interpolation algorithm,
       # done once for all, to speed up subsequent calls
-      print "Set up map interpolations"
-      tStart = time()
       self.cmbMap = utils.interpol_prefilter(self.cmbMap, inplace=True)
       self.cmbMask = utils.interpol_prefilter(self.cmbMask, inplace=True)
       self.cmbHit = utils.interpol_prefilter(self.cmbHit, inplace=True)
+
       tStop = time()
       print "took", tStop-tStart, "sec"
 
@@ -108,9 +112,9 @@ class ThumbStack(object):
          hit = self.sky2map(ra, dec, self.cmbHit)
          return np.float(hit>thresh)
       
-#         overlapFlag = np.array(map(foverlap, range(self.Catalog.nObj)))
+#      overlapFlag = np.array(map(foverlap, range(self.Catalog.nObj)))
       tStart = time()
-      with sharedmem.MapReduce() as pool:
+      with sharedmem.MapReduce(np=nProc) as pool:
          overlapFlag = np.array(pool.map(foverlap, range(self.Catalog.nObj)))
       tStop = time()
       print "took", tStop-tStart, "sec"
@@ -126,7 +130,7 @@ class ThumbStack(object):
    ##################################################################################
    
 
-   def extractStamp(self, ra, dec, dxDeg=1., dyDeg=1., resArcmin=0.25, proj='cea'):
+   def extractStamp(self, ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea'):
       """Extracts a small CEA or CAR map around the given position, with the given angular size and resolution.
       """
 
@@ -211,7 +215,7 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def doFiltering(self, nProc=1):
+   def saveFiltering(self, nProc=1):
       
       # initialize arrays
       self.filtMap = np.zeros((self.Catalog.nObj, self.nRAp))
@@ -240,7 +244,7 @@ class ThumbStack(object):
             z = self.Catalog.Z[iObj]
             
             # extract postage stamp around it
-            opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=1., dyDeg=1., resArcmin=0.25, proj='cea')
+            opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea')
             
             # loop over the radii for the AP filter
             for iRAp in range(self.nRAp):
@@ -257,17 +261,29 @@ class ThumbStack(object):
 
 
       # loop over all objects in catalog
+#      result = np.array(map(analyzeObject, range(self.Catalog.nObj)))
       tStart = time()
-      if nProc==1:
-         result = np.array(map(analyzeObject, range(self.Catalog.nObj)))
-      else:
-         pool = Pool(nProc)
+      with sharedmem.MapReduce(np=nProc) as pool:
          result = np.array(pool.map(analyzeObject, range(self.Catalog.nObj)))
       tStop = time()
       print "took", tStop-tStart, "sec"
+      
+      # unpack and save to file
       self.filtMap = result[:,0,:].copy()
-      self.filtMask = result[:,1,:]
-      self.filtVar = result[:,2,:]
-      self.diskArea = result[:,3,:]
+      np.savetxt(self.pathOut+"/filtmap.txt", self.filtMap)
+      #
+      self.filtMask = result[:,1,:].copy()
+      np.savetxt(self.pathOut+"/filtmask.txt", self.filtMask)
+      #
+      self.filtVar = result[:,2,:].copy()
+      np.savetxt(self.pathOut+"/filtvar.txt", self.filtVar)
+      #
+      self.diskArea = result[:,3,:].copy()
+      np.savetxt(self.pathOut+"/diskarea.txt", self.diskArea)
 
 
+   def loadFiltering(self):
+      self.filtMap = np.genfromtxt(self.pathOut+"/filtmap.txt")
+      self.filtMask = np.genfromtxt(self.pathOut+"/filtmask.txt")
+      self.filtVar = np.genfromtxt(self.pathOut+"/filtvar.txt")
+      self.diskArea = np.genfromtxt(self.pathOut+"/diskarea.txt")
