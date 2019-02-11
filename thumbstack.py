@@ -101,26 +101,14 @@ class ThumbStack(object):
       def foverlap(iObj, thresh=1.e-5):
          '''Returns 1. if the object overlaps with the hit map and 0. otherwise.
          '''
-         if iObj%10000==0:
+         if iObj%100000==0:
             print "-", iObj
          ra = self.Catalog.RA[iObj]
          dec = self.Catalog.DEC[iObj]
          hit = self.sky2map(ra, dec, self.cmbHit)
          return np.float(hit>thresh)
       
-      
-      
-
-#      # loop over all objects
-#      tStart = time()
-#      if nProc==1:
 #         overlapFlag = np.array(map(foverlap, range(self.Catalog.nObj)))
-#      else:
-#         pool = Pool(nProc)
-#         overlapFlag = np.array(pool.map(foverlap, range(self.Catalog.nObj)))
-#      tStop = time()
-
-
       tStart = time()
       with sharedmem.MapReduce() as pool:
          overlapFlag = np.array(pool.map(foverlap, range(self.Catalog.nObj)))
