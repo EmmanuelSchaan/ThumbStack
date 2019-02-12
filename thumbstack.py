@@ -5,7 +5,8 @@ from headers import *
 
 class ThumbStack(object):
 
-   def __init__(self, U, Catalog, pathMap="", pathMask="", pathHit="", name="test", nameLong=None, save=False, nProc=1):
+#   def __init__(self, U, Catalog, pathMap="", pathMask="", pathHit="", name="test", nameLong=None, save=False, nProc=1):
+   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit, name="test", nameLong=None, save=False, nProc=1):
       
       self.nProc = nProc
       self.U = U
@@ -15,9 +16,9 @@ class ThumbStack(object):
          self.nameLong = self.name
       else:
          self.nameLong = nameLong
-      self.pathMap = pathMap
-      self.pathMask = pathMask
-      self.pathHit = pathHit
+      self.cmbMap = cmbMap
+      self.cmbMask = cmbMask
+      self.cmbHit = cmbHit
       
       # Output path
       self.pathOut = "./output/thumbstack/"+self.name
@@ -30,7 +31,7 @@ class ThumbStack(object):
          os.makedirs(self.pathFig)
    
    
-      self.loadMaps(nProc=self.nProc)
+#      self.loadMaps(nProc=self.nProc)
       self.loadAPRadii()
       
       if save:
@@ -55,33 +56,6 @@ class ThumbStack(object):
       self.rApMinMpch = 1. # arcmin
       self.rApMaxMpch = 5  #10. # arcmin
       self.RApMpch = np.linspace(self.rApMinMpch, self.rApMaxMpch, self.nRAp)
-   
-   
-   
-   ##################################################################################
-
-   def loadMaps(self, nProc=1):
-      ''' Couldn't be parallelized with sharedmem:
-      OverflowError: cannot serialize a string larger than 2 GiB
-      '''
-      tStart = time()
-
-      print "Read CMB map"
-      self.cmbMap = enmap.read_map(self.pathMap)
-      print "Read CMB mask"
-      self.cmbMask = enmap.read_map(self.pathMask)
-      print "Read CMB hit"
-      self.cmbHit = enmap.read_map(self.pathHit)
-      
-      print "Set up interpolations"
-      # setup the interpolation algorithm,
-      # done once for all, to speed up subsequent calls
-      self.cmbMap = utils.interpol_prefilter(self.cmbMap, inplace=True)
-      self.cmbMask = utils.interpol_prefilter(self.cmbMask, inplace=True)
-      self.cmbHit = utils.interpol_prefilter(self.cmbHit, inplace=True)
-
-      tStop = time()
-      print "took", tStop-tStart, "sec"
 
 
    ##################################################################################
@@ -117,7 +91,7 @@ class ThumbStack(object):
       with sharedmem.MapReduce(np=nProc) as pool:
          overlapFlag = np.array(pool.map(foverlap, range(self.Catalog.nObj)))
       tStop = time()
-      print "took", tStop-tStart, "sec"
+      print "took", (tStop-tStart)/60., "min"
       print "Out of", self.Catalog.nObj, "objects,", np.sum(overlapFlag), "overlap, ie a fraction", np.sum(overlapFlag)/self.Catalog.nObj
       np.savetxt(self.pathOut+"/overlap_flag.txt", overlapFlag)
    
@@ -190,7 +164,8 @@ class ThumbStack(object):
       # disk filter [dimensionless]
       inDisk = 1.*(radius<=r0)
       # ring filter [dimensionless], normalized so that the disk-ring filter integrates exactly to zero
-      inRing = 1.*(radius>r0)*(radius<=r1) * np.sum(inDisk) / np.sum(inRing)
+      inRing = 1.*(radius>r0)*(radius<=r1)
+      inRing *= np.sum(inDisk) / np.sum(inRing)
       # disk minus ring filter [dimensionless]
       filter = inDisk - inRing
       
@@ -199,12 +174,34 @@ class ThumbStack(object):
       # exact angular area of disk [sr]
       diskArea = np.sum(inDisk) * pixArea
 
-      # apply the filter to the maps
+      # apply the filter
       filtMap = np.sum(pixArea * filter * stampMap)   # [map unit * sr]
-      filtMask = np.sum(pixArea * filter * stampMask)   # [mask unit * sr]
-      filtVar = np.sum(pixArea * filter**2 / stampHit) # to get the variance [sr / hit unit]
+      
+      # detect point sources within the filter:
+      # gives 0 in the absence of point sources/edges; gives >=1 in the presence of point sources/edges
+      filtMask = np.sum((radius<=r1) * (1-stampMask))   # [dimensionless]
+      
+      # quantify noise std dev in the filter
+      filtNoiseStdDev = np.std(np.sum((pixArea * filter)**2 / stampHit)) # to get the variance [sr / hit unit]
 
       if test:
+         
+         print "- plot the map"
+         plots = enplot.plot(stampMap,grid=True)
+         plt.show()
+
+         print "- plot the mask"
+         plots = enplot.plot(stampMask,grid=True)
+         plt.show()
+
+         print "- plot the hit"
+         plots = enplot.plot(stampHit,grid=True)
+         plt.show()
+
+         print "- plot the filter"
+         plots = enplot.plot(filter,grid=True)
+         plt.show()
+
          # count nb of pixels where filter is strictly positive
          nbPix = len(np.where(filter>0.)[0])
          print "- nb of pixels where filter>0: "+str(nbPix)
@@ -213,14 +210,51 @@ class ThumbStack(object):
          print "- disk-ring filter sums over pixels to "+str(np.sum(filter))
          print "  (should be 0; to be compared with "+str(len(filter.flatten()))+")"
 
-         print "- filter on map:"+str(filtMap)+" muK"
-         print "- filter on mask:"+str(filtMask)+" muK"
-         print "- filter on inverse hit:"+str(filtHit)+" muK"
+         print "- filter on map:"+str(filtMap)
+         print "- filter on mask:"+str(filtMask)
+         print "- filter on inverse hit:"+str(filtHit)
 
-      return filtMap, filtMask, filtVar, diskArea
+      return filtMap, filtMask, filtNoiseStdDev, diskArea
 
 
    ##################################################################################
+
+
+   # analysis to be done for each object
+   def analyzeObject(self, iObj, test=False):
+      
+      if iObj%1000==0:
+         print "-", iObj
+      
+      # create arrays of filter values for the given object
+      filtMap = np.zeros(self.nRAp)
+      filtMask = np.zeros(self.nRAp)
+      filtNoiseStdDev = np.zeros(self.nRAp)
+      diskArea = np.zeros(self.nRAp)
+      
+      # only do the analysis if the object overlaps with the CMB map
+      if self.overlapFlag[iObj]:
+         # Object coordinates
+         ra = self.Catalog.RA[iObj]   # in deg
+         dec = self.Catalog.DEC[iObj] # in deg
+         z = self.Catalog.Z[iObj]
+         
+         # extract postage stamp around it
+         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea')
+         
+         # loop over the radii for the AP filter
+         for iRAp in range(self.nRAp):
+            # disk radius in comoving Mpc/h
+            rApMpch = self.RApMpch[iRAp]
+            # convert to radians at the given redshift
+            r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
+            # choose an equal area AP filter
+            r1 = r0 * np.sqrt(2.)
+            # perform the filtering
+            filtMap[iRAp], filtMask[iRAp], filtNoiseStdDev[iRAp], diskArea[iRAp] = self.diskRingFilter(opos, stampMap, stampMask, stampHit, r0, r1, test=test)
+
+      return filtMap, filtMask, filtNoiseStdDev, diskArea
+
 
 
    def saveFiltering(self, nProc=1):
@@ -228,53 +262,53 @@ class ThumbStack(object):
       # initialize arrays
       self.filtMap = np.zeros((self.Catalog.nObj, self.nRAp))
       self.filtMask = np.zeros((self.Catalog.nObj, self.nRAp))
-      self.filtVar = np.zeros((self.Catalog.nObj, self.nRAp))
+      self.filtNoiseStdDev = np.zeros((self.Catalog.nObj, self.nRAp))
       self.diskArea = np.zeros((self.Catalog.nObj, self.nRAp))
       
       
-      # analysis to be done for each object
-      def analyzeObject(iObj):
-         
-         if iObj%1000==0:
-            print "-", iObj
-         
-         # create arrays of filter values for the given object
-         filtMap = np.zeros(self.nRAp)
-         filtMask = np.zeros(self.nRAp)
-         filtVar = np.zeros(self.nRAp)
-         diskArea = np.zeros(self.nRAp)
-         
-         # only do the analysis if the object overlaps with the CMB map
-         if self.overlapFlag[iObj]:
-            # Object coordinates
-            ra = self.Catalog.RA[iObj]   # in deg
-            dec = self.Catalog.DEC[iObj] # in deg
-            z = self.Catalog.Z[iObj]
-            
-            # extract postage stamp around it
-            opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea')
-            
-            # loop over the radii for the AP filter
-            for iRAp in range(self.nRAp):
-               # disk radius in comoving Mpc/h
-               rApMpch = self.RApMpch[iRAp]
-               # convert to radians at the given redshift
-               r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
-               # choose an equal area AP filter
-               r1 = r0 * np.sqrt(2.)
-               # perform the filtering
-               filtMap[iRAp], filtMask[iRAp], filtVar[iRAp], diskArea[iRAp] = self.diskRingFilter(opos, stampMap, stampMask, stampHit, r0, r1, test=False)
-   
-         return filtMap, filtMask, filtVar, diskArea
+#      # analysis to be done for each object
+#      def analyzeObject(iObj):
+#
+#         if iObj%1000==0:
+#            print "-", iObj
+#
+#         # create arrays of filter values for the given object
+#         filtMap = np.zeros(self.nRAp)
+#         filtMask = np.zeros(self.nRAp)
+#         filtNoiseStdDev = np.zeros(self.nRAp)
+#         diskArea = np.zeros(self.nRAp)
+#
+#         # only do the analysis if the object overlaps with the CMB map
+#         if self.overlapFlag[iObj]:
+#            # Object coordinates
+#            ra = self.Catalog.RA[iObj]   # in deg
+#            dec = self.Catalog.DEC[iObj] # in deg
+#            z = self.Catalog.Z[iObj]
+#
+#            # extract postage stamp around it
+#            opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea')
+#
+#            # loop over the radii for the AP filter
+#            for iRAp in range(self.nRAp):
+#               # disk radius in comoving Mpc/h
+#               rApMpch = self.RApMpch[iRAp]
+#               # convert to radians at the given redshift
+#               r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
+#               # choose an equal area AP filter
+#               r1 = r0 * np.sqrt(2.)
+#               # perform the filtering
+#               filtMap[iRAp], filtMask[iRAp], filtNoiseStdDev[iRAp], diskArea[iRAp] = self.diskRingFilter(opos, stampMap, stampMask, stampHit, r0, r1, test=False)
+#
+#         return filtMap, filtMask, filtNoiseStdDev, diskArea
 
 
       # loop over all objects in catalog
-#      result = np.array(map(analyzeObject, range(self.Catalog.nObj)))
+#      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
-         result = np.array(pool.map(analyzeObject, range(self.Catalog.nObj)))
+         result = np.array(pool.map(self.analyzeObject, range(self.Catalog.nObj)))
       tStop = time()
-      print "took", tStop-tStart, "sec"
+      print "took", (tStop-tStart)/60., "min"
       
       # unpack and save to file
       self.filtMap = result[:,0,:].copy()
@@ -283,8 +317,8 @@ class ThumbStack(object):
       self.filtMask = result[:,1,:].copy()
       np.savetxt(self.pathOut+"/filtmask.txt", self.filtMask)
       #
-      self.filtVar = result[:,2,:].copy()
-      np.savetxt(self.pathOut+"/filtvar.txt", self.filtVar)
+      self.filtNoiseStdDev = result[:,2,:].copy()
+      np.savetxt(self.pathOut+"/filtnoisestddev.txt", self.filtNoiseStdDev)
       #
       self.diskArea = result[:,3,:].copy()
       np.savetxt(self.pathOut+"/diskarea.txt", self.diskArea)
@@ -293,7 +327,7 @@ class ThumbStack(object):
    def loadFiltering(self):
       self.filtMap = np.genfromtxt(self.pathOut+"/filtmap.txt")
       self.filtMask = np.genfromtxt(self.pathOut+"/filtmask.txt")
-      self.filtVar = np.genfromtxt(self.pathOut+"/filtvar.txt")
+      self.filtNoiseStdDev = np.genfromtxt(self.pathOut+"/filtnoisestddev.txt")
       self.diskArea = np.genfromtxt(self.pathOut+"/diskarea.txt")
 
 
@@ -308,7 +342,7 @@ class ThumbStack(object):
       # Here mask is 1 for objects we want to keep
       mask = np.ones_like(self.Catalog.RA)
       if mVir is not None:
-         mask = (self.Catalog.Mvir>=mVir[0]) * (self.Catalog.Mvir<=mVir[1])
+         mask *= (self.Catalog.Mvir>=mVir[0]) * (self.Catalog.Mvir<=mVir[1])
       if overlap:
          mask *= self.overlapFlag.copy()
 #!!!! MANUWARNING: implement this, to avoid point sources!
@@ -324,7 +358,7 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def stack(self, quantity, mask, weights, norm=False, nProc=self.nProc):
+   def stack(self, quantity, mask, weights, norm=False):
       '''Stacks the quantity for the objects selected by mask,
       applying weights from weight.
       The quantity can be a single value per object, or an array for each object,
@@ -350,9 +384,9 @@ class ThumbStack(object):
       #
       ax.set_xlabel(r'$R$ [cMpc/h]')
       ax.set_ylabel(nameLatex)
-      fig.savefig(self.pathFig+"/stack_"+name+".pdf")
-      fig.clf()
-
+#      fig.savefig(self.pathFig+"/stack_"+name+".pdf")
+#      fig.clf()
+      plt.show()
 
    ##################################################################################
 
@@ -406,21 +440,39 @@ class ThumbStack(object):
          ax.set_xscale('log', nonposx='clip')
       ax.set_xlabel(nameLatex)
       ax.set_ylabel(r'number of objects')
-      fig.savefig(self.pathFig+"/hist_"+name+".pdf")
-      fig.clf()
+#      fig.savefig(self.pathFig+"/hist_"+name+".pdf")
+#      fig.clf()
+      plt.show()
 
 
+   ##################################################################################
 
-   def plotHistograms(self):
+
+   def examineHistograms(self):
       
+      
+#      self.catalogMask(overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1.)
+#      self.histogram(DEC[~mask], nBins=71, lim=(-90., 90.), sigma2Theory=None, name='x', nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False)
+
       # check that the non-overlapping objects are the ones with the correct DEC
+      mask = self.catalogMask(overlap=True)
+      self.histogram(self.Catalog.DEC[~mask], nBins=71, lim=(-30., 90.), name='dec_overlap', nameLatex=r'Dec [deg]')
       
-      # see which objects are masked, in terms of DEC?
+      # check the values of the filters on the point source mask, to find a relevant cut
+      x = self.filtMask[~mask,0]
+      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='psmaskvalue', nameLatex=r'PS mask value')
       
       # is the scatter in T reasonable? Does any weighting help?
+      for iRAp in range(self.nRAp):
+         x = self.filtMap[~mask, iRAp]
+         self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='filtvalue'+str(iRAp), nameLatex=r'AP filter value')
+      
       
       # is the kSZ signal visible by eye from the histogram? Probably not.
       # what about the tSZ signal?
+      for iRAp in range(self.nRAp):
+         x = self.filtMap[~mask, iRAp] * self.Catalog.vR[~mask]
+         self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='tv'+str(iRAp), nameLatex=r'$T\times v_r$ [$\mu $K $\times$ km/s]')
       
       pass
 

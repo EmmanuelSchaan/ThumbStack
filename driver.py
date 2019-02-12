@@ -40,9 +40,6 @@ from thumbstack import *
 # 68 cores per knl node, 32 cores per haswell node
 #salloc -N 3 --qos=interactive -C haswell -t 04:00:00 -L SCRATCH
 
-# for cori
-plt.switch_backend('Agg')
-
 
 ##################################################################################
 
@@ -198,7 +195,36 @@ bossKendrick.addCatalog(lowzNKendrick, save=True)
 
 
 ###################################################################################
-# Read CMB maps and do filtering
+###################################################################################
+# Read CMB maps
+
+# Planck + ACT 150GHz day and night
+pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/"
+pathMap = pathIn + "f150_daynight_all_map_mono.fits"
+pathHit = pathIn + "f150_daynight_all_div_mono.fits"
+pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"
+
+tStart = time()
+print "- Read CMB map, mask and hit count"
+pact150Map = enmap.read_map(pathMap)
+pact150Mask = enmap.read_map(pathMask)
+pact150Hit = enmap.read_map(pathHit)
+print "Set up interpolations"
+#pact150Map = utils.interpol_prefilter(pact150Map, inplace=True)
+#pact150Mask = utils.interpol_prefilter(pact150Mask, inplace=True)
+#pact150Hit = utils.interpol_prefilter(pact150Hit, inplace=True)
+
+utils.interpol_prefilter(pact150Map, inplace=True)
+utils.interpol_prefilter(pact150Mask, inplace=True)
+utils.interpol_prefilter(pact150Hit, inplace=True)
+
+tStop = time()
+print "took", (tStop-tStart)/60., "min"
+
+
+###################################################################################
+###################################################################################
+# Stacking
 
 
 import thumbstack
@@ -206,19 +232,17 @@ reload(thumbstack)
 from thumbstack import *
 
 
-# Planck + ACT 150GHz day and night
-pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/"
-pathMap = pathIn + "f150_daynight_all_map_mono.fits"
-pathHit = pathIn + "f150_daynight_all_div_mono.fits"
-pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"   #"source_mask_s16_simonecat_sn5_cross_20171105.fits"
+
 name = cmassSMariana.name + "_pactf150daynight"
+ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
-ts = ThumbStack(u, cmassSMariana, pathMap=pathMap, pathMask=pathMask, pathHit=pathHit, name=name, nameLong=None, save=True, nProc=nProc)
+#ts = ThumbStack(u, cmassSMariana, pathMap=pathMap, pathMask=pathMask, pathHit=pathHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
 
 
+#ts.examineHistograms()
 
 
 
