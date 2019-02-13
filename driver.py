@@ -206,17 +206,18 @@ pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"
 
 tStart = time()
 print "- Read CMB map, mask and hit count"
-pact150Map = enmap.read_map(pathMap)
+pact150Map = enmap.read_map(pathMap)[0]   # keep only temperature
 pact150Mask = enmap.read_map(pathMask)
 pact150Hit = enmap.read_map(pathHit)
 print "Set up interpolations"
-#pact150Map = utils.interpol_prefilter(pact150Map, inplace=True)
-#pact150Mask = utils.interpol_prefilter(pact150Mask, inplace=True)
-#pact150Hit = utils.interpol_prefilter(pact150Hit, inplace=True)
+pact150Map = utils.interpol_prefilter(pact150Map, inplace=True)
+pact150Mask = utils.interpol_prefilter(pact150Mask, inplace=True)
+pact150Hit = utils.interpol_prefilter(pact150Hit, inplace=True)
 
-utils.interpol_prefilter(pact150Map, inplace=True)
-utils.interpol_prefilter(pact150Mask, inplace=True)
-utils.interpol_prefilter(pact150Hit, inplace=True)
+# test: this should be equivalent to what's above
+#utils.interpol_prefilter(pact150Map, inplace=True)
+#utils.interpol_prefilter(pact150Mask, inplace=True)
+#utils.interpol_prefilter(pact150Hit, inplace=True)
 
 tStop = time()
 print "took", (tStop-tStart)/60., "min"
@@ -234,15 +235,39 @@ from thumbstack import *
 
 
 name = cmassSMariana.name + "_pactf150daynight"
-ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
-
-
-#ts = ThumbStack(u, cmassSMariana, pathMap=pathMap, pathMask=pathMask, pathHit=pathHit, name=name, nameLong=None, save=False, nProc=nProc)
+ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
 
+
+
+#ts.analyzeObject(0, test=True)
 
 #ts.examineHistograms()
+
+
+
+
+'''
+iObj = 0
+ra = ts.Catalog.RA[iObj]
+dec = ts.Catalog.DEC[iObj]
+
+opos, stampMap, stampMask, stampHit = ts.extractStamp(ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea', test=False)
+
+plots = enplot.plot(stampMap, grid=True)
+
+
+path = ts.pathTestFig+"/test.pdf"
+#plots.write(path, plots)
+enplot.write(path,plots)
+
+
+'''
+
+
+
+
 
 
 

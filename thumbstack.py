@@ -29,7 +29,11 @@ class ThumbStack(object):
       self.pathFig = "./figures/thumbstack/"+self.name
       if not os.path.exists(self.pathFig):
          os.makedirs(self.pathFig)
-   
+      # test figures path
+      self.pathTestFig = self.pathFig+"/tests"
+      if not os.path.exists(self.pathTestFig):
+         os.makedirs(self.pathTestFig)
+
    
 #      self.loadMaps(nProc=self.nProc)
       self.loadAPRadii()
@@ -52,10 +56,17 @@ class ThumbStack(object):
    def loadAPRadii(self):
    
       # radii to use for AP filter: comoving Mpc/h
-      self.nRAp = 7  #15
-      self.rApMinMpch = 1. # arcmin
-      self.rApMaxMpch = 5  #10. # arcmin
+      self.nRAp = 4  #15
+      
+      # Aperture radii in Mpc/h
+      self.rApMinMpch = 1.
+      self.rApMaxMpch = 5
       self.RApMpch = np.linspace(self.rApMinMpch, self.rApMaxMpch, self.nRAp)
+      
+      # Aperture radii in arcmin
+      self.rAnMinArcmin = 1.
+      self.rAnMaxArcmin = 4.
+      self.RApArcmin = np.linspace(self.rAnMinArcmin, self.rAnMaxArcmin, self.nRAp)
 
 
    ##################################################################################
@@ -104,7 +115,7 @@ class ThumbStack(object):
    ##################################################################################
    
 
-   def extractStamp(self, ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea'):
+   def extractStamp(self, ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea', test=False):
       """Extracts a small CEA or CAR map around the given position, with the given angular size and resolution.
       """
 
@@ -119,6 +130,8 @@ class ThumbStack(object):
       # probably good to extract bigger stamp than needed for now
       shape, wcs = enmap.geometry(np.array([[-0.5*dxDeg,-0.5*dyDeg],[0.5*dxDeg,0.5*dyDeg]])*utils.degree, res=resArcmin*utils.arcmin, proj=proj)
       stampMap = enmap.zeros(shape, wcs)
+      stampMask = enmap.zeros(shape, wcs)
+      stampHit = enmap.zeros(shape, wcs)
 
       # coordinates of the square map (between -1 and 1 deg)
       # output map position [{dec,ra},ny,nx]
@@ -133,9 +146,21 @@ class ThumbStack(object):
       ipos = rotfuncs.recenter(opos[::-1], [0,0,sourcecoord[0],sourcecoord[1]])[::-1]
 
       # extract the small square map by interpolating the big healpy map
-      stampMap = self.cmbMap.at(ipos, prefilter=False, mask_nan=False)
-      stampMask = self.cmbMask.at(ipos, prefilter=False, mask_nan=False)
-      stampHit = self.cmbHit.at(ipos, prefilter=False, mask_nan=False)
+      # these are now numpy arrays: the wcs info is gone
+      stampMap[:,:] = self.cmbMap.at(ipos, prefilter=False, mask_nan=False)
+      stampMask[:,:] = self.cmbMask.at(ipos, prefilter=False, mask_nan=False)
+      stampHit[:,:] = self.cmbHit.at(ipos, prefilter=False, mask_nan=False)
+
+      if test:
+         print "- plot the map"
+         plots=enplot.get_plots(stampMap,grid=True)
+         enplot.write(self.pathTestFig+"/stampmap_ra"+np.str(np.round(ra, 2))+"_dec"+np.str(np.round(dec, 2)), plots)
+         print "- plot the mask"
+         plots=enplot.get_plots(stampMask,grid=True)
+         enplot.write(self.pathTestFig+"/stampmask_ra"+np.str(np.round(ra, 2))+"_dec"+np.str(np.round(dec, 2)), plots)
+         print "- plot the hit"
+         plots=enplot.get_plots(stampHit,grid=True)
+         enplot.write(self.pathTestFig+"/stamphit_ra"+np.str(np.round(ra, 2))+"_dec"+np.str(np.round(dec, 2)), plots)
 
       return opos, stampMap, stampMask, stampHit
 
@@ -184,23 +209,25 @@ class ThumbStack(object):
       # quantify noise std dev in the filter
       filtNoiseStdDev = np.std(np.sum((pixArea * filter)**2 / stampHit)) # to get the variance [sr / hit unit]
 
+
       if test:
-         
+         '''
          print "- plot the map"
-         plots = enplot.plot(stampMap,grid=True)
-         plt.show()
-
+         plots=enplot.plot(stampMap,grid=True)
+         plots.write(self.pathFig+"/stampmap_obj"+str(iObj)+".pdf")
          print "- plot the mask"
-         plots = enplot.plot(stampMask,grid=True)
-         plt.show()
-
+         plots=enplot.plot(stampMask,grid=True)
+         plots.write(self.pathFig+"/stampmask_obj"+str(iObj)+".pdf")
          print "- plot the hit"
          plots = enplot.plot(stampHit,grid=True)
-         plt.show()
-
+         plots.write(self.pathFig+"/stamphit_obj"+str(iObj)+".pdf")
+         '''
          print "- plot the filter"
-         plots = enplot.plot(filter,grid=True)
-         plt.show()
+         filterMap = stampMap.copy()
+         filterMap[:,:] = filter.copy()
+         plots=enplot.get_plots(filterMap,grid=True)
+         enplot.write(self.pathTestFig+"/stampfilter_r0"+floatExpForm(r0)+"_r1"+floatExpForm(r1), plots)
+         
 
          # count nb of pixels where filter is strictly positive
          nbPix = len(np.where(filter>0.)[0])
@@ -212,7 +239,7 @@ class ThumbStack(object):
 
          print "- filter on map:"+str(filtMap)
          print "- filter on mask:"+str(filtMask)
-         print "- filter on inverse hit:"+str(filtHit)
+         print "- filter on inverse hit:"+str(filtNoiseStdDev)
 
       return filtMap, filtMask, filtNoiseStdDev, diskArea
 
@@ -240,16 +267,26 @@ class ThumbStack(object):
          z = self.Catalog.Z[iObj]
          
          # extract postage stamp around it
-         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea')
+         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea', test=test)
          
          # loop over the radii for the AP filter
          for iRAp in range(self.nRAp):
-            # disk radius in comoving Mpc/h
-            rApMpch = self.RApMpch[iRAp]
-            # convert to radians at the given redshift
-            r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
+            
+#            # disk radius in comoving Mpc/h
+#            rApMpch = self.RApMpch[iRAp]
+#            # convert to radians at the given redshift
+#            r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
+
+
+            # Disk radius in rad
+            r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
+            
+            
             # choose an equal area AP filter
             r1 = r0 * np.sqrt(2.)
+            
+            
+            
             # perform the filtering
             filtMap[iRAp], filtMask[iRAp], filtNoiseStdDev[iRAp], diskArea[iRAp] = self.diskRingFilter(opos, stampMap, stampMask, stampHit, r0, r1, test=test)
 
@@ -345,9 +382,9 @@ class ThumbStack(object):
          mask *= (self.Catalog.Mvir>=mVir[0]) * (self.Catalog.Mvir<=mVir[1])
       if overlap:
          mask *= self.overlapFlag.copy()
-#!!!! MANUWARNING: implement this, to avoid point sources!
-#      if psMask:
-#         mask *=
+      # PS mask: look at largest aperture, and remove if any point within the disk or ring is masked
+      if psMask:
+         mask *= 1-self.filtMap[:, -1]
       mask *= extraSelection
 
       # Here mask is 1 for objects to discard (convenient for inversion)
@@ -391,7 +428,7 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def histogram(self, X, nBins=71, lim=(-1000., 1000.), sigma2Theory=None, name='x', nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False):
+   def histogram(self, X, nBins=71, lim=(-1000., 1000.), sigma2Theory=None, name='x', nameLatex=r'$x$ [km/s]', semilogx=False, semilogy=False, doGauss=False):
       """Generic histogram plotter.
       """
       # Bin edges
@@ -438,11 +475,13 @@ class ThumbStack(object):
       ax.set_xlim((lim[0], lim[1]))
       if semilogx:
          ax.set_xscale('log', nonposx='clip')
+      if semilogy:
+         ax.set_yscale('log', nonposy='clip')
       ax.set_xlabel(nameLatex)
       ax.set_ylabel(r'number of objects')
-#      fig.savefig(self.pathFig+"/hist_"+name+".pdf")
-#      fig.clf()
-      plt.show()
+      fig.savefig(self.pathFig+"/hist_"+name+".pdf", bbox_inches='tight')
+      fig.clf()
+#      plt.show()
 
 
    ##################################################################################
@@ -454,25 +493,36 @@ class ThumbStack(object):
 #      self.catalogMask(overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1.)
 #      self.histogram(DEC[~mask], nBins=71, lim=(-90., 90.), sigma2Theory=None, name='x', nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False)
 
+      # first, keep all objects that overlap, even the masked ones
+      mask = self.catalogMask(overlap=True, psMask=False)
+
       # check that the non-overlapping objects are the ones with the correct DEC
-      mask = self.catalogMask(overlap=True)
       self.histogram(self.Catalog.DEC[~mask], nBins=71, lim=(-30., 90.), name='dec_overlap', nameLatex=r'Dec [deg]')
       
       # check the values of the filters on the point source mask, to find a relevant cut
-      x = self.filtMask[~mask,0]
-      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='psmaskvalue', nameLatex=r'PS mask value')
+      # look at the largest aperture
+      x = self.filtMask[~mask,-1]
+      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='psmaskvalue_before', nameLatex=r'PS mask value', semilogy=True)
       
-      # is the scatter in T reasonable? Does any weighting help?
+      # then  remove the objects that overlap with point sources
+      mask = self.catalogMask(overlap=True, psMask=True)
+
+      # redo the mask histogram, to check
+      x = self.filtMask[~mask,-1]
+      self.histogram(x, nBins=71, lim=(-1., 1.), name='psmaskvalue_after', nameLatex=r'PS mask value', semilogy=True)
+      
+      # is the scatter in T reasonable? Are there outliers?
       for iRAp in range(self.nRAp):
          x = self.filtMap[~mask, iRAp]
-         self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='filtvalue'+str(iRAp), nameLatex=r'AP filter value')
+         self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='filtvalue'+str(iRAp), nameLatex=r'AP filter value', semilogy=True)
       
       
       # is the kSZ signal visible by eye from the histogram? Probably not.
       # what about the tSZ signal?
+      # are there outliers?
       for iRAp in range(self.nRAp):
          x = self.filtMap[~mask, iRAp] * self.Catalog.vR[~mask]
-         self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='tv'+str(iRAp), nameLatex=r'$T\times v_r$ [$\mu $K $\times$ km/s]')
+         self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='tv'+str(iRAp), nameLatex=r'$T\times v_r$ [$\mu $K $\times$ km/s]', semilogy=True)
       
       pass
 

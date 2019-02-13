@@ -20,7 +20,7 @@ import rotfuncs
 
 
 # for cori
-plt.switch_backend('Agg')
+#plt.switch_backend('Agg')
 
 
 #########################################################################
