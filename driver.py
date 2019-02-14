@@ -238,10 +238,10 @@ name = cmassSMariana.name + "_pactf150daynight"
 ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
+#mask = ts.catalogMask(overlap=True, psMask=True)
 
 
-
-#ts.analyzeObject(0, test=True)
+ts.analyzeObject(0, test=True)
 
 #ts.examineHistograms()
 

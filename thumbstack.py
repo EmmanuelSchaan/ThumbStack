@@ -152,14 +152,22 @@ class ThumbStack(object):
       stampHit[:,:] = self.cmbHit.at(ipos, prefilter=False, mask_nan=False)
 
       if test:
-         print "- plot the map"
-         plots=enplot.get_plots(stampMap,grid=True)
+         print "Map:"
+         print "- min, mean, max =", np.min(stampMap), np.mean(stampMap), np.max(stampMap)
+         print "- plot"
+         plots=enplot.get_plots(stampMap, grid=True)
          enplot.write(self.pathTestFig+"/stampmap_ra"+np.str(np.round(ra, 2))+"_dec"+np.str(np.round(dec, 2)), plots)
-         print "- plot the mask"
-         plots=enplot.get_plots(stampMask,grid=True)
+
+         print "Mask:"
+         print "- min, mean, max =", np.min(stampMask), np.mean(stampMask), np.max(stampMask)
+         print "- plot"
+         plots=enplot.get_plots(stampMask, grid=True)
          enplot.write(self.pathTestFig+"/stampmask_ra"+np.str(np.round(ra, 2))+"_dec"+np.str(np.round(dec, 2)), plots)
+
+         print "Hit count:"
+         print "- min, mean, max =", np.min(stampHit), np.mean(stampHit), np.max(stampHit)
          print "- plot the hit"
-         plots=enplot.get_plots(stampHit,grid=True)
+         plots=enplot.get_plots(stampHit, grid=True)
          enplot.write(self.pathTestFig+"/stamphit_ra"+np.str(np.round(ra, 2))+"_dec"+np.str(np.round(dec, 2)), plots)
 
       return opos, stampMap, stampMask, stampHit
@@ -378,17 +386,23 @@ class ThumbStack(object):
       '''
       # Here mask is 1 for objects we want to keep
       mask = np.ones_like(self.Catalog.RA)
+      #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       if mVir is not None:
          mask *= (self.Catalog.Mvir>=mVir[0]) * (self.Catalog.Mvir<=mVir[1])
+         #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       if overlap:
          mask *= self.overlapFlag.copy()
+         #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       # PS mask: look at largest aperture, and remove if any point within the disk or ring is masked
       if psMask:
-         mask *= 1-self.filtMap[:, -1]
+         mask *= 1.*(np.abs(self.filtMask[:,-1])<1.)
+         #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       mask *= extraSelection
+      #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
 
-      # Here mask is 1 for objects to discard (convenient for inversion)
+      # Make mask is 1 for objects to discard (convenient for inversion)
       mask = 1 - mask
+      #print "keeping", np.sum(1-mask)/len(mask), " of objects"
       mask = mask.astype(bool)
       return mask
 
@@ -509,7 +523,7 @@ class ThumbStack(object):
 
       # redo the mask histogram, to check
       x = self.filtMask[~mask,-1]
-      self.histogram(x, nBins=71, lim=(-1., 1.), name='psmaskvalue_after', nameLatex=r'PS mask value', semilogy=True)
+      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='psmaskvalue_after', nameLatex=r'PS mask value', semilogy=True)
       
       # is the scatter in T reasonable? Are there outliers?
       for iRAp in range(self.nRAp):
