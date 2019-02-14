@@ -209,15 +209,18 @@ print "- Read CMB map, mask and hit count"
 pact150Map = enmap.read_map(pathMap)[0]   # keep only temperature
 pact150Mask = enmap.read_map(pathMask)
 pact150Hit = enmap.read_map(pathHit)
-print "Set up interpolations"
-pact150Map = utils.interpol_prefilter(pact150Map, inplace=True)
-pact150Mask = utils.interpol_prefilter(pact150Mask, inplace=True)
-pact150Hit = utils.interpol_prefilter(pact150Hit, inplace=True)
 
-# test: this should be equivalent to what's above
-#utils.interpol_prefilter(pact150Map, inplace=True)
-#utils.interpol_prefilter(pact150Mask, inplace=True)
-#utils.interpol_prefilter(pact150Hit, inplace=True)
+
+print "Set up interpolations"
+# This pre-filtering step introduces some ringing in the maps
+
+#pact150Map = utils.interpol_prefilter(pact150Map, inplace=True)
+#pact150Mask = utils.interpol_prefilter(pact150Mask, inplace=True)
+#pact150Hit = utils.interpol_prefilter(pact150Hit, inplace=True)
+
+utils.interpol_prefilter(pact150Map, inplace=True)
+utils.interpol_prefilter(pact150Mask, inplace=True, order=2)   # order=2 seems to reduce ringing at sharp transitions
+utils.interpol_prefilter(pact150Hit, inplace=True)
 
 tStop = time()
 print "took", (tStop-tStart)/60., "min"
@@ -242,6 +245,8 @@ ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name
 
 
 ts.analyzeObject(0, test=True)
+
+ts.examine_cmb_maps()
 
 #ts.examineHistograms()
 

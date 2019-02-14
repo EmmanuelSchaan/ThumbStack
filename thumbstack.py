@@ -83,6 +83,7 @@ class ThumbStack(object):
       return map.at(sourcecoord, prefilter=False, mask_nan=False)
    
    
+   ##################################################################################
    
    def saveOverlapFlag(self, nProc=1):
       print "Create overlap flag"
@@ -110,6 +111,22 @@ class ThumbStack(object):
    def loadOverlapFlag(self):
       self.overlapFlag = np.genfromtxt(self.pathOut+"/overlap_flag.txt")
    
+   
+   ##################################################################################
+   
+   def examine_cmb_maps(self):
+   
+      # mask histogram
+      x = self.cmbMask.flatten()
+      self.histogram(x, nBins=501, lim=(np.min(x), np.max(x)), name='cmbmask', nameLatex=r'CMB mask value', semilogy=True)
+
+      # map histogram
+      x = self.cmbMap.flatten()
+      self.histogram(x, nBins=501, lim=(np.min(x), np.max(x)), name='cmbmap', nameLatex=r'CMB map value', semilogy=True, doGauss=True, sigma2Theory=110.**2)
+
+      # hit count histogram
+      x = self.cmbHit.flatten()
+      self.histogram(x, nBins=501, lim=(np.min(x), np.max(x)), name='cmbhit', nameLatex=r'CMB hit count', semilogy=True)
    
    
    ##################################################################################
@@ -150,24 +167,29 @@ class ThumbStack(object):
       stampMap[:,:] = self.cmbMap.at(ipos, prefilter=False, mask_nan=False)
       stampMask[:,:] = self.cmbMask.at(ipos, prefilter=False, mask_nan=False)
       stampHit[:,:] = self.cmbHit.at(ipos, prefilter=False, mask_nan=False)
+      
+      # re-threshold the mask map, to keep 0 and 1 only
+      stampMask[:,:] = 1.*(stampMask[:,:]>0.95)
 
       if test:
+         print "Extracted cutouts around ra=", ra, "dec=", dec
+         
          print "Map:"
          print "- min, mean, max =", np.min(stampMap), np.mean(stampMap), np.max(stampMap)
          print "- plot"
-         plots=enplot.get_plots(stampMap, grid=True)
+         plots=enplot.plot(stampMap, grid=True)
          enplot.write(self.pathTestFig+"/stampmap_ra"+np.str(np.round(ra, 2))+"_dec"+np.str(np.round(dec, 2)), plots)
 
          print "Mask:"
          print "- min, mean, max =", np.min(stampMask), np.mean(stampMask), np.max(stampMask)
          print "- plot"
-         plots=enplot.get_plots(stampMask, grid=True)
+         plots=enplot.plot(stampMask, grid=True)
          enplot.write(self.pathTestFig+"/stampmask_ra"+np.str(np.round(ra, 2))+"_dec"+np.str(np.round(dec, 2)), plots)
 
          print "Hit count:"
          print "- min, mean, max =", np.min(stampHit), np.mean(stampHit), np.max(stampHit)
          print "- plot the hit"
-         plots=enplot.get_plots(stampHit, grid=True)
+         plots=enplot.plot(stampHit, grid=True)
          enplot.write(self.pathTestFig+"/stamphit_ra"+np.str(np.round(ra, 2))+"_dec"+np.str(np.round(dec, 2)), plots)
 
       return opos, stampMap, stampMask, stampHit
@@ -215,39 +237,29 @@ class ThumbStack(object):
       filtMask = np.sum((radius<=r1) * (1-stampMask))   # [dimensionless]
       
       # quantify noise std dev in the filter
-      filtNoiseStdDev = np.std(np.sum((pixArea * filter)**2 / stampHit)) # to get the variance [sr / hit unit]
+      filtNoiseStdDev = np.sqrt(np.sum((pixArea * filter)**2 / stampHit)) # to get the std devs [sr / hit unit]
 
 
       if test:
-         '''
-         print "- plot the map"
-         plots=enplot.plot(stampMap,grid=True)
-         plots.write(self.pathFig+"/stampmap_obj"+str(iObj)+".pdf")
-         print "- plot the mask"
-         plots=enplot.plot(stampMask,grid=True)
-         plots.write(self.pathFig+"/stampmask_obj"+str(iObj)+".pdf")
-         print "- plot the hit"
-         plots = enplot.plot(stampHit,grid=True)
-         plots.write(self.pathFig+"/stamphit_obj"+str(iObj)+".pdf")
-         '''
-         print "- plot the filter"
-         filterMap = stampMap.copy()
-         filterMap[:,:] = filter.copy()
-         plots=enplot.get_plots(filterMap,grid=True)
-         enplot.write(self.pathTestFig+"/stampfilter_r0"+floatExpForm(r0)+"_r1"+floatExpForm(r1), plots)
-         
+         print "AP filter with disk radius =", r0 * (180.*60./np.pi), "arcmin"
 
          # count nb of pixels where filter is strictly positive
          nbPix = len(np.where(filter>0.)[0])
          print "- nb of pixels where filter>0: "+str(nbPix)
-         print "  ie area of "+str(diskArea)+" sr"
+         print "  ie area of "+str(diskArea)+" sr, ie "+str(diskArea * (180.*60./np.pi)**2)+"arcmin^2"
          
          print "- disk-ring filter sums over pixels to "+str(np.sum(filter))
-         print "  (should be 0; to be compared with "+str(len(filter.flatten()))+")"
+         print "  (should be 0; compared to "+str(len(filter.flatten()))+")"
 
          print "- filter on map:"+str(filtMap)
          print "- filter on mask:"+str(filtMask)
          print "- filter on inverse hit:"+str(filtNoiseStdDev)
+
+         print "- plot the filter"
+         filterMap = stampMap.copy()
+         filterMap[:,:] = filter.copy()
+         plots=enplot.plot(filterMap,grid=True)
+         enplot.write(self.pathTestFig+"/stampfilter_r0"+floatExpForm(r0)+"_r1"+floatExpForm(r1), plots)
 
       return filtMap, filtMask, filtNoiseStdDev, diskArea
 
@@ -259,7 +271,7 @@ class ThumbStack(object):
    def analyzeObject(self, iObj, test=False):
       
       if iObj%1000==0:
-         print "-", iObj
+         print "- analyze object", iObj
       
       # create arrays of filter values for the given object
       filtMap = np.zeros(self.nRAp)
@@ -465,7 +477,7 @@ class ThumbStack(object):
          fPDF = lambda x: (2*np.pi*sigma2)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2))
          g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
          histGaussFit = np.array(map(g, range(nBins-1)))
-         histGaussFit *= self.Catalog.nObj
+         histGaussFit *= len(X)  #self.Catalog.nObj
 
       # Theory histogram
       if sigma2Theory is not None:
@@ -473,7 +485,7 @@ class ThumbStack(object):
          fPDF = lambda x: (2*np.pi*sigma2Theory)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2Theory))
          g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
          histTheory = np.array(map(g, range(nBins-1)))
-         histTheory *= self.Catalog.nObj
+         histTheory *= len(X) #self.Catalog.nObj
 
       # Plot
       fig = plt.figure(0)
