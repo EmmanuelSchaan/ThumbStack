@@ -116,17 +116,22 @@ class ThumbStack(object):
    
    def examine_cmb_maps(self):
    
-      # mask histogram
+      # mask, before re-thresholding
       x = self.cmbMask.flatten()
-      self.histogram(x, nBins=501, lim=(np.min(x), np.max(x)), name='cmbmask', nameLatex=r'CMB mask value', semilogy=True)
+      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='cmbmask', nameLatex=r'CMB mask value', semilogy=True)
 
-      # map histogram
+      # rethreshold the mask
+      mask = (self.cmbMask.flatten()>0.5)
+
+      # masked map histogram
       x = self.cmbMap.flatten()
-      self.histogram(x, nBins=501, lim=(np.min(x), np.max(x)), name='cmbmap', nameLatex=r'CMB map value', semilogy=True, doGauss=True, sigma2Theory=110.**2)
+      x = x[mask]
+      self.histogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), name='cmbmap', nameLatex=r'CMB map value', semilogy=True, doGauss=True, sigma2Theory=110.**2)
 
-      # hit count histogram
+      # masked hit count histogram
       x = self.cmbHit.flatten()
-      self.histogram(x, nBins=501, lim=(np.min(x), np.max(x)), name='cmbhit', nameLatex=r'CMB hit count', semilogy=True)
+      x = x[mask]
+      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='cmbhit', nameLatex=r'CMB hit count', semilogy=True)
    
    
    ##################################################################################
@@ -169,7 +174,7 @@ class ThumbStack(object):
       stampHit[:,:] = self.cmbHit.at(ipos, prefilter=False, mask_nan=False)
       
       # re-threshold the mask map, to keep 0 and 1 only
-      stampMask[:,:] = 1.*(stampMask[:,:]>0.95)
+      stampMask[:,:] = 1.*(stampMask[:,:]>0.5)
 
       if test:
          print "Extracted cutouts around ra=", ra, "dec=", dec
@@ -392,9 +397,9 @@ class ThumbStack(object):
 
 
    def catalogMask(self, overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1.):
-      '''Returns catalog mask: 1 for objects to discard, 0 for objects to keep.
+      '''Returns catalog mask: 1 for objects to keep, 0 for objects to discard.
       Use as:
-      maskedQuantity = Quantity[~mask]
+      maskedQuantity = Quantity[mask]
       '''
       # Here mask is 1 for objects we want to keep
       mask = np.ones_like(self.Catalog.RA)
@@ -412,10 +417,8 @@ class ThumbStack(object):
       mask *= extraSelection
       #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
 
-      # Make mask is 1 for objects to discard (convenient for inversion)
-      mask = 1 - mask
-      #print "keeping", np.sum(1-mask)/len(mask), " of objects"
       mask = mask.astype(bool)
+      #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       return mask
 
 
@@ -428,9 +431,9 @@ class ThumbStack(object):
       like e.g. self.filtMap.
       Norm=True if you want to normalize by the sum of the weights.
       '''
-      result = np.sum(quantity[~mask,:] * weights[~mask,np.newaxis], axis=0)
+      result = np.sum(quantity[mask,:] * weights[mask,np.newaxis], axis=0)
       if norm:
-         result /= np.sum(weights[~mask,np.newaxis], axis=0)
+         result /= np.sum(weights[mask,np.newaxis], axis=0)
       return result
 
 
@@ -477,7 +480,7 @@ class ThumbStack(object):
          fPDF = lambda x: (2*np.pi*sigma2)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2))
          g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
          histGaussFit = np.array(map(g, range(nBins-1)))
-         histGaussFit *= len(X)  #self.Catalog.nObj
+         histGaussFit *= len(X)
 
       # Theory histogram
       if sigma2Theory is not None:
@@ -485,7 +488,7 @@ class ThumbStack(object):
          fPDF = lambda x: (2*np.pi*sigma2Theory)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2Theory))
          g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
          histTheory = np.array(map(g, range(nBins-1)))
-         histTheory *= len(X) #self.Catalog.nObj
+         histTheory *= len(X)
 
       # Plot
       fig = plt.figure(0)
@@ -503,6 +506,7 @@ class ThumbStack(object):
          ax.set_xscale('log', nonposx='clip')
       if semilogy:
          ax.set_yscale('log', nonposy='clip')
+      ax.set_ylim((0.5*np.min(histX[histX>0]), 2.*np.max(histX)))
       ax.set_xlabel(nameLatex)
       ax.set_ylabel(r'number of objects')
       fig.savefig(self.pathFig+"/hist_"+name+".pdf", bbox_inches='tight')
@@ -517,29 +521,29 @@ class ThumbStack(object):
       
       
 #      self.catalogMask(overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1.)
-#      self.histogram(DEC[~mask], nBins=71, lim=(-90., 90.), sigma2Theory=None, name='x', nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False)
+#      self.histogram(DEC[mask], nBins=71, lim=(-90., 90.), sigma2Theory=None, name='x', nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False)
 
       # first, keep all objects that overlap, even the masked ones
       mask = self.catalogMask(overlap=True, psMask=False)
 
       # check that the non-overlapping objects are the ones with the correct DEC
-      self.histogram(self.Catalog.DEC[~mask], nBins=71, lim=(-30., 90.), name='dec_overlap', nameLatex=r'Dec [deg]')
+      self.histogram(self.Catalog.DEC[mask], nBins=71, lim=(-30., 90.), name='dec_overlap', nameLatex=r'Dec [deg]')
       
       # check the values of the filters on the point source mask, to find a relevant cut
       # look at the largest aperture
-      x = self.filtMask[~mask,-1]
+      x = self.filtMask[mask,-1]
       self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='psmaskvalue_before', nameLatex=r'PS mask value', semilogy=True)
       
       # then  remove the objects that overlap with point sources
       mask = self.catalogMask(overlap=True, psMask=True)
 
       # redo the mask histogram, to check
-      x = self.filtMask[~mask,-1]
+      x = self.filtMask[mask,-1]
       self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='psmaskvalue_after', nameLatex=r'PS mask value', semilogy=True)
       
       # is the scatter in T reasonable? Are there outliers?
       for iRAp in range(self.nRAp):
-         x = self.filtMap[~mask, iRAp]
+         x = self.filtMap[mask, iRAp]
          self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='filtvalue'+str(iRAp), nameLatex=r'AP filter value', semilogy=True)
       
       
@@ -547,7 +551,7 @@ class ThumbStack(object):
       # what about the tSZ signal?
       # are there outliers?
       for iRAp in range(self.nRAp):
-         x = self.filtMap[~mask, iRAp] * self.Catalog.vR[~mask]
+         x = self.filtMap[mask, iRAp] * self.Catalog.vR[mask]
          self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='tv'+str(iRAp), nameLatex=r'$T\times v_r$ [$\mu $K $\times$ km/s]', semilogy=True)
       
       pass

@@ -244,7 +244,7 @@ ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name
 #mask = ts.catalogMask(overlap=True, psMask=True)
 
 
-ts.analyzeObject(0, test=True)
+#ts.analyzeObject(0, test=True)
 
 ts.examine_cmb_maps()
 
