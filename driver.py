@@ -236,7 +236,6 @@ reload(thumbstack)
 from thumbstack import *
 
 
-
 name = cmassSMariana.name + "_pactf150daynight"
 ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
 
@@ -246,7 +245,7 @@ ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name
 
 #ts.analyzeObject(0, test=True)
 
-ts.examine_cmb_maps()
+#ts.examine_cmb_maps()
 
 #ts.examineHistograms()
 

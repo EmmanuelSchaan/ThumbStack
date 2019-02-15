@@ -118,10 +118,14 @@ class ThumbStack(object):
    
       # mask, before re-thresholding
       x = self.cmbMask.flatten()
-      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='cmbmask', nameLatex=r'CMB mask value', semilogy=True)
+      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='cmbmask_prerethresh', nameLatex=r'CMB mask value', semilogy=True)
 
       # rethreshold the mask
       mask = (self.cmbMask.flatten()>0.5)
+
+      # mask, after re-thresholding
+      x = mask.copy()
+      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='cmbmask_postrethresh', nameLatex=r'CMB mask value', semilogy=True)
 
       # masked map histogram
       x = self.cmbMap.flatten()
@@ -326,43 +330,6 @@ class ThumbStack(object):
       self.filtMask = np.zeros((self.Catalog.nObj, self.nRAp))
       self.filtNoiseStdDev = np.zeros((self.Catalog.nObj, self.nRAp))
       self.diskArea = np.zeros((self.Catalog.nObj, self.nRAp))
-      
-      
-#      # analysis to be done for each object
-#      def analyzeObject(iObj):
-#
-#         if iObj%1000==0:
-#            print "-", iObj
-#
-#         # create arrays of filter values for the given object
-#         filtMap = np.zeros(self.nRAp)
-#         filtMask = np.zeros(self.nRAp)
-#         filtNoiseStdDev = np.zeros(self.nRAp)
-#         diskArea = np.zeros(self.nRAp)
-#
-#         # only do the analysis if the object overlaps with the CMB map
-#         if self.overlapFlag[iObj]:
-#            # Object coordinates
-#            ra = self.Catalog.RA[iObj]   # in deg
-#            dec = self.Catalog.DEC[iObj] # in deg
-#            z = self.Catalog.Z[iObj]
-#
-#            # extract postage stamp around it
-#            opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea')
-#
-#            # loop over the radii for the AP filter
-#            for iRAp in range(self.nRAp):
-#               # disk radius in comoving Mpc/h
-#               rApMpch = self.RApMpch[iRAp]
-#               # convert to radians at the given redshift
-#               r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
-#               # choose an equal area AP filter
-#               r1 = r0 * np.sqrt(2.)
-#               # perform the filtering
-#               filtMap[iRAp], filtMask[iRAp], filtNoiseStdDev[iRAp], diskArea[iRAp] = self.diskRingFilter(opos, stampMap, stampMask, stampHit, r0, r1, test=False)
-#
-#         return filtMap, filtMask, filtNoiseStdDev, diskArea
-
 
       # loop over all objects in catalog
 #      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
@@ -519,7 +486,6 @@ class ThumbStack(object):
 
    def examineHistograms(self):
       
-      
 #      self.catalogMask(overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1.)
 #      self.histogram(DEC[mask], nBins=71, lim=(-90., 90.), sigma2Theory=None, name='x', nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False)
 
@@ -554,7 +520,7 @@ class ThumbStack(object):
          x = self.filtMap[mask, iRAp] * self.Catalog.vR[mask]
          self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='tv'+str(iRAp), nameLatex=r'$T\times v_r$ [$\mu $K $\times$ km/s]', semilogy=True)
       
-      pass
+
 
 
 
