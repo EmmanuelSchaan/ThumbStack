@@ -59,6 +59,26 @@ print("WCS attributes: "+str(baseMap.wcs))
 
 
 #########################################################################
+# Histograms before masking
+
+# T histogram
+myHistogram(baseMap[0], nBins=71, lim=(-10.*np.std(baseMap[0]), 10.*np.std(baseMap[0])), sigma2Theory=110.**2, path=pathFig+"hist_T_nomask.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+
+# Q histogram
+myHistogram(baseMap[1], nBins=71, lim=(-10.*np.std(baseMap[1]), 10.*np.std(baseMap[1])), sigma2Theory=None, path=pathFig+"hist_Q_nomask.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+
+# U histogram
+myHistogram(baseMap[2], nBins=71, lim=(-10.*np.std(baseMap[2]), 10.*np.std(baseMap[2])), sigma2Theory=None, path=pathFig+"hist_U_nomask.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+
+# PS mask
+myHistogram(psMask, nBins=71, lim=(np.min(psMask), np.max(psMask)), sigma2Theory=None, path=pathFig+"hist_psmask.pdf", nameLatex=r'Mask values', semilogx=False, semilogy=True, doGauss=False)
+
+# PS mask
+myHistogram(hitMap, nBins=71, lim=(np.min(hitMap), np.max(hitMap)), sigma2Theory=None, path=pathFig+"hist_hit_nomask.pdf", nameLatex=r'Hit map values', semilogx=False, semilogy=True, doGauss=False)
+
+
+
+#########################################################################
 #########################################################################
 # convert map to healpix
 
@@ -259,6 +279,22 @@ hp.write_map(pathIn+"f150_masked_hit_log.fits", logHit, overwrite=True)
 hMap[0] *= fullMask
 hMap[1] *= fullMask
 hMap[2] *= fullMask
+
+
+#########################################################################
+# Histograms
+
+# T histogram
+myHistogram(hMap[0], nBins=71, lim=(-10.*np.std(hMap[0]), 10.*np.std(hMap[0])), sigma2Theory=110.**2, path=pathFig+"hist_T_masked.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+
+# Q histogram
+myHistogram(hMap[1], nBins=71, lim=(-10.*np.std(hMap[1]), 10.*np.std(hMap[1])), sigma2Theory=None, path=pathFig+"hist_Q_masked.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+
+# U histogram
+myHistogram(hMap[2], nBins=71, lim=(-10.*np.std(hMap[2]), 10.*np.std(hMap[2])), sigma2Theory=None, path=pathFig+"hist_U_masked.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+
+
+#########################################################################
 
 # plot masked T
 mean = np.mean(hMap[0]) / fSky

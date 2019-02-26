@@ -426,7 +426,10 @@ class ThumbStack(object):
 
    def histogram(self, X, nBins=71, lim=(-1000., 1000.), sigma2Theory=None, name='x', nameLatex=r'$x$ [km/s]', semilogx=False, semilogy=False, doGauss=False):
       """Generic histogram plotter.
+      Flattens the input array X first thing.
       """
+      # Flatten the array in case
+      X = X.flatten()
       # Bin edges
       if semilogx:
          Bins = np.logspace(np.log10(lim[0]), np.log10(lim[1]), nBins, 10.)

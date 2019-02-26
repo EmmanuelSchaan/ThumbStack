@@ -99,5 +99,62 @@ def floatExpForm(input):
 ##################################################################################
 
 
+def myHistogram(X, nBins=71, lim=(-1000., 1000.), sigma2Theory=None, path='./test.pdf', nameLatex=r'$x$ [km/s]', semilogx=False, semilogy=False, doGauss=False):
+   """Generic histogram plotter.
+   Flattens the input array X first thing.
+   """
+   # Flatten the array in case
+   X = X.flatten()
+   # Bin edges
+   if semilogx:
+      Bins = np.logspace(np.log10(lim[0]), np.log10(lim[1]), nBins, 10.)
+   else:
+      Bins = np.linspace(lim[0], lim[1], nBins)
+   binwidth = Bins[1:] - Bins[:-1]
 
+   # Data histogram
+   histX = np.histogram(X, Bins)[0]
+   histX = histX.astype(float)
+
+   # histogram for a Gaussian with the variance from the data
+   if doGauss:
+      mean = np.mean(X)
+      std = np.std(X)
+      sigma2 = std**2
+      av = mean
+      fPDF = lambda x: (2*np.pi*sigma2)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2))
+      g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
+      histGaussFit = np.array(map(g, range(nBins-1)))
+      histGaussFit *= len(X)
+
+   # Theory histogram
+   if sigma2Theory is not None:
+      av = 0.
+      fPDF = lambda x: (2*np.pi*sigma2Theory)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2Theory))
+      g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
+      histTheory = np.array(map(g, range(nBins-1)))
+      histTheory *= len(X)
+
+   # Plot
+   fig = plt.figure(0)
+   ax = fig.add_subplot(111)
+   #
+   ax.bar(Bins[:-1], histX, binwidth, color='b', alpha=0.5, label=r'Data')
+   if doGauss:
+      ax.step(Bins[:-1], histGaussFit, color='g', lw=3, where='post', label=r'Gaussian')
+   if sigma2Theory is not None:
+      ax.step(Bins[:-1], histTheory, color='r', lw=3, where='post', label=r'Theory')
+   #
+   ax.legend(loc=1)
+   ax.set_xlim((lim[0], lim[1]))
+   if semilogx:
+      ax.set_xscale('log', nonposx='clip')
+   if semilogy:
+      ax.set_yscale('log', nonposy='clip')
+   ax.set_ylim((0.5*np.min(histX[histX>0]), 2.*np.max(histX)))
+   ax.set_xlabel(nameLatex)
+   ax.set_ylabel(r'number of objects')
+   fig.savefig(path, bbox_inches='tight')
+   fig.clf()
+#      plt.show()
 
