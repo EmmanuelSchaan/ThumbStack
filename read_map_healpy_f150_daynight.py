@@ -285,13 +285,19 @@ hMap[2] *= fullMask
 # Histograms
 
 # T histogram
-myHistogram(hMap[0], nBins=71, lim=(-10.*np.std(hMap[0]), 10.*np.std(hMap[0])), sigma2Theory=110.**2, path=pathFig+"hist_T_masked.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+x = hMap[0][fullMask.astype('bool')]
+#x -= np.mean(x)
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=110.**2, path=pathFig+"hist_T_masked.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 # Q histogram
-myHistogram(hMap[1], nBins=71, lim=(-10.*np.std(hMap[1]), 10.*np.std(hMap[1])), sigma2Theory=None, path=pathFig+"hist_Q_masked.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+x = hMap[1][fullMask.astype('bool')]
+#x -= np.mean(x)
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=None, path=pathFig+"hist_Q_masked.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 # U histogram
-myHistogram(hMap[2], nBins=71, lim=(-10.*np.std(hMap[2]), 10.*np.std(hMap[2])), sigma2Theory=None, path=pathFig+"hist_U_masked.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+x = hMap[2][fullMask.astype('bool')]
+#x -= np.mean(x)
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=None, path=pathFig+"hist_U_masked.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 
 #########################################################################
