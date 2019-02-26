@@ -219,11 +219,19 @@ print "Set up interpolations"
 #pact150Hit = utils.interpol_prefilter(pact150Hit, inplace=True)
 
 utils.interpol_prefilter(pact150Map, inplace=True)
-utils.interpol_prefilter(pact150Mask, inplace=True, order=2)   # order=2 seems to reduce ringing at sharp transitions
+utils.interpol_prefilter(pact150Mask, inplace=True)   # order=2 seems to reduce ringing at sharp transitions
 utils.interpol_prefilter(pact150Hit, inplace=True)
 
 tStop = time()
 print "took", (tStop-tStart)/60., "min"
+
+
+# measured power spectrum
+data = np.genfromtxt("./output/cmb_map/planck_act_coadd_2018_08_10/f150_daynight/f150_power_T_masked.txt")
+fCl = interp1d(data[:,0], data[:,1], kind='linear', bounds_error=True, fill_value=0.)
+
+# theory power spectrum
+cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
 
 
 ###################################################################################
@@ -245,7 +253,7 @@ ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name
 
 #ts.analyzeObject(0, test=True)
 
-#ts.examine_cmb_maps()
+#ts.examineCmbMaps()
 
 #ts.examineHistograms()
 

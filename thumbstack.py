@@ -114,27 +114,25 @@ class ThumbStack(object):
    
    ##################################################################################
    
-   def examine_cmb_maps(self):
+   def examineCmbMaps(self):
    
       # mask, before re-thresholding
-      x = self.cmbMask.flatten()
+      x = self.cmbMask.copy()
       self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='cmbmask_prerethresh', nameLatex=r'CMB mask value', semilogy=True)
 
       # rethreshold the mask
-      mask = (self.cmbMask.flatten()>0.5)
+      mask = (self.cmbMask>0.5)
 
       # mask, after re-thresholding
       x = mask.copy()
       self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='cmbmask_postrethresh', nameLatex=r'CMB mask value', semilogy=True)
 
       # masked map histogram
-      x = self.cmbMap.flatten()
-      x = x[mask]
+      x = self.cmbMap[mask]
       self.histogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), name='cmbmap', nameLatex=r'CMB map value', semilogy=True, doGauss=True, sigma2Theory=110.**2)
 
       # masked hit count histogram
-      x = self.cmbHit.flatten()
-      x = x[mask]
+      x = self.cmbHit[mask]
       self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='cmbhit', nameLatex=r'CMB hit count', semilogy=True)
    
    

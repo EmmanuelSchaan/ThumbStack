@@ -36,8 +36,8 @@ pathOut = "./output/cmb_map/planck_act_coadd_2018_08_10/f150_daynight/"
 #########################################################################
 # CMB power spectra
 
-cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=True)
-cmb7_3 = StageIVCMB(beam=7.3, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=True)
+cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
+cmb7_3 = StageIVCMB(beam=7.3, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
 
 #########################################################################
 # load maps
@@ -282,7 +282,7 @@ hMap[2] *= fullMask
 
 
 #########################################################################
-# Histograms
+# Histograms: Healpy maps
 
 # T histogram
 x = hMap[0][fullMask.astype('bool')]
@@ -298,6 +298,36 @@ myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=None,
 x = hMap[2][fullMask.astype('bool')]
 #x -= np.mean(x)
 myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=None, path=pathFig+"hist_U_masked.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+
+
+#########################################################################
+# Histograms: CAR map, without pre-filtering
+
+# T histogram
+x = baseMap[0][carFullMask[0].astype('bool')]
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=110.**2, path=pathFig+"hist_T_masked_car.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+
+#########################################################################
+# Histograms: CAR map, after pre-filtering
+# --> prefiltering affects the pixel histograms
+
+# do the pre-filtering
+prefiltMap = utils.interpol_prefilter(baseMap[0], inplace=False)
+prefiltCarFullMask = utils.interpol_prefilter(carFullMask[0], inplace=False)
+
+# T histogram
+x = prefiltMap[prefiltCarFullMask.astype('bool')]
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=110.**2, path=pathFig+"hist_T_masked_car_prefiltered_cubic.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+
+
+
+# do the pre-filtering
+prefiltMap = utils.interpol_prefilter(baseMap[0], inplace=False, order=2)
+prefiltCarFullMask = utils.interpol_prefilter(carFullMask[0], inplace=False, order=2)
+
+# T histogram
+x = prefiltMap[prefiltCarFullMask.astype('bool')]
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=110.**2, path=pathFig+"hist_T_masked_car_prefiltered_quadratic.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 
 #########################################################################
@@ -439,6 +469,13 @@ ftotal = lambda l: cmb1_4.ftotal(l) * cmb1_4.fbeam(l)**2
 # Plot the power spectrum
 lCen, Cl, sCl = powerSpectrum(hMap[0], mask=fullMask, theory=[ftotal], fsCl=None, nBins=101, lRange=None, plot=True, path=pathFig+"f150_power_T_masked.pdf", save=True)
 
+# Save it to file
+data = np.zeros((len(lCen), 3))
+data[:,0] = lCen
+data[:,1] = Cl
+data[:,2] = sCl
+np.savetxt(pathOut+"f150_power_T_masked.txt", data)
+
 
 #########################################################################
 # Planck 143GHz map: measure its power spectrum
@@ -468,6 +505,8 @@ ftotal = lambda l: cmb7_3.ftotal(l) * cmb7_3.fbeam(l)**2
 lCenP143, ClP143, sClP143 = powerSpectrum(hP143Map, mask=fullMask, theory=[ftotal], fsCl=None, nBins=101, lRange=None, plot=True, path=pathFig+"power_P143_masked.pdf", save=True)
 
 
+
+
 #########################################################################
 # Compare ACT+Planck and Planck, after converting to the same beam (1.4')
 
@@ -477,6 +516,8 @@ ax=fig.add_subplot(111)
 # theory
 ClTheory = np.array(map(cmb1_4.flensedTT, lCen))
 ax.loglog(lCen, lCen**2 * ClTheory, 'k-', label=r'CMB, $1.4^\prime$ beam')
+ClTheory = np.array(map(cmb1_4.ftotalTT, lCen))
+ax.loglog(lCen, lCen**2 * ClTheory, 'k--', label=r'+noise')
 #
 # Planck: convert from 5' beam to 1.4' beam
 f = lambda l: (cmb1_4.fbeam(l) / cmb7_3.fbeam(l))**2

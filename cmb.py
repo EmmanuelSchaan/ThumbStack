@@ -398,6 +398,8 @@ class CMB(object):
       plt.show()
 
 
+   ###############################################################################
+
    # compute the variance of the temperature at a given point
    # assuming infinitely small beam (no beam)
    # in muK
@@ -504,6 +506,117 @@ class CMB(object):
       result = 1./np.sqrt(result)
       return result
 
+
+   ###############################################################################
+
+
+   def fwindowDisk(self, l, thetaDisk):
+      """Fourier transform of top hat, with int d^2\theta W(\theta)=1
+      thetaDisk in radians
+      """
+      result = 2. * special.jv(1, l*thetaDisk) / (l*thetaDisk)
+      return result
+
+   def fwindowRing(self, l, thetaIn, thetaOut):
+      """Fourier transform of top hat on a ring, with int d^2\theta W(\theta)=1
+      thetaIn, thetaOut in radians
+      """
+      result = (2.*np.pi) * thetaOut * special.jv(1, l*thetaOut) / l
+      result -= (2.*np.pi) * thetaIn * special.jv(1, l*thetaIn) / l
+      result /= np.pi*(thetaOut**2-thetaIn**2)
+      return result
+   
+   def fwindowDiskMinusRing(self, l, thetaDisk, thetaIn, thetaOut):
+      """Fourier transform of disk minus ring filter,
+      with that d^2\theta W(\theta)=0
+      """
+      result = self.fwindowDisk(l, thetaDisk)
+      result -= self.fwindowRing(l, thetaIn, thetaOut)
+      return result
+
+
+   def fsigmaDiskRing(self, thetaDisk, thetaIn=None, thetaOut=None, fCl=None):
+      """ Standard deviation of disk-ring filter
+       default: equal area
+       theta0 disk radius (radians)
+       output in muK, unless a custom fCl power spectrum is specified.
+      """
+      if thetaIn is None:
+         thetaIn = thetaDisk
+      if thetaOut is None:
+         thetaOut = np.sqrt(2.) * thetaDisk
+      if fCl is None:
+         fCl = lambda l: self.ftotalTT(l)
+   
+      # all components
+      f = lambda lnl: fCl(np.exp(lnl)) * self.fwindowDiskMinusRing(np.exp(lnl), thetaDisk, thetaIn, thetaOut)**2 * (np.exp(lnl)+1.)/(2.*np.pi)*np.exp(lnl)
+      result, error = integrate.quad(f, np.log(1.), np.log(1.e7), epsabs=0., epsrel=1.e-3)
+      result = np.sqrt(result)
+      return result
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ###############################################################################
 
    def plotCl(self):
       
