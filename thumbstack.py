@@ -459,7 +459,7 @@ class ThumbStack(object):
       path = self.pathFig+"/hist_psmaskvalue_after.pdf"
       myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'PS mask value', semilogy=True)
       
-      # is the scatter in T reasonable? Are there outliers?
+      # Histograms of filter outputs
       for iRAp in range(self.nRAp):
          x = self.filtMap[mask, iRAp]
          path = self.pathFig+"/hist_filtvalue"+str(iRAp)+".pdf"
@@ -469,22 +469,39 @@ class ThumbStack(object):
             # so multiply by disk area, but it can vary from object to object
             # we neglect this source of scatter and just keep the mean
             sigma2Theory *= np.mean(self.diskArea[mask, iRAp])**2
-            print iRAp, np.sqrt(sigma2Theory), np.std(x)
+            #print iRAp, np.sqrt(sigma2Theory), np.std(x)
             myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'AP filter value', sigma2Theory=sigma2Theory, doGauss=True, semilogy=True)
          else:
-            print "Nope"
             myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'AP filter value', doGauss=True, semilogy=True)
+   
+   
+      # Histograms of noise std dev, from hit counts
+      for iRAp in range(self.nRAp):
+         x = self.filtNoiseStdDev[mask, iRAp]
+         path = self.pathFig+"/hist_noisestddevhit"+str(iRAp)+".pdf"
+         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'Std dev value [arbitrary]', semilogy=True)
 
-         
+
+      # tSZ / dust
+      for iRAp in range(self.nRAp):
+         weights = 1. / self.filtNoiseStdDev[mask, iRAp]**2   # need inverse variance, not std dev
+         weights /= np.mean(weights)   # to keep the size and units of the weighted AP outputs
+         x = self.filtMap[mask, iRAp] * weights
+         print "- mean tSZ= "+str(np.mean(x))+"; std on mean= "+str(np.std(x)/np.sqrt(len(x)))+"; SNR= "+str(np.mean(x)/np.std(x)*np.sqrt(len(x)))
+         path = self.pathFig+"/hist_tsz"+str(iRAp)+".pdf"
+         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'Std dev value [arbitrary]', semilogy=True)
+   
    
       
-      # is the kSZ signal visible by eye from the histogram? Probably not.
-      # what about the tSZ signal?
-      # are there outliers?
+      # kSZ
       for iRAp in range(self.nRAp):
-         x = self.filtMap[mask, iRAp] * self.Catalog.vR[mask]
-         path = self.pathFig+"/hist_tv"+str(iRAp)+".pdf"
-         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'$T\times v_r$ [$\mu $K $\times$ km/s]', semilogy=True)
+         # inverse-variance weighted fit for the slope of the dT-v relation
+         # numerator
+         x = self.filtMap[mask, iRAp] * self.Catalog.vR[mask] / self.filtNoiseStdDev[mask, iRAp]**2
+         x /= np.mean(self.Catalog.vR[mask]**2 / self.filtNoiseStdDev[mask, iRAp]**2)
+         print "- mean kSZ= "+str(np.mean(x))+"; std on mean= "+str(np.std(x)/np.sqrt(len(x)))+"; SNR= "+str(np.mean(x)/np.std(x)*np.sqrt(len(x)))
+         path = self.pathFig+"/hist_kszalpha"+str(iRAp)+".pdf"
+         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'kSZ fit', doGauss=True, semilogy=True)
       
 
 

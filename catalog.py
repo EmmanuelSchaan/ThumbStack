@@ -120,6 +120,8 @@ class Catalog(object):
             self.hasM[iObj] = True
             self.Mvir[iObj] = self.MassConversion.fmStarTomVir(mStellar)
 
+#   def addOptical
+
 
    ##################################################################################
 
