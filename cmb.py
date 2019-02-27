@@ -528,14 +528,14 @@ class CMB(object):
    
    def fwindowDiskMinusRing(self, l, thetaDisk, thetaIn, thetaOut):
       """Fourier transform of disk minus ring filter,
-      with that d^2\theta W(\theta)=0
+      with d^2\theta W(\theta)=0
       """
       result = self.fwindowDisk(l, thetaDisk)
       result -= self.fwindowRing(l, thetaIn, thetaOut)
       return result
 
 
-   def fsigmaDiskRing(self, thetaDisk, thetaIn=None, thetaOut=None, fCl=None):
+   def fsigmaDiskRing(self, thetaDisk, thetaIn=None, thetaOut=None, fCl=None, lMin=1., lMax=1.e5):
       """ Standard deviation of disk-ring filter
        default: equal area
        theta0 disk radius (radians)
@@ -549,8 +549,8 @@ class CMB(object):
          fCl = lambda l: self.ftotalTT(l)
    
       # all components
-      f = lambda lnl: fCl(np.exp(lnl)) * self.fwindowDiskMinusRing(np.exp(lnl), thetaDisk, thetaIn, thetaOut)**2 * (np.exp(lnl)+1.)/(2.*np.pi)*np.exp(lnl)
-      result, error = integrate.quad(f, np.log(1.), np.log(1.e7), epsabs=0., epsrel=1.e-3)
+      f = lambda lnl: fCl(np.exp(lnl)) * self.fwindowDiskMinusRing(np.exp(lnl), thetaDisk, thetaIn, thetaOut)**2 * np.exp(lnl)*(np.exp(lnl)+1.) / (2.*np.pi)
+      result, error = integrate.quad(f, np.log(1.), np.log(1.e5), epsabs=0., epsrel=1.e-3)
       result = np.sqrt(result)
       return result
 

@@ -30,7 +30,7 @@ import rotfuncs
 pathFig = "./figures/cmb_map/planck_act_coadd_2018_08_10/f150_daynight/"
 
 # path for output
-pathOut = "./output/cmb_map/planck_act_coadd_2018_08_10/f150_daynight/"
+#pathOut = "./output/cmb_map/planck_act_coadd_2018_08_10/f150_daynight/"
 
 
 #########################################################################
@@ -472,9 +472,9 @@ lCen, Cl, sCl = powerSpectrum(hMap[0], mask=fullMask, theory=[ftotal], fsCl=None
 # Save it to file
 data = np.zeros((len(lCen), 3))
 data[:,0] = lCen
-data[:,1] = Cl
-data[:,2] = sCl
-np.savetxt(pathOut+"f150_power_T_masked.txt", data)
+data[:,1] = np.nan_to_num(Cl)
+data[:,2] = np.nan_to_num(sCl)
+np.savetxt(pathIn+"f150_power_T_masked.txt", data)
 
 
 #########################################################################

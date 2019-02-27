@@ -118,22 +118,26 @@ class ThumbStack(object):
    
       # mask, before re-thresholding
       x = self.cmbMask.copy()
-      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='cmbmask_prerethresh', nameLatex=r'CMB mask value', semilogy=True)
+      path = self.pathFig+"/hist_cmbmask_prerethresh.pdf"
+      myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'CMB mask value', semilogy=True)
 
       # rethreshold the mask
       mask = (self.cmbMask>0.5)
 
       # mask, after re-thresholding
       x = mask.copy()
-      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='cmbmask_postrethresh', nameLatex=r'CMB mask value', semilogy=True)
+      path = self.pathFig+"/hist_cmbmask_postrethresh.pdf"
+      myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'CMB mask value', semilogy=True)
 
       # masked map histogram
       x = self.cmbMap[mask]
-      self.histogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), name='cmbmap', nameLatex=r'CMB map value', semilogy=True, doGauss=True, sigma2Theory=110.**2)
+      path = self.pathFig+"/hist_cmbmap.pdf"
+      myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), path=path, nameLatex=r'CMB map value', semilogy=True, doGauss=True, sigma2Theory=110.**2)
 
       # masked hit count histogram
       x = self.cmbHit[mask]
-      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='cmbhit', nameLatex=r'CMB hit count', semilogy=True)
+      path = self.pathFig+"/hist_cmbhit.pdf"
+      myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'CMB hit count', semilogy=True)
    
    
    ##################################################################################
@@ -236,7 +240,7 @@ class ThumbStack(object):
       # exact angular area of disk [sr]
       diskArea = np.sum(inDisk) * pixArea
 
-      # apply the filter
+      # apply the filter: int_disk d^2theta map -  disk_area / ring_area * int_ring d^2theta map
       filtMap = np.sum(pixArea * filter * stampMap)   # [map unit * sr]
       
       # detect point sources within the filter:
@@ -253,14 +257,17 @@ class ThumbStack(object):
          # count nb of pixels where filter is strictly positive
          nbPix = len(np.where(filter>0.)[0])
          print "- nb of pixels where filter>0: "+str(nbPix)
-         print "  ie area of "+str(diskArea)+" sr, ie "+str(diskArea * (180.*60./np.pi)**2)+"arcmin^2"
+         print "- disk area: "+str(diskArea)+" sr, ie "+str(diskArea * (180.*60./np.pi)**2)+"arcmin^2"
+         print "  (from r0, expect "+str(np.pi*r0**2)+" sr, ie "+str(np.pi*r0**2 * (180.*60./np.pi)**2)+"arcmin^2)"
          
          print "- disk-ring filter sums over pixels to "+str(np.sum(filter))
          print "  (should be 0; compared to "+str(len(filter.flatten()))+")"
-
-         print "- filter on map:"+str(filtMap)
-         print "- filter on mask:"+str(filtMask)
-         print "- filter on inverse hit:"+str(filtNoiseStdDev)
+         
+         print "- filter on unit disk: "+str(np.sum(pixArea * filter * inDisk))
+         print "  (should be disk area in sr: "+str(diskArea)+")"
+         print "- filter on map: "+str(filtMap)
+         print "- filter on mask: "+str(filtMask)
+         print "- filter on inverse hit: "+str(filtNoiseStdDev)
 
          print "- plot the filter"
          filterMap = stampMap.copy()
@@ -419,107 +426,65 @@ class ThumbStack(object):
 #      fig.clf()
       plt.show()
 
+
    ##################################################################################
 
 
-   def histogram(self, X, nBins=71, lim=(-1000., 1000.), sigma2Theory=None, name='x', nameLatex=r'$x$ [km/s]', semilogx=False, semilogy=False, doGauss=False):
-      """Generic histogram plotter.
-      Flattens the input array X first thing.
+   def examineHistograms(self, fsAp=None):
+      """fsAp is an optional function of rAp in radians, which returns the expected std def of the AP filter
       """
-      # Flatten the array in case
-      X = X.flatten()
-      # Bin edges
-      if semilogx:
-         Bins = np.logspace(np.log10(lim[0]), np.log10(lim[1]), nBins, 10.)
-      else:
-         Bins = np.linspace(lim[0], lim[1], nBins)
-      binwidth = Bins[1:] - Bins[:-1]
-
-      # Data histogram
-      histX = np.histogram(X, Bins)[0]
-      histX = histX.astype(float)
-
-      # histogram for a Gaussian with the variance from the data
-      if doGauss:
-         mean = np.mean(X)
-         std = np.std(X)
-         sigma2 = std**2
-         av = mean
-         fPDF = lambda x: (2*np.pi*sigma2)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2))
-         g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
-         histGaussFit = np.array(map(g, range(nBins-1)))
-         histGaussFit *= len(X)
-
-      # Theory histogram
-      if sigma2Theory is not None:
-         av = 0.
-         fPDF = lambda x: (2*np.pi*sigma2Theory)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2Theory))
-         g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
-         histTheory = np.array(map(g, range(nBins-1)))
-         histTheory *= len(X)
-
-      # Plot
-      fig = plt.figure(0)
-      ax = fig.add_subplot(111)
-      #
-      ax.bar(Bins[:-1], histX, binwidth, color='b', alpha=0.5, label=r'Data')
-      if doGauss:
-         ax.step(Bins[:-1], histGaussFit, color='g', lw=3, where='post', label=r'Gaussian')
-      if sigma2Theory is not None:
-         ax.step(Bins[:-1], histTheory, color='r', lw=3, where='post', label=r'Theory')
-      #
-      ax.legend(loc=1)
-      ax.set_xlim((lim[0], lim[1]))
-      if semilogx:
-         ax.set_xscale('log', nonposx='clip')
-      if semilogy:
-         ax.set_yscale('log', nonposy='clip')
-      ax.set_ylim((0.5*np.min(histX[histX>0]), 2.*np.max(histX)))
-      ax.set_xlabel(nameLatex)
-      ax.set_ylabel(r'number of objects')
-      fig.savefig(self.pathFig+"/hist_"+name+".pdf", bbox_inches='tight')
-      fig.clf()
-#      plt.show()
-
-
-   ##################################################################################
-
-
-   def examineHistograms(self):
       
 #      self.catalogMask(overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1.)
-#      self.histogram(DEC[mask], nBins=71, lim=(-90., 90.), sigma2Theory=None, name='x', nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False)
+#      path = self.pathFig+"/hist_x.pdf"
+#      myHistogram(DEC[mask], nBins=71, lim=(-90., 90.), sigma2Theory=None, path=path, nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False)
 
       # first, keep all objects that overlap, even the masked ones
       mask = self.catalogMask(overlap=True, psMask=False)
 
       # check that the non-overlapping objects are the ones with the correct DEC
-      self.histogram(self.Catalog.DEC[mask], nBins=71, lim=(-30., 90.), name='dec_overlap', nameLatex=r'Dec [deg]')
+      path = self.pathFig+"/hist_dec_overlap.pdf"
+      myHistogram(self.Catalog.DEC[mask], nBins=71, lim=(-30., 90.), path=path, nameLatex=r'Dec [deg]')
       
       # check the values of the filters on the point source mask, to find a relevant cut
       # look at the largest aperture
       x = self.filtMask[mask,-1]
-      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='psmaskvalue_before', nameLatex=r'PS mask value', semilogy=True)
+      path = self.pathFig+"/hist_psmaskvalue_before.pdf"
+      myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'PS mask value', semilogy=True)
       
       # then  remove the objects that overlap with point sources
       mask = self.catalogMask(overlap=True, psMask=True)
 
       # redo the mask histogram, to check
       x = self.filtMask[mask,-1]
-      self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='psmaskvalue_after', nameLatex=r'PS mask value', semilogy=True)
+      path = self.pathFig+"/hist_psmaskvalue_after.pdf"
+      myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'PS mask value', semilogy=True)
       
       # is the scatter in T reasonable? Are there outliers?
       for iRAp in range(self.nRAp):
          x = self.filtMap[mask, iRAp]
-         self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='filtvalue'+str(iRAp), nameLatex=r'AP filter value', semilogy=True)
-      
+         path = self.pathFig+"/hist_filtvalue"+str(iRAp)+".pdf"
+         if fsAp is not None:
+            # theory assumes int d^2theta W = 1
+            sigma2Theory = fsAp(self.RApArcmin[iRAp] * np.pi/180./60.)**2
+            # so multiply by disk area, but it can vary from object to object
+            # we neglect this source of scatter and just keep the mean
+            sigma2Theory *= np.mean(self.diskArea[mask, iRAp])**2
+            print iRAp, np.sqrt(sigma2Theory), np.std(x)
+            myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'AP filter value', sigma2Theory=sigma2Theory, doGauss=True, semilogy=True)
+         else:
+            print "Nope"
+            myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'AP filter value', doGauss=True, semilogy=True)
+
+         
+   
       
       # is the kSZ signal visible by eye from the histogram? Probably not.
       # what about the tSZ signal?
       # are there outliers?
       for iRAp in range(self.nRAp):
          x = self.filtMap[mask, iRAp] * self.Catalog.vR[mask]
-         self.histogram(x, nBins=71, lim=(np.min(x), np.max(x)), name='tv'+str(iRAp), nameLatex=r'$T\times v_r$ [$\mu $K $\times$ km/s]', semilogy=True)
+         path = self.pathFig+"/hist_tv"+str(iRAp)+".pdf"
+         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'$T\times v_r$ [$\mu $K $\times$ km/s]', semilogy=True)
       
 
 

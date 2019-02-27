@@ -14,10 +14,10 @@ import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
-#import cmb_map
-#reload(cmb_map)
-#from cmb_map import *
-#
+import cmb
+reload(cmb)
+from cmb import *
+
 #import diskring_filter
 #reload(diskring_filter)
 #from diskring_filter import *
@@ -203,13 +203,13 @@ pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_co
 pathMap = pathIn + "f150_daynight_all_map_mono.fits"
 pathHit = pathIn + "f150_daynight_all_div_mono.fits"
 pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"
+pathPower = pathIn + "f150_power_T_masked.txt"
 
 tStart = time()
 print "- Read CMB map, mask and hit count"
 pact150Map = enmap.read_map(pathMap)[0]   # keep only temperature
 pact150Mask = enmap.read_map(pathMask)
 pact150Hit = enmap.read_map(pathHit)
-
 
 print "Set up interpolations"
 # This pre-filtering step introduces some ringing in the maps
@@ -226,9 +226,20 @@ tStop = time()
 print "took", (tStop-tStart)/60., "min"
 
 
+
+
+
+
+
+import cmb
+reload(cmb)
+from cmb import *
+
+
 # measured power spectrum
-data = np.genfromtxt("./output/cmb_map/planck_act_coadd_2018_08_10/f150_daynight/f150_power_T_masked.txt")
-fCl = interp1d(data[:,0], data[:,1], kind='linear', bounds_error=True, fill_value=0.)
+data = np.genfromtxt(pathPower)  # l, Cl, sCl
+data = np.nan_to_num(data)
+fCl = interp1d(data[:,0], data[:,1], kind='linear', bounds_error=False, fill_value=0.)
 
 # theory power spectrum
 cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
@@ -255,7 +266,9 @@ ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name
 
 #ts.examineCmbMaps()
 
-#ts.examineHistograms()
+# Expected std dev of AP filter, function of disk radius in rad
+fsAp = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=fCl, lMin=1., lMax=1.e5)
+ts.examineHistograms(fsAp=fsAp)
 
 
 
