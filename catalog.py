@@ -32,8 +32,10 @@ class Catalog(object):
       if save:
          self.readInputCatalog()
          self.addHaloMass()
+         self.addIntegratedKSZ()
+         self.addIntegratedY()
          self.writeCatalog()
-      
+
       self.loadCatalog()
    
 
@@ -120,14 +122,86 @@ class Catalog(object):
             self.hasM[iObj] = True
             self.Mvir[iObj] = self.MassConversion.fmStarTomVir(mStellar)
 
-#   def addOptical
+
+
+   def addIntegratedOpticalDepth(self):
+      """integrated optical depth to Thompson scattering: int d^2theta n_e^2d sigma_T
+      = (total nb of electrons) * sigma_T / (a chi)^2
+      dimensionless
+      """
+      # convert from total mass to baryon mass
+      # assuming cosmological abundance of baryons, and all baryons are in gas
+      self.integratedTau = self.Mvir * self.U.bg.Omega0_b/self.U.bg.Omega0_m
+      
+      # convert from total baryon mass to electron total number
+      me = 9.10938291e-31  # electron mass (kg)
+      mH = 1.67262178e-27  # proton mass (kg)
+      mHe = 4.*mH # helium nucleus mass (kg)
+      xH = 0.76   # primordial hydrogen fraction by mass
+      nH_ne = 2.*xH/(xH+1.)
+      nHe_ne = (1.-xH)/(2.*(1.+xH))
+      msun = 1.989e30   # solar mass (kg)
+      factor = (me + nH_ne*mH + nHe_ne*mHe) * (1./msun)   # total mass per electron in (Msun)
+      self.integratedTau /= factor
+      
+      # multiply by Thomson cross section (physical)
+      mpc = 3.08567758e16*1.e6   # 1Mpc in m
+      sigma_T = 6.6524e-29 # Thomson cross section in m^2
+      self.integratedTau *= sigma_T / (mpc / self.U.bg.h)**2
+      
+      # divide by (a chi)^2
+      self.integratedTau /= (self.U.bg.comoving_distance(z) / (1.+z))**2
+
+   
+   def addIntegratedKSZ(self):
+      """Integrated kSZ signal: int d^2theta n_e sigma_T v/c Tcmb
+      in muK * sr
+      """
+      self.integratedKSZ = - self.integratedTau * (self.vR/3.e8) * 2.726e6
+
+   
+   def addIntegratedY(self, nu=150.e9):
+      """Integrated tSZ signal: int d^2theta n_e sigma_T (k_B T_e / m_e c^2)
+      in sr.
+      To get dT in muK*sr, multiply by Tcmb * f(nu)
+      """
+      pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
    ##################################################################################
 
    def writeCatalog(self):
       print "- write full catalog to "+self.pathOutCatalog
-      data = np.zeros((self.nObj,21))
+      data = np.zeros((self.nObj,23))
       #
       # sky coordinates and redshift
       data[:,0] = self.RA # [deg]
@@ -169,6 +243,12 @@ class Catalog(object):
       # Halo mass
       data[:,19] = self.hasM  # flag=1 if mass is known
       data[:,20] = self.Mvir   # [M_sun]
+      #
+      # Integrated optical depth [dimless]: int d^2theta n_e^2d sigma_T = (total nb of electrons) * sigma_T / (a chi)^2
+      data[:,21] = self.integratedTau   # [dimless]
+      #
+      # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T v/c Tcmb
+      data[:, 22] = self.integratedKSZ # [muK * sr]
       #
       np.savetxt(self.pathOutCatalog, data)
 
@@ -218,6 +298,12 @@ class Catalog(object):
       # Halo mass
       self.hasM = data[:,19]
       self.Mvir = data[:,20]  # [M_sun]
+      #
+      # Integrated optical depth [dimless]: int d^2theta n_e^2d sigma_T = (total nb of electrons) * sigma_T / (a chi)^2
+      self.integratedTau = data[:,21]   # [dimless]
+      #
+      # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T v/c Tcmb
+      self.integratedKSZ = data[:, 22] # [muK * sr]
 
 
    ##################################################################################
