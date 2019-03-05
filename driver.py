@@ -71,7 +71,7 @@ massConversion = MassConversionKravtsov14()
 # Mariana
 
 # CMASS
-cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False)
+cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=True)
 #cmassSMariana.plotHistograms()
 #cmassSMariana.plotFootprint()
 #
@@ -212,15 +212,12 @@ pact150Mask = enmap.read_map(pathMask)
 pact150Hit = enmap.read_map(pathHit)
 
 print "Set up interpolations"
+#!!!! NO! This prefiltering seems to mess up the map values, in a complicated way...
 # This pre-filtering step introduces some ringing in the maps
 
-#pact150Map = utils.interpol_prefilter(pact150Map, inplace=True)
-#pact150Mask = utils.interpol_prefilter(pact150Mask, inplace=True)
-#pact150Hit = utils.interpol_prefilter(pact150Hit, inplace=True)
-
-utils.interpol_prefilter(pact150Map, inplace=True)
-utils.interpol_prefilter(pact150Mask, inplace=True)   # order=2 seems to reduce ringing at sharp transitions
-utils.interpol_prefilter(pact150Hit, inplace=True)
+#utils.interpol_prefilter(pact150Map, inplace=True)
+#utils.interpol_prefilter(pact150Mask, inplace=True)   # order=2 seems to reduce ringing at sharp transitions
+#utils.interpol_prefilter(pact150Hit, inplace=True)
 
 tStop = time()
 print "took", (tStop-tStart)/60., "min"
@@ -256,7 +253,7 @@ from thumbstack import *
 
 
 name = cmassSMariana.name + "_pactf150daynight"
-ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 #mask = ts.catalogMask(overlap=True, psMask=True)
@@ -264,7 +261,7 @@ ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name
 
 #ts.analyzeObject(0, test=True)
 
-#ts.examineCmbMaps()
+ts.examineCmbMaps()
 
 # Expected std dev of AP filter, function of disk radius in rad
 fsAp = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=fCl, lMin=1., lMax=1.e5)

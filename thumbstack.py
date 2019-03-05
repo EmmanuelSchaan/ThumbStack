@@ -174,10 +174,11 @@ class ThumbStack(object):
       ipos = rotfuncs.recenter(opos[::-1], [0,0,sourcecoord[0],sourcecoord[1]])[::-1]
 
       # extract the small square map by interpolating the big healpy map
+      # Here, I use nearest neighbor interpolation (order=0)
       # these are now numpy arrays: the wcs info is gone
-      stampMap[:,:] = self.cmbMap.at(ipos, prefilter=False, mask_nan=False)
-      stampMask[:,:] = self.cmbMask.at(ipos, prefilter=False, mask_nan=False)
-      stampHit[:,:] = self.cmbHit.at(ipos, prefilter=False, mask_nan=False)
+      stampMap[:,:] = self.cmbMap.at(ipos, prefilter=False, mask_nan=False, order=0)
+      stampMask[:,:] = self.cmbMask.at(ipos, prefilter=False, mask_nan=False, order=0)
+      stampHit[:,:] = self.cmbHit.at(ipos, prefilter=False, mask_nan=False, order=0)
       
       # re-threshold the mask map, to keep 0 and 1 only
       stampMask[:,:] = 1.*(stampMask[:,:]>0.5)

@@ -32,6 +32,7 @@ class Catalog(object):
       if save:
          self.readInputCatalog()
          self.addHaloMass()
+         self.addIntegratedTau()
          self.addIntegratedKSZ()
          self.addIntegratedY()
          self.writeCatalog()
@@ -124,11 +125,12 @@ class Catalog(object):
 
 
 
-   def addIntegratedOpticalDepth(self):
+   def addIntegratedTau(self):
       """integrated optical depth to Thompson scattering: int d^2theta n_e^2d sigma_T
       = (total nb of electrons) * sigma_T / (a chi)^2
       dimensionless
       """
+      print "- add integrated tau"
       # convert from total mass to baryon mass
       # assuming cosmological abundance of baryons, and all baryons are in gas
       self.integratedTau = self.Mvir * self.U.bg.Omega0_b/self.U.bg.Omega0_m
@@ -150,58 +152,42 @@ class Catalog(object):
       self.integratedTau *= sigma_T / (mpc / self.U.bg.h)**2
       
       # divide by (a chi)^2
-      self.integratedTau /= (self.U.bg.comoving_distance(z) / (1.+z))**2
+      self.integratedTau /= (self.U.bg.comoving_distance(self.Z) / (1.+self.Z))**2
 
    
    def addIntegratedKSZ(self):
       """Integrated kSZ signal: int d^2theta n_e sigma_T v/c Tcmb
       in muK * sr
       """
+      print "- add integrated kSZ"
       self.integratedKSZ = - self.integratedTau * (self.vR/3.e8) * 2.726e6
 
    
    def addIntegratedY(self, nu=150.e9):
       """Integrated tSZ signal: int d^2theta n_e sigma_T (k_B T_e / m_e c^2)
       in sr.
-      To get dT in muK*sr, multiply by Tcmb * f(nu)
+      To get dT in muK*sr, multiply by Tcmb * f(nu).
+      Simple power-law fit to Greco et al 2014, fig4.
       """
-      pass
+      print "- add integrated y"
+      
+      # in arcmin^2
+      yCcyltilda = (self.Mstellar/1.e11)**3.2 * 1.e-6
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      # in arcmin^2
+      yCcyl = yCcyltilda * (self.U.hubble(self.Z) / self.U.hubble(0.))**(2./3.)
+      yCcyl /= (self.U.bg.comoving_distance(self.Z) / (500.*self.U.bg.h))**2
+      # in sr
+      yCcyl *= (np.pi/180./60.)**2
+      
+      self.integratedY = yCcyl
 
 
    ##################################################################################
 
    def writeCatalog(self):
       print "- write full catalog to "+self.pathOutCatalog
-      data = np.zeros((self.nObj,23))
+      data = np.zeros((self.nObj,24))
       #
       # sky coordinates and redshift
       data[:,0] = self.RA # [deg]
@@ -249,6 +235,10 @@ class Catalog(object):
       #
       # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T v/c Tcmb
       data[:, 22] = self.integratedKSZ # [muK * sr]
+      #
+      # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
+      # needs to be multiplied by Tcmb * f(nu) to get muK
+      data[:, 23] = self.integratedY # [sr]
       #
       np.savetxt(self.pathOutCatalog, data)
 
@@ -304,6 +294,10 @@ class Catalog(object):
       #
       # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T v/c Tcmb
       self.integratedKSZ = data[:, 22] # [muK * sr]
+      #
+      # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
+      # needs to be multiplied by Tcmb * f(nu) to get muK
+      self.integratedY = data[:, 23] # [sr]
 
 
    ##################################################################################
