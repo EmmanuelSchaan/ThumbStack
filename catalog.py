@@ -123,12 +123,16 @@ class Catalog(object):
             self.hasM[iObj] = True
             self.Mvir[iObj] = self.MassConversion.fmStarTomVir(mStellar)
 
+      # for object without a mass, use the mean mass from the others
+      meanMvir = np.mean(self.Mvir[self.hasM.astype('bool')])
+      self.Mvir[~self.hasM.astype('bool')] = meanMvir
+
 
 
    def addIntegratedTau(self):
       """integrated optical depth to Thompson scattering: int d^2theta n_e^2d sigma_T
       = (total nb of electrons) * sigma_T / (a chi)^2
-      dimensionless
+      [sr]
       """
       print "- add integrated tau"
       # convert from total mass to baryon mass
@@ -160,7 +164,7 @@ class Catalog(object):
       in muK * sr
       """
       print "- add integrated kSZ"
-      self.integratedKSZ = - self.integratedTau * (self.vR/3.e8) * 2.726e6
+      self.integratedKSZ = - self.integratedTau * (self.vR/3.e5) * 2.726e6
 
    
    def addIntegratedY(self, nu=150.e9):
@@ -230,13 +234,13 @@ class Catalog(object):
       data[:,19] = self.hasM  # flag=1 if mass is known
       data[:,20] = self.Mvir   # [M_sun]
       #
-      # Integrated optical depth [dimless]: int d^2theta n_e^2d sigma_T = (total nb of electrons) * sigma_T / (a chi)^2
-      data[:,21] = self.integratedTau   # [dimless]
+      # Integrated optical depth [sr]: int d^2theta n_e^2d sigma_T = (total nb of electrons) * sigma_T / (a chi)^2
+      data[:,21] = self.integratedTau   # [sr]
       #
-      # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T v/c Tcmb
+      # Integrated kSZ signal [muK * sr]: int d^2theta n_e^2d sigma_T v/c Tcmb
       data[:, 22] = self.integratedKSZ # [muK * sr]
       #
-      # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
+      # Integrated Y signal [sr]: int d^2theta n_e^2d sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
       data[:, 23] = self.integratedY # [sr]
       #
@@ -349,6 +353,16 @@ class Catalog(object):
       # Halo mass
       self.hasM = np.concatenate((self.hasM, newCat.hasM))
       self.Mvir = np.concatenate((self.Mvir, newCat.Mvir))  # [M_sun]
+      #
+      # Integrated optical depth [dimless]: int d^2theta n_e^2d sigma_T = (total nb of electrons) * sigma_T / (a chi)^2
+      self.integratedTau = np.concatenate((self.integratedTau, newCat.integratedTau))   # [dimless]
+      #
+      # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T v/c Tcmb
+      self.integratedKSZ = np.concatenate((self.integratedKSZ, newCat.integratedKSZ)) # [muK * sr]
+      #
+      # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
+      # needs to be multiplied by Tcmb * f(nu) to get muK
+      self.integratedY = np.concatenate((self.integratedY, newCat.integratedY)) # [sr]
 
       # Write the full catalog to the output path, if needed
       if save:

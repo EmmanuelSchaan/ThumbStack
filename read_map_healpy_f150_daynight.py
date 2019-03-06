@@ -62,19 +62,19 @@ print("WCS attributes: "+str(baseMap.wcs))
 # Histograms before masking
 
 # T histogram
-myHistogram(baseMap[0], nBins=71, lim=(-10.*np.std(baseMap[0]), 10.*np.std(baseMap[0])), sigma2Theory=110.**2, path=pathFig+"hist_T_nomask.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(baseMap[0], nBins=71, lim=(-10.*np.std(baseMap[0]), 10.*np.std(baseMap[0])), S2Theory=[110.**2], path=pathFig+"hist_T_nomask.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 # Q histogram
-myHistogram(baseMap[1], nBins=71, lim=(-10.*np.std(baseMap[1]), 10.*np.std(baseMap[1])), sigma2Theory=None, path=pathFig+"hist_Q_nomask.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(baseMap[1], nBins=71, lim=(-10.*np.std(baseMap[1]), 10.*np.std(baseMap[1])), S2Theory=None, path=pathFig+"hist_Q_nomask.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 # U histogram
-myHistogram(baseMap[2], nBins=71, lim=(-10.*np.std(baseMap[2]), 10.*np.std(baseMap[2])), sigma2Theory=None, path=pathFig+"hist_U_nomask.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(baseMap[2], nBins=71, lim=(-10.*np.std(baseMap[2]), 10.*np.std(baseMap[2])), S2Theory=None, path=pathFig+"hist_U_nomask.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 # PS mask
-myHistogram(psMask, nBins=71, lim=(np.min(psMask), np.max(psMask)), sigma2Theory=None, path=pathFig+"hist_psmask.pdf", nameLatex=r'Mask values', semilogx=False, semilogy=True, doGauss=False)
+myHistogram(psMask, nBins=71, lim=(np.min(psMask), np.max(psMask)), S2Theory=None, path=pathFig+"hist_psmask.pdf", nameLatex=r'Mask values', semilogx=False, semilogy=True, doGauss=False)
 
 # PS mask
-myHistogram(hitMap, nBins=71, lim=(np.min(hitMap), np.max(hitMap)), sigma2Theory=None, path=pathFig+"hist_hit_nomask.pdf", nameLatex=r'Hit map values', semilogx=False, semilogy=True, doGauss=False)
+myHistogram(hitMap, nBins=71, lim=(np.min(hitMap), np.max(hitMap)), S2Theory=None, path=pathFig+"hist_hit_nomask.pdf", nameLatex=r'Hit map values', semilogx=False, semilogy=True, doGauss=False)
 
 
 
@@ -287,17 +287,17 @@ hMap[2] *= fullMask
 # T histogram
 x = hMap[0][fullMask.astype('bool')]
 #x -= np.mean(x)
-myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=110.**2, path=pathFig+"hist_T_masked.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), S2Theory=[110.**2], path=pathFig+"hist_T_masked.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 # Q histogram
 x = hMap[1][fullMask.astype('bool')]
 #x -= np.mean(x)
-myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=None, path=pathFig+"hist_Q_masked.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), S2Theory=None, path=pathFig+"hist_Q_masked.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 # U histogram
 x = hMap[2][fullMask.astype('bool')]
 #x -= np.mean(x)
-myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=None, path=pathFig+"hist_U_masked.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), S2Theory=None, path=pathFig+"hist_U_masked.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 
 #########################################################################
@@ -305,7 +305,7 @@ myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=None,
 
 # T histogram
 x = baseMap[0][carFullMask[0].astype('bool')]
-myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=110.**2, path=pathFig+"hist_T_masked_car.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), S2Theory=[110.**2], path=pathFig+"hist_T_masked_car.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 #########################################################################
 # Histograms: CAR map, after pre-filtering
@@ -317,7 +317,7 @@ prefiltCarFullMask = utils.interpol_prefilter(carFullMask[0], inplace=False)
 
 # T histogram
 x = prefiltMap[prefiltCarFullMask.astype('bool')]
-myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=110.**2, path=pathFig+"hist_T_masked_car_prefiltered_cubic.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), S2Theory=[110.**2], path=pathFig+"hist_T_masked_car_prefiltered_cubic.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 
 
@@ -327,7 +327,7 @@ prefiltCarFullMask = utils.interpol_prefilter(carFullMask[0], inplace=False, ord
 
 # T histogram
 x = prefiltMap[prefiltCarFullMask.astype('bool')]
-myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), sigma2Theory=110.**2, path=pathFig+"hist_T_masked_car_prefiltered_quadratic.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), S2Theory=[110.**2], path=pathFig+"hist_T_masked_car_prefiltered_quadratic.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 
 #########################################################################

@@ -99,7 +99,7 @@ def floatExpForm(input):
 ##################################################################################
 
 
-def myHistogram(X, nBins=71, lim=(-1000., 1000.), sigma2Theory=None, path='./test.pdf', nameLatex=r'$x$ [km/s]', semilogx=False, semilogy=False, doGauss=False):
+def myHistogram(X, nBins=71, lim=(-1000., 1000.), S2Theory=[], path='./test.pdf', nameLatex=r'$x$ [km/s]', semilogx=False, semilogy=False, doGauss=False):
    """Generic histogram plotter.
    Flattens the input array X first thing.
    """
@@ -116,6 +116,13 @@ def myHistogram(X, nBins=71, lim=(-1000., 1000.), sigma2Theory=None, path='./tes
    histX = np.histogram(X, Bins)[0]
    histX = histX.astype(float)
 
+   # Plot
+   fig = plt.figure(0)
+   ax = fig.add_subplot(111)
+   #
+   # Histogram from data
+   ax.bar(Bins[:-1], histX, binwidth, color='b', alpha=0.5, label=r'Data')
+   #
    # histogram for a Gaussian with the variance from the data
    if doGauss:
       mean = np.mean(X)
@@ -126,24 +133,16 @@ def myHistogram(X, nBins=71, lim=(-1000., 1000.), sigma2Theory=None, path='./tes
       g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
       histGaussFit = np.array(map(g, range(nBins-1)))
       histGaussFit *= len(X)
-
+      ax.step(Bins[:-1], histGaussFit, color='g', lw=3, where='post', label=r'Gaussian')
+   #
    # Theory histogram
-   if sigma2Theory is not None:
+   for s2Theory in S2Theory:
       av = 0.
-      fPDF = lambda x: (2*np.pi*sigma2Theory)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2Theory))
+      fPDF = lambda x: (2*np.pi*s2Theory)**(-1./2.) * np.exp(-(x-av)**2 / (2*s2Theory))
       g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
       histTheory = np.array(map(g, range(nBins-1)))
       histTheory *= len(X)
-
-   # Plot
-   fig = plt.figure(0)
-   ax = fig.add_subplot(111)
-   #
-   ax.bar(Bins[:-1], histX, binwidth, color='b', alpha=0.5, label=r'Data')
-   if doGauss:
-      ax.step(Bins[:-1], histGaussFit, color='g', lw=3, where='post', label=r'Gaussian')
-   if sigma2Theory is not None:
-      ax.step(Bins[:-1], histTheory, color='r', lw=3, where='post', label=r'Theory')
+      ax.step(Bins[:-1], histTheory, color='r', lw=3, where='post')#, label=r'Theory')
    #
    ax.legend(loc=1)
    ax.set_xlim((lim[0], lim[1]))

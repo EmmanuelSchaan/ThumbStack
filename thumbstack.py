@@ -80,7 +80,8 @@ class ThumbStack(object):
       '''
       # interpolate the map to the given sky coordinates
       sourcecoord = np.array([dec, ra]) * utils.degree
-      return map.at(sourcecoord, prefilter=False, mask_nan=False)
+      # use nearest neighbor interpolation
+      return map.at(sourcecoord, prefilter=False, mask_nan=False, order=0)
    
    
    ##################################################################################
@@ -122,7 +123,7 @@ class ThumbStack(object):
       myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'CMB mask value', semilogy=True)
 
       # rethreshold the mask
-      mask = (self.cmbMask>0.5)
+      mask = (self.cmbMask>0.5)[0]
 
       # mask, after re-thresholding
       x = mask.copy()
@@ -132,7 +133,7 @@ class ThumbStack(object):
       # masked map histogram
       x = self.cmbMap[mask]
       path = self.pathFig+"/hist_cmbmap.pdf"
-      myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), path=path, nameLatex=r'CMB map value', semilogy=True, doGauss=True, sigma2Theory=110.**2)
+      myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), path=path, nameLatex=r'CMB map value', semilogy=True, doGauss=True, S2Theory=[110.**2])
 
       # masked hit count histogram
       x = self.cmbHit[mask]
@@ -431,13 +432,13 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def examineHistograms(self, fsAp=None):
-      """fsAp is an optional function of rAp in radians, which returns the expected std def of the AP filter
+   def examineHistograms(self, fsAp=[]):
+      """fsAp is an optional list of functions of rAp in radians, which return the expected std def of the AP filter
       """
       
 #      self.catalogMask(overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1.)
 #      path = self.pathFig+"/hist_x.pdf"
-#      myHistogram(DEC[mask], nBins=71, lim=(-90., 90.), sigma2Theory=None, path=path, nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False)
+#      myHistogram(DEC[mask], nBins=71, lim=(-90., 90.), path=path, nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False)
 
       # first, keep all objects that overlap, even the masked ones
       mask = self.catalogMask(overlap=True, psMask=False)
@@ -464,17 +465,16 @@ class ThumbStack(object):
       for iRAp in range(self.nRAp):
          x = self.filtMap[mask, iRAp]
          path = self.pathFig+"/hist_filtvalue"+str(iRAp)+".pdf"
-         if fsAp is not None:
+         S2Theory = []
+         for f in fsAp:
             # theory assumes int d^2theta W = 1
-            sigma2Theory = fsAp(self.RApArcmin[iRAp] * np.pi/180./60.)**2
+            s2Theory = f(self.RApArcmin[iRAp] * np.pi/180./60.)**2
             # so multiply by disk area, but it can vary from object to object
             # we neglect this source of scatter and just keep the mean
-            sigma2Theory *= np.mean(self.diskArea[mask, iRAp])**2
-            #print iRAp, np.sqrt(sigma2Theory), np.std(x)
-            myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'AP filter value', sigma2Theory=sigma2Theory, doGauss=True, semilogy=True)
-         else:
-            myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'AP filter value', doGauss=True, semilogy=True)
-   
+            s2Theory *= np.mean(self.diskArea[mask, iRAp])**2
+            S2Theory.append(s2Theory)
+         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'AP filter value', S2Theory=S2Theory, doGauss=True, semilogy=True)
+
    
       # Histograms of noise std dev, from hit counts
       for iRAp in range(self.nRAp):
@@ -494,16 +494,78 @@ class ThumbStack(object):
    
    
       
-      # kSZ
+      # kSZ: T * v / s2
+      kSZ1 = np.zeros(self.nRAp)
+      skSZ1 = np.zeros(self.nRAp)
       for iRAp in range(self.nRAp):
          # inverse-variance weighted fit for the slope of the dT-v relation
-         # numerator
          x = self.filtMap[mask, iRAp] * self.Catalog.vR[mask] / self.filtNoiseStdDev[mask, iRAp]**2
-         x /= np.mean(self.Catalog.vR[mask]**2 / self.filtNoiseStdDev[mask, iRAp]**2)
-         print "- mean kSZ= "+str(np.mean(x))+"; std on mean= "+str(np.std(x)/np.sqrt(len(x)))+"; SNR= "+str(np.mean(x)/np.std(x)*np.sqrt(len(x)))
-         path = self.pathFig+"/hist_kszalpha"+str(iRAp)+".pdf"
+         x /= np.mean(self.Catalog.integratedKSZ[mask] * self.Catalog.vR[mask] / self.filtNoiseStdDev[mask, iRAp]**2)
+         #
+         kSZ1[iRAp] = np.mean(x)
+         skSZ1[iRAp] = np.std(x) / np.sqrt(len(x))
+         print "- mean kSZ= "+str(kSZ1[iRAp])+"; std on mean= "+str(skSZ1[iRAp])+"; SNR= "+str(kSZ1[iRAp]/skSZ1[iRAp])
+         path = self.pathFig+"/hist_ksz1"+str(iRAp)+".pdf"
          myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'kSZ fit', doGauss=True, semilogy=True)
       
+      # kSZ: T * Mh * v / s2
+      kSZ2 = np.zeros(self.nRAp)
+      skSZ2 = np.zeros(self.nRAp)
+      for iRAp in range(self.nRAp):
+         # inverse-variance weighted fit for the slope of the dT-v relation
+         x = self.filtMap[mask, iRAp] * self.Catalog.integratedKSZ[mask] / self.filtNoiseStdDev[mask, iRAp]**2
+         x /= np.mean(self.Catalog.integratedKSZ[mask]**2 / self.filtNoiseStdDev[mask, iRAp]**2)
+         #
+         kSZ2[iRAp] = np.mean(x)
+         skSZ2[iRAp] = np.std(x) / np.sqrt(len(x))
+         print "- mean kSZ= "+str(kSZ2[iRAp])+"; std on mean= "+str(skSZ2[iRAp])+"; SNR= "+str(kSZ2[iRAp]/skSZ2[iRAp])
+         path = self.pathFig+"/hist_ksz2"+str(iRAp)+".pdf"
+         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'kSZ fit', doGauss=True, semilogy=True)
+
+
+      # kSZ: T * Mh * v / s2, subtracting the mean T and mean expected kSZ
+      kSZ3 = np.zeros(self.nRAp)
+      skSZ3 = np.zeros(self.nRAp)
+      for iRAp in range(self.nRAp):
+         # inverse-variance weighted fit for the slope of the dT-v relation
+         t = self.filtMap[mask, iRAp] - np.mean(self.filtMap[mask, iRAp])
+         k = self.Catalog.integratedKSZ[mask] - np.mean(self.Catalog.integratedKSZ[mask])
+         x = t * k / self.filtNoiseStdDev[mask, iRAp]**2
+         x /= np.mean(k**2 / self.filtNoiseStdDev[mask, iRAp]**2)
+         #
+         kSZ3[iRAp] = np.mean(x)
+         skSZ3[iRAp] = np.std(x) / np.sqrt(len(x))
+         print "- mean kSZ= "+str(kSZ3[iRAp])+"; std on mean= "+str(skSZ3[iRAp])+"; SNR= "+str(kSZ3[iRAp]/skSZ3[iRAp])
+         path = self.pathFig+"/hist_ksz3"+str(iRAp)+".pdf"
+         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'kSZ fit', doGauss=True, semilogy=True)
+      
+      
+      
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      #self.RApMpch
+      ax.errorbar(self.RApArcmin, kSZ1, skSZ1, label=r'$Tv/\sigma^2$')
+      ax.errorbar(self.RApArcmin+0.01, kSZ2, skSZ2, label=r'$TMv/\sigma^2$')
+      ax.errorbar(self.RApArcmin+0.02, kSZ3, skSZ3, label=r'$TMv/\sigma^3$, sub. T,Mv')
+      #
+      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+      ax.set_xlabel(r'$R$ [arcmin]')
+      ax.set_ylabel(r'$\alpha_\text{kSZ}$')
+      #
+      path = self.pathFig+"/ksz.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+
+
+
+
+
+
+
+
+
 
 
 
