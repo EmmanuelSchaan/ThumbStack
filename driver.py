@@ -66,18 +66,18 @@ massConversion = MassConversionKravtsov14()
 
 # CMASS
 cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False)
-cmassSMariana.plotHistograms()
-cmassSMariana.plotFootprint()
+#cmassSMariana.plotHistograms()
+#cmassSMariana.plotFootprint()
 #
 cmassNMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False)
-cmassNMariana.plotHistograms()
-cmassNMariana.plotFootprint()
+#cmassNMariana.plotHistograms()
+#cmassNMariana.plotFootprint()
 #
 # combined catalog
 cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
 cmassMariana.addCatalog(cmassNMariana, save=False)
-cmassMariana.plotHistograms()
-cmassMariana.plotFootprint()
+#cmassMariana.plotHistograms()
+#cmassMariana.plotFootprint()
 
 
 ###################################################################################
@@ -181,14 +181,14 @@ reload(thumbstack)
 from thumbstack import *
 
 
-name = cmassSMariana.name + "_pactf150daynight"
-tsS = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
-
-name = cmassNMariana.name + "_pactf150daynight"
-tsN = ThumbStack(u, cmassNMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
+#name = cmassSMariana.name + "_pactf150daynight"
+#tsS = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+#
+#name = cmassNMariana.name + "_pactf150daynight"
+#tsN = ThumbStack(u, cmassNMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
 
 name = cmassMariana.name + "_pactf150daynight"
-ts = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
+ts = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
 
@@ -200,9 +200,9 @@ ts = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name,
 #ts.examineCmbMaps()
 
 # Expected std dev of AP filter, function of disk radius in rad
-#fsApActual = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=fCl, lMin=1., lMax=1.e5)
-#fsApNoiseless = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=cmb1_4.flensedTT, lMin=1., lMax=1.e5)
-#ts.examineHistograms(fsAp=[fsApActual, fsApNoiseless])
+fsApActual = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=fCl, lMin=1., lMax=1.e5)
+fsApNoiseless = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=cmb1_4.flensedTT, lMin=1., lMax=1.e5)
+ts.examineHistograms(fsAp=[fsApActual, fsApNoiseless])
 
 
 

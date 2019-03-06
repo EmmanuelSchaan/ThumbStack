@@ -398,7 +398,7 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def stack(self, quantity, mask, weights, norm=False):
+   def stack(self, quantity, mask, weights, norm=True):
       '''Stacks the quantity for the objects selected by mask,
       applying weights from weight.
       The quantity can be a single value per object, or an array for each object,
