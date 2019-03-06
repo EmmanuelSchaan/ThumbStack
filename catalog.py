@@ -124,6 +124,9 @@ class Catalog(object):
             self.Mvir[iObj] = self.MassConversion.fmStarTomVir(mStellar)
 
       # for object without a mass, use the mean mass from the others
+      meanMstellar = np.mean(self.Mstellar[self.hasM.astype('bool')])
+      self.Mstellar[~self.hasM.astype('bool')] = meanMstellar
+      #
       meanMvir = np.mean(self.Mvir[self.hasM.astype('bool')])
       self.Mvir[~self.hasM.astype('bool')] = meanMvir
 
@@ -427,60 +430,6 @@ class Catalog(object):
 
    ##################################################################################
    ##################################################################################
-   
-   
-   def histogram(self, X, nBins=71, lim=(-1000., 1000.), sigma2Theory=None, name='x', nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False):
-      """Generic histogram plotter.
-      """
-      # Bin edges
-      if semilogx:
-         Bins = np.logspace(np.log10(lim[0]), np.log10(lim[1]), nBins, 10.)
-      else:
-         Bins = np.linspace(lim[0], lim[1], nBins)
-      binwidth = Bins[1:] - Bins[:-1]
-
-      # Data histogram
-      histX = np.histogram(X, Bins)[0]
-      histX = histX.astype(float)
-
-      # histogram for a Gaussian with the variance from the data
-      if doGauss:
-         mean = np.mean(X)
-         std = np.std(X)
-         sigma2 = std**2
-         av = mean
-         fPDF = lambda x: (2*np.pi*sigma2)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2))
-         g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
-         histGaussFit = np.array(map(g, range(nBins-1)))
-         histGaussFit *= self.nObj
-
-      # Theory histogram
-      if sigma2Theory is not None:
-         av = 0.
-         fPDF = lambda x: (2*np.pi*sigma2Theory)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2Theory))
-         g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
-         histTheory = np.array(map(g, range(nBins-1)))
-         histTheory *= self.nObj
-
-      # Plot
-      fig = plt.figure(0)
-      ax = fig.add_subplot(111)
-      #
-      ax.bar(Bins[:-1], histX, binwidth, color='b', alpha=0.5, label=r'Data')
-      if doGauss:
-         ax.step(Bins[:-1], histGaussFit, color='g', lw=3, where='post', label=r'Gaussian')
-      if sigma2Theory is not None:
-         ax.step(Bins[:-1], histTheory, color='r', lw=3, where='post', label=r'Theory')
-      #
-      ax.legend(loc=1)
-      ax.set_xlim((lim[0], lim[1]))
-      if semilogx:
-         ax.set_xscale('log', nonposx='clip')
-      ax.set_xlabel(nameLatex)
-      ax.set_ylabel(r'number of objects')
-      fig.savefig(self.pathFig+"/hist_"+name+".pdf")
-      fig.clf()
-
 
 
    def plotHistograms(self):
@@ -488,23 +437,32 @@ class Catalog(object):
       s2v1d = self.U.v3dRms(0., z0, W3d_sth)**2 / 3.
       
       # redshifts
-      self.histogram(self.Z, nBins=71, lim=(0., 1.), name='z', nameLatex=r'$z$')
+      path = self.pathFig+"/hist_z.pdf"
+      myHistogram(self.Z, nBins=71, lim=(0., 1.), path=path, nameLatex=r'$z$', semilogy=True)
       
       # spherical velocities
-      self.histogram(self.vR, nBins=71, lim=(-1000., 1000.), sigma2Theory=s2v1d, name='vr', nameLatex=r'$v_r$ [km/s]', doGauss=True)
-      self.histogram(self.vTheta, nBins=71, lim=(-1000., 1000.), sigma2Theory=s2v1d, name='vtheta', nameLatex=r'$v_\theta$ [km/s]', doGauss=True)
-      self.histogram(self.vPhi, nBins=71, lim=(-1000., 1000.), sigma2Theory=s2v1d, name='vphi', nameLatex=r'$v_\phi$ [km/s]', doGauss=True)
+      path = self.pathFig+"/hist_vr.pdf"
+      myHistogram(self.vR, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_r$ [km/s]', doGauss=True)
+      path = self.pathFig+"/hist_vtheta.pdf"
+      myHistogram(self.vTheta, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_\theta$ [km/s]', doGauss=True)
+      path = self.pathFig+"/hist_vphi.pdf"
+      myHistogram(self.vPhi, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_\phi$ [km/s]', doGauss=True)
       
       # cartesian velocities
-      self.histogram(self.vX, nBins=71, lim=(-1000., 1000.), sigma2Theory=s2v1d, name='vx', nameLatex=r'$v_x$ [km/s]', doGauss=True)
-      self.histogram(self.vY, nBins=71, lim=(-1000., 1000.), sigma2Theory=s2v1d, name='vy', nameLatex=r'$v_y$ [km/s]', doGauss=True)
-      self.histogram(self.vZ, nBins=71, lim=(-1000., 1000.), sigma2Theory=s2v1d, name='vz', nameLatex=r'$v_z$ [km/s]', doGauss=True)
+      path = self.pathFig+"/hist_vx.pdf"
+      myHistogram(self.vX, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_x$ [km/s]', doGauss=True)
+      path = self.pathFig+"/hist_vy.pdf"
+      myHistogram(self.vY, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_y$ [km/s]', doGauss=True)
+      path = self.pathFig+"/hist_vz.pdf"
+      myHistogram(self.vZ, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_z$ [km/s]', doGauss=True)
       
       # stellar masses
-      self.histogram(self.Mstellar, nBins=71, lim=(1.e9, 1.e12), name='mstellar', nameLatex=r'$M_\star$ [M$_\odot$]', semilogx=True)
+      path = self.pathFig+"/hist_mstellar.pdf"
+      myHistogram(self.Mstellar, nBins=71, path=path, nameLatex=r'$M_\star$ [M$_\odot$]', semilogx=True, semilogy=True)
 
       # virial masses
-      self.histogram(self.Mvir, nBins=71, lim=(1.e12, 1.e15), name='mvir', nameLatex=r'$M_\text{vir}$ [M$_\odot$]', semilogx=True)
+      path = self.pathFig+"/hist_mvir.pdf"
+      myHistogram(self.Mvir, nBins=71, path=path, nameLatex=r'$M_\text{vir}$ [M$_\odot$]', semilogx=True, semilogy=True)
       
       # comoving virial radius
       # need masses in Msun/h
@@ -512,113 +470,49 @@ class Catalog(object):
       f = lambda par: self.U.frvir(par[0], par[1])   # in: Msun/h, out: Mpc/h
       Rvir = np.array(map(f, Par))  # in Mpc/h
       #Rvir /= self.U.bg.h  # Mpc
-      self.histogram(Rvir/self.U.bg.h, nBins=71, lim=(0., 2.5), name='rvir', nameLatex=r'$R_\text{vir}$ [Mpc]')
+      path = self.pathFig+"/hist_rvir.pdf"
+      myHistogram(Rvir/self.U.bg.h, nBins=71, path=path, nameLatex=r'$R_\text{vir}$ [Mpc]', semilogx=True, semilogy=True)
       
       # virial angular radius
-      Chi = np.array(map(self.U.bg.comoving_distance, self.Z)) # Mpc/h
-      Thetavir = Rvir / Chi   # rad
-      self.histogram(Thetavir * (180.*60./np.pi), nBins=71, lim=(0.5, 3.), name='thetavir', nameLatex=r'$\theta_\text{vir}$ [arcmin]')
+      Chi = np.array(map(self.U.bg.comoving_distance, self.Z)) # [Mpc/h]
+      Thetavir = Rvir / Chi   # [rad]
+      path = self.pathFig+"/hist_thetavir.pdf"
+      x = Thetavir * (180.*60./np.pi)  # [arcmin]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\theta_\text{vir}$ [arcmin]', semilogx=True, semilogy=True)
       
-      # expected kSZ?
+      # integrated tau [arcmin^2]
+      path = self.pathFig+"/hist_integratedtau.pdf"
+      x = self.integratedTau * (180.*60./np.pi)**2 # [arcmin^2]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; \tau$ [arcmin$^2$]', semilogx=True, semilogy=True)
       
-      # expected tSZ?
+      # mean tau within Rvir [dimless]
+      path = self.pathFig+"/hist_meantauvir.pdf"
+      x = self.integratedTau / (np.pi * Thetavir**2) # [dimless]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; \tau / \left( \pi \theta_\text{vir} \right)$ [dimless]', semilogx=True, semilogy=True)
+
+
+      # expected kSZ [muK*arcmin^2]
+      path = self.pathFig+"/hist_ksz.pdf"
+      x = self.integratedKSZ * (180.*60./np.pi)**2 # [muK*arcmin^2]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; \delta T_\text{kSZ}$ [$\mu$K.arcmin$^2$]', doGauss=True, semilogy=True)
+
+      # mean kSZ within Rvir [muK]
+      path = self.pathFig+"/hist_meankszvir.pdf"
+      x = self.integratedKSZ / (np.pi * Thetavir**2) # [muK]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; \delta T_\text{kSZ} / \left( \pi \theta_\text{vir} \right)$ [$\mu$K]', doGauss=True, semilogy=True)
+
+      # expected Y [arcmin^2]
+      path = self.pathFig+"/hist_y.pdf"
+      x = self.integratedY * (180.*60./np.pi)**2 # [arcmin^2]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{tSZ}$ [arcmin$^2$]', semilogx=True, semilogy=True)
+
+      # mean Y within Rvir [dimless]
+      path = self.pathFig+"/hist_meanyvir.pdf"
+      x = self.integratedY / (np.pi * Thetavir**2) # [dimless]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{tSZ} / \left( \pi \theta_\text{vir} \right)$ [dimless]', semilogx=True, semilogy=True)
 
       # displacements?
 
 
 ##################################################################################
 ##################################################################################
-#
-#class CMASS_S_Mariana(Catalog):
-#
-#   def __init__(self, U, MassConversion, save=False):
-#      # galaxy or cluster catalog
-#      self.name = "cmass_s_mariana"
-#      self.nameLong = "CMASS S M"
-#
-#      # path to the input catalog
-#      self.pathInCatalog = "../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt"
-#
-#      super(CMASS_S_Mariana, self).__init__(U, MassConversion, save=save)
-#
-#
-###################################################################################
-#
-#class CMASS_N_Mariana(Catalog):
-#
-#   def __init__(self, U, MassConversion, save=False):
-#      # galaxy or cluster catalog
-#      self.name = "cmass_n_mariana"
-#      self.nameLong = "CMASS N M"
-#
-#      # path to the input catalog
-#      self.pathInCatalog = "../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt"
-#
-#      super(CMASS_N_Mariana, self).__init__(U, MassConversion, save=save)
-#
-#
-###################################################################################
-###################################################################################
-#
-#class CMASS_S_Kendrick(Catalog):
-#
-#   def __init__(self, U, MassConversion, save=False):
-#      # galaxy or cluster catalog
-#      self.name = "cmass_s_kendrick"
-#      self.nameLong = "CMASS S K"
-#
-#      # path to the input catalog
-#      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_S_kendrick.txt"
-#
-#      super(CMASS_S_Kendrick, self).__init__(U, MassConversion, save=save)
-#
-#
-###################################################################################
-#
-#class CMASS_N_Kendrick(Catalog):
-#
-#   def __init__(self, U, MassConversion, save=False):
-#      # galaxy or cluster catalog
-#      self.name = "cmass_n_kendrick"
-#      self.nameLong = "CMASS N K"
-#
-#      # path to the input catalog
-#      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_N_kendrick.txt"
-#
-#      super(CMASS_N_Kendrick, self).__init__(U, MassConversion, save=save)
-#
-#
-###################################################################################
-#
-#class LOWZ_S_Kendrick(Catalog):
-#
-#   def __init__(self, U, MassConversion, save=False):
-#      # galaxy or cluster catalog
-#      self.name = "lowz_s_kendrick"
-#      self.nameLong = "LOWZ S K"
-#
-#      # path to the input catalog
-#      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_S_kendrick.txt"
-#
-#      super(LOWZ_S_Kendrick, self).__init__(U, MassConversion, save=save)
-#
-#
-###################################################################################
-#
-#class LOWZ_N_Kendrick(Catalog):
-#
-#   def __init__(self, U, MassConversion, save=False):
-#      # galaxy or cluster catalog
-#      self.name = "lowz_n_kendrick"
-#      self.nameLong = "LOWZ N K"
-#
-#      # path to the input catalog
-#      self.pathInCatalog = "../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_N_kendrick.txt"
-#
-#      super(LOWZ_N_Kendrick, self).__init__(U, MassConversion, save=save)
-#
-#
-###################################################################################
-###################################################################################
-#
-#

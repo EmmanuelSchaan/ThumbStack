@@ -45,12 +45,6 @@ from cmb import *
 
 nProc = 32 # 1 haswell node on cori
 
-
-
-
-
-
-
 ##################################################################################
 ##################################################################################
 # cosmological parameters
@@ -65,27 +59,26 @@ massConversion = MassConversionKravtsov14()
 
 ###################################################################################
 ###################################################################################
-# Loading catalogs
+# Galaxy catalogs
 
 ###################################################################################
 # Mariana
 
 # CMASS
-cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=True)
-#cmassSMariana.plotHistograms()
-#cmassSMariana.plotFootprint()
+cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False)
+cmassSMariana.plotHistograms()
+cmassSMariana.plotFootprint()
 #
-'''
 cmassNMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False)
-#cmassNMariana.plotHistograms()
-#cmassNMariana.plotFootprint()
+cmassNMariana.plotHistograms()
+cmassNMariana.plotFootprint()
 #
 # combined catalog
 cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
-cmassMariana.addCatalog(cmassNMariana, save=True)
-#cmassMariana.plotHistograms()
-#cmassMariana.plotFootprint()
-'''
+cmassMariana.addCatalog(cmassNMariana, save=False)
+cmassMariana.plotHistograms()
+cmassMariana.plotFootprint()
+
 
 ###################################################################################
 # Kendrick
@@ -128,70 +121,6 @@ bossKendrick.addCatalog(lowzNKendrick, save=True)
 #bossKendrick.plotHistograms()
 #bossKendrick.plotFootprint()
 '''
-###################################################################################
-
-#
-## Mariana
-#cmassSMariana = CMASS_S_Mariana(u, massConversion, save=False)
-##cmassSMariana.plotHistograms()
-##cmassSMariana.plotFootprint()
-##
-#cmassNMariana = CMASS_N_Mariana(u, massConversion, save=False)
-##cmassNMariana.plotHistograms()
-##cmassNMariana.plotFootprint()
-##
-## combined catalog
-#cmassMariana = CMASS_S_Mariana(u, massConversion, save=False)
-#cmassMariana.addCatalog(cmassNMariana)
-##cmassMariana.plotHistograms()
-##cmassMariana.plotFootprint()
-#
-#
-## Kendrick
-#
-## CMASS
-#cmassSKendrick = CMASS_S_Kendrick(u, massConversion, save=False)
-##cmassSKendrick.plotHistograms()
-##cmassSKendrick.plotFootprint()
-##
-#cmassNKendrick = CMASS_N_Kendrick(u, massConversion, save=False)
-##cmassNKendrick.plotHistograms()
-##cmassNKendrick.plotFootprint()
-##
-## combined catalog
-#cmassKendrick = CMASS_S_Kendrick(u, massConversion, save=False)
-#cmassKendrick.addCatalog(cmassNKendrick)
-##cmassKendrick.plotHistograms()
-##cmassKendrick.plotFootprint()
-#
-## LOWZ
-#lowzSKendrick = LOWZ_S_Kendrick(u, massConversion, save=False)
-##lowzSKendrick.plotHistograms()
-##lowzSKendrick.plotFootprint()
-##
-#lowzNKendrick = LOWZ_N_Kendrick(u, massConversion, save=False)
-##lowzNKendrick.plotHistograms()
-##lowzNKendrick.plotFootprint()
-##
-## combined catalog
-#lowzKendrick = LOWZ_S_Kendrick(u, massConversion, save=False)
-#lowzKendrick.addCatalog(lowzNKendrick)
-##lowzKendrick.plotHistograms()
-##lowzKendrick.plotFootprint()
-#
-## BOSS = CMASS + LOWZ
-#bossKendrick = CMASS_S_Kendrick(u, massConversion, save=False)
-#bossKendrick.addCatalog(cmassNKendrick)
-#bossKendrick.addCatalog(lowzSKendrick)
-#bossKendrick.addCatalog(lowzNKendrick)
-##lowzKendrick.plotHistograms()
-##lowzKendrick.plotFootprint()
-#
-#
-## Other functions coded up
-##catalog.printProperties()
-##catalog.compareV1dRms()
-#
 
 
 ###################################################################################
@@ -220,7 +149,7 @@ print "Set up interpolations"
 #utils.interpol_prefilter(pact150Hit, inplace=True)
 
 tStop = time()
-print "took", (tStop-tStart)/60., "min"
+print "took", tStop-tStart, "sec"
 
 
 
@@ -253,7 +182,14 @@ from thumbstack import *
 
 
 name = cmassSMariana.name + "_pactf150daynight"
-ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsS = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
+
+name = cmassNMariana.name + "_pactf150daynight"
+tsN = ThumbStack(u, cmassNMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
+
+name = cmassMariana.name + "_pactf150daynight"
+ts = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
+
 
 
 #mask = ts.catalogMask(overlap=True, psMask=True)
@@ -264,9 +200,9 @@ ts = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name
 #ts.examineCmbMaps()
 
 # Expected std dev of AP filter, function of disk radius in rad
-fsApActual = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=fCl, lMin=1., lMax=1.e5)
-fsApNoiseless = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=cmb1_4.flensedTT, lMin=1., lMax=1.e5)
-ts.examineHistograms(fsAp=[fsApActual, fsApNoiseless])
+#fsApActual = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=fCl, lMin=1., lMax=1.e5)
+#fsApNoiseless = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=cmb1_4.flensedTT, lMin=1., lMax=1.e5)
+#ts.examineHistograms(fsAp=[fsApActual, fsApNoiseless])
 
 
 

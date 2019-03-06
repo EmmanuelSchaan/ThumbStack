@@ -99,12 +99,15 @@ def floatExpForm(input):
 ##################################################################################
 
 
-def myHistogram(X, nBins=71, lim=(-1000., 1000.), S2Theory=[], path='./test.pdf', nameLatex=r'$x$ [km/s]', semilogx=False, semilogy=False, doGauss=False):
+def myHistogram(X, nBins=71, lim=None, S2Theory=[], path='./test.pdf', nameLatex=r'$x$ [km/s]', semilogx=False, semilogy=False, doGauss=False):
    """Generic histogram plotter.
    Flattens the input array X first thing.
    """
    # Flatten the array in case
    X = X.flatten()
+   # value limits for the histogram
+   if lim is None:
+      lim = (np.min(X), np.max(X))
    # Bin edges
    if semilogx:
       Bins = np.logspace(np.log10(lim[0]), np.log10(lim[1]), nBins, 10.)
