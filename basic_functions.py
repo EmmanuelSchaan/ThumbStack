@@ -188,7 +188,7 @@ def my2dHistogram(X, Y, nBins=(71, 71), limx=None, limy=None, limc=None, fTheory
    ax = fig.add_subplot(111)
    #
    # 2d histogram
-   H, xEdges, yEdges = np.histogram2d(X, Y, bins=[BinsX, BinsY], range=[[limx[0], limx[1]],[limy[0], limy[1]]], density=False)
+   H, xEdges, yEdges = np.histogram2d(X, Y, bins=[BinsX, BinsY], range=[[limx[0], limx[1]],[limy[0], limy[1]]])
    H = H.T
    x, y = np.meshgrid(xEdges, yEdges)
    if logColor:

@@ -432,6 +432,57 @@ class ThumbStack(object):
    ##################################################################################
 
 
+   def measureVarFromHitCount(self):
+      # keep only objects that overlap, and mask point sources
+      mask = self.catalogMask(overlap=True, psMask=True)
+   
+      fVarFromHitCount = []
+   
+      for iRAp in range(self.nRAp):
+         x = self.filtNoiseStdDev[mask, iRAp]**2
+         y = self.filtMap[mask, iRAp].copy()
+         y = (y - np.mean(y))**2
+
+         # define bins
+         nBins = 21
+         BinsX = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
+         
+         # compute histograms
+         binCenters, binEdges, binIndices = stats.binned_statistic(x, x, statistic='mean', bins=BinsX)
+         binCounts, binEdges, binIndices = stats.binned_statistic(x, x, statistic='count', bins=BinsX)
+         binnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.mean, bins=BinsX)
+         sBinnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.std, bins=BinsX)
+         sBinnedVar /= np.sqrt(binCounts)
+         
+         # interpolate, to use as noise weighting
+         fVarFromHitCount.append( interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) )
+
+         # plot
+         fig=plt.figure(0)
+         ax=fig.add_subplot(111)
+         #
+         # measured
+         ax.errorbar(binCenters, binnedVar, yerr=sBinnedVar, fmt='.', label=r'measured')
+         #
+         # interpolated
+         newX = np.logspace(np.log10(np.min(x)/2.), np.log10(np.max(x)*2.), 10.*nBins, 10.)
+         newY = np.array(map(fVarFromHitCount[iRAp], newX))
+         ax.plot(newX, newY, label=r'interpolated')
+         #
+         ax.set_xscale('log', nonposx='clip')
+         ax.set_yscale('log', nonposy='clip')
+         #
+         path = self.pathFig+"/binned_noise_vs_hit"+str(iRAp)+".pdf"
+         fig.savefig(path, bbox_inches='tight')
+         fig.clf()
+
+      return fVarFromHitCount
+
+
+
+
+
+
    def examineHistograms(self, fsAp=[]):
       """fsAp is an optional list of functions of rAp in radians, which return the expected std def of the AP filter
       """
