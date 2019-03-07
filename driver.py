@@ -197,15 +197,15 @@ ts = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name,
 
 #ts.analyzeObject(0, test=True)
 
-#ts.examineCmbMaps()
+ts.examineCmbMaps()
 
 # Expected std dev of AP filter, function of disk radius in rad
 #fsApActual = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=fCl, lMin=1., lMax=1.e5)
 #fsApNoiseless = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=cmb1_4.flensedTT, lMin=1., lMax=1.e5)
 #ts.examineHistograms(fsAp=[fsApActual, fsApNoiseless])
 
-fVarFromHitCount = ts.measureVarFromHitCount()
-
+#fVarFromHitCount = ts.measureVarFromHitCount()
+ts.measureKSZ()
 
 
 

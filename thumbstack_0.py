@@ -546,14 +546,98 @@ class ThumbStack(object):
          print "- mean tSZ= "+str(np.mean(x))+"; std on mean= "+str(np.std(x)/np.sqrt(len(x)))+"; SNR= "+str(np.mean(x)/np.std(x)*np.sqrt(len(x)))
          path = self.pathFig+"/hist_tsz"+str(iRAp)+".pdf"
          myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'Std dev value [arbitrary]', semilogy=True)
+   
+   
+      """
+      # kSZ: T * v / s2
+      kSZ1 = np.zeros(self.nRAp)
+      skSZ1 = np.zeros(self.nRAp)
+      for iRAp in range(self.nRAp):
+         # inverse-variance weighted fit for the slope of the dT-v relation
+         num = np.sum(self.filtMap[mask, iRAp] * self.Catalog.vR[mask] / self.filtNoiseStdDev[mask, iRAp]**2)
+         denom = np.sum(self.Catalog.integratedKSZ[mask] * self.Catalog.vR[mask] / self.filtNoiseStdDev[mask, iRAp]**2)
+         
+#         x = self.filtMap[mask, iRAp] * self.Catalog.vR[mask] / self.filtNoiseStdDev[mask, iRAp]**2
+#         x /= np.mean(self.Catalog.integratedKSZ[mask] * self.Catalog.vR[mask] / self.filtNoiseStdDev[mask, iRAp]**2)
+         #
+         kSZ1[iRAp] = num / denom   #np.mean(x)
+         skSZ1[iRAp] = 1. / np.sqrt(denom)   #np.std(x) / np.sqrt(len(x))
+         print "- mean kSZ= "+str(kSZ1[iRAp])+"; std on mean= "+str(skSZ1[iRAp])+"; SNR= "+str(kSZ1[iRAp]/skSZ1[iRAp])
+         path = self.pathFig+"/hist_ksz1"+str(iRAp)+".pdf"
+         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'kSZ fit', doGauss=True, semilogy=True)
+      
+      # kSZ: T * Mh * v / s2
+      kSZ2 = np.zeros(self.nRAp)
+      skSZ2 = np.zeros(self.nRAp)
+      for iRAp in range(self.nRAp):
+         # inverse-variance weighted fit for the slope of the dT-v relation
+         num = np.sum(self.filtMap[mask, iRAp] * self.Catalog.integratedKSZ[mask] / self.filtNoiseStdDev[mask, iRAp]**2)
+         denom = np.sum(self.Catalog.integratedKSZ[mask]**2 / self.filtNoiseStdDev[mask, iRAp]**2)
+         
+#         x = self.filtMap[mask, iRAp] * self.Catalog.integratedKSZ[mask] / self.filtNoiseStdDev[mask, iRAp]**2
+#         x /= np.mean(self.Catalog.integratedKSZ[mask]**2 / self.filtNoiseStdDev[mask, iRAp]**2)
+         #
+         kSZ2[iRAp] = num / denom   #np.mean(x)
+         skSZ2[iRAp] = 1. / np.sqrt(denom)   #np.std(x) / np.sqrt(len(x))
+         print "- mean kSZ= "+str(kSZ2[iRAp])+"; std on mean= "+str(skSZ2[iRAp])+"; SNR= "+str(kSZ2[iRAp]/skSZ2[iRAp])
+         path = self.pathFig+"/hist_ksz2"+str(iRAp)+".pdf"
+         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'kSZ fit', doGauss=True, semilogy=True)
+
+
+      # kSZ: T * Mh * v / s2, subtracting the mean T and mean expected kSZ
+      kSZ3 = np.zeros(self.nRAp)
+      skSZ3 = np.zeros(self.nRAp)
+      for iRAp in range(self.nRAp):
+         # inverse-variance weighted fit for the slope of the dT-v relation
+         t = self.filtMap[mask, iRAp] - np.mean(self.filtMap[mask, iRAp])
+         k = self.Catalog.integratedKSZ[mask] - np.mean(self.Catalog.integratedKSZ[mask])
+         s2Hit = self.filtNoiseStdDev[mask, iRAp]**2
+         s2True = fVarFromHitCount[iRAp](self.filtNoiseStdDev[mask, iRAp]**2)
+         
+         num = np.sum(t * k / s2Hit)
+         denom = np.sum(k**2 / s2Hit)
+         s2num = np.sum(s2True * (k / s2Hit)**2)
+         
+#         x = t * k / self.filtNoiseStdDev[mask, iRAp]**2
+#         x /= np.mean(k**2 / self.filtNoiseStdDev[mask, iRAp]**2)
+         #
+         kSZ3[iRAp] = num / denom   #np.mean(x)
+         skSZ3[iRAp] = np.sqrt(s2num / denom**2)   #np.std(x) / np.sqrt(len(x))
+         print "- mean kSZ= "+str(kSZ3[iRAp])+"; std on mean= "+str(skSZ3[iRAp])+"; SNR= "+str(kSZ3[iRAp]/skSZ3[iRAp])
+         path = self.pathFig+"/hist_ksz3"+str(iRAp)+".pdf"
+         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'kSZ fit', doGauss=True, semilogy=True)
+
+
+      # kSZ: T * Mh * v / s2, subtracting the mean T and mean expected kSZ,
+      # and using the correct noise weighting
+      kSZ4 = np.zeros(self.nRAp)
+      skSZ4 = np.zeros(self.nRAp)
+      fVarFromHitCount = self.measureVarFromHitCount()
+      for iRAp in range(self.nRAp):
+         # inverse-variance weighted fit for the slope of the dT-v relation
+         t = self.filtMap[mask, iRAp] - np.mean(self.filtMap[mask, iRAp])
+         k = self.Catalog.integratedKSZ[mask] - np.mean(self.Catalog.integratedKSZ[mask])
+         s2True = fVarFromHitCount[iRAp](self.filtNoiseStdDev[mask, iRAp]**2)
+         
+         num = np.sum(t * k / s2True)
+         denom = np.sum(k**2 / s2True)
+         
+#         x = t * k / s2
+#         x /= np.mean(k**2 / s2)
+         #
+         kSZ4[iRAp] = num / denom   #np.mean(x)
+         skSZ4[iRAp] = 1. / np.sqrt(denom)   #np.std(x) / np.sqrt(len(x))
+         print "- mean kSZ= "+str(kSZ4[iRAp])+"; std on mean= "+str(skSZ4[iRAp])+"; SNR= "+str(kSZ4[iRAp]/skSZ4[iRAp])
+         path = self.pathFig+"/hist_ksz4"+str(iRAp)+".pdf"
+         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'kSZ fit', doGauss=True, semilogy=True)
+
+      """
+
 
 
 
 
    def measureKSZ(self):
-
-      # then  remove the objects that overlap with point sources
-      mask = self.catalogMask(overlap=True, psMask=True)
 
       kSZ1 = np.zeros(self.nRAp)
       skSZ1 = np.zeros(self.nRAp)
@@ -611,7 +695,15 @@ class ThumbStack(object):
          #
          kSZ4[iRAp] = num / denom
          skSZ4[iRAp] = np.sqrt(1. / denom)
-         
+
+
+
+
+
+
+
+
+      
       
       fig=plt.figure(0)
       ax=fig.add_subplot(111)
