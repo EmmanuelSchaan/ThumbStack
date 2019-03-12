@@ -694,6 +694,82 @@ class ThumbStack(object):
       fig.clf()
 
 
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      #self.RApMpch
+      ax.plot(self.RApArcmin, skSZ1, label=r'$Tv/\sigma^2$')
+      ax.plot(self.RApArcmin+0.01, skSZ6, label=r'$Tv/\sigma^2$, better noise')
+      ax.plot(self.RApArcmin+0.02, skSZ7, label=r'$Tv/\sigma^2$, sub. T,v')
+      ax.plot(self.RApArcmin+0.03, skSZ5, label=r'$Tv/\sigma^2$, sub. T,v, better noise')
+      ax.plot(self.RApArcmin+0.04, skSZ2, label=r'$TMv/\sigma^2$')
+      ax.plot(self.RApArcmin+0.05, skSZ3, label=r'$TMv/\sigma^2$, sub. T,Mv')
+      ax.plot(self.RApArcmin+0.06, skSZ4, label=r'$TMv/\sigma^2$, sub. T,Mv, better noise')
+      #
+      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+      ax.set_xlabel(r'$R$ [arcmin]')
+      ax.set_ylabel(r'$\sigma \left(\alpha_\text{kSZ} \right)$')
+      ax.set_ylim((0., 1.1))
+      #
+      # extra abscissa: disk radius in comoving Mpc/h
+      ax2 = ax.twiny()
+      ticks = ax.get_xticks()
+      ax2.set_xticks(ticks)
+      newticks = np.array(ticks) * np.pi/(180.*60.) * self.U.bg.comoving_distance(np.mean(self.Catalog.Z[mask]))  # disk radius in Mpc/h
+      newticks = np.round(newticks, 2)
+      ax2.set_xticklabels(newticks)
+      ax2.set_xlim(ax.get_xlim())
+      ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
+      ax2.xaxis.set_label_coords(0.5, 1.1)
+      #
+      # extra ordinate: signal in muK * arcmin^2
+      ax3 = ax.twinx()
+      ticks = ax.get_yticks()
+      ax3.set_yticks(ticks)
+      newticks = np.array(ticks) * np.mean(self.Catalog.integratedKSZ[mask]) * (180.*60./np.pi)**2 # [muK*arcmin^2]
+      #newticks = np.round(newticks, 2)
+      ax3.set_yticklabels(newticks)
+      ax3.set_ylim(ax.get_ylim())
+      ax3.set_ylabel(r'$\langle T_\text{kSZ} \rangle$ [$\mu$K.arcmin$^2$]', fontsize=20)
+      ax3.yaxis.set_label_coords(1.1, 0.5)
+      #
+      path = self.pathFig+"/sksz.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      #self.RApMpch
+      ax.plot(self.RApArcmin, kSZ1/skSZ1, label=r'$Tv/\sigma^2$')
+      ax.plot(self.RApArcmin+0.01, kSZ6/skSZ6, label=r'$Tv/\sigma^2$, better noise')
+      ax.plot(self.RApArcmin+0.02, kSZ7/skSZ7, label=r'$Tv/\sigma^2$, sub. T,v')
+      ax.plot(self.RApArcmin+0.03, kSZ5/skSZ5, label=r'$Tv/\sigma^2$, sub. T,v, better noise')
+      ax.plot(self.RApArcmin+0.04, kSZ2/skSZ2, label=r'$TMv/\sigma^2$')
+      ax.plot(self.RApArcmin+0.05, kSZ3/skSZ3, label=r'$TMv/\sigma^2$, sub. T,Mv')
+      ax.plot(self.RApArcmin+0.06, kSZ4/skSZ4, label=r'$TMv/\sigma^2$, sub. T,Mv, better noise')
+      #
+      ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
+      ax.set_xlabel(r'$R$ [arcmin]')
+      ax.set_ylabel(r'kSZ SNR')
+      ax.set_ylim((0., 6.))
+      #
+      # extra abscissa: disk radius in comoving Mpc/h
+      ax2 = ax.twiny()
+      ticks = ax.get_xticks()
+      ax2.set_xticks(ticks)
+      newticks = np.array(ticks) * np.pi/(180.*60.) * self.U.bg.comoving_distance(np.mean(self.Catalog.Z[mask]))  # disk radius in Mpc/h
+      newticks = np.round(newticks, 2)
+      ax2.set_xticklabels(newticks)
+      ax2.set_xlim(ax.get_xlim())
+      ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
+      ax2.xaxis.set_label_coords(0.5, 1.1)
+      #
+      path = self.pathFig+"/snr_ksz.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
 
 
 
