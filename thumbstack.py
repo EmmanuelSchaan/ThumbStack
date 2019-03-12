@@ -563,6 +563,12 @@ class ThumbStack(object):
       skSZ3 = np.zeros(self.nRAp)
       kSZ4 = np.zeros(self.nRAp)
       skSZ4 = np.zeros(self.nRAp)
+      kSZ5 = np.zeros(self.nRAp)
+      skSZ5 = np.zeros(self.nRAp)
+      kSZ6 = np.zeros(self.nRAp)
+      skSZ6 = np.zeros(self.nRAp)
+      kSZ7 = np.zeros(self.nRAp)
+      skSZ7 = np.zeros(self.nRAp)
 
       fVarFromHitCount = self.measureVarFromHitCount()
       for iRAp in range(self.nRAp):
@@ -581,6 +587,15 @@ class ThumbStack(object):
          kSZ1[iRAp] = num / denom
          skSZ1[iRAp] = np.sqrt(s2num / denom**2)
 
+         # kSZ6: T * v / s2True
+         num = np.sum(t * v / s2True)
+         denom = np.sum(k * v / s2True)
+         s2num = np.sum(s2True * (v / s2True)**2)
+         #
+         kSZ6[iRAp] = num / denom
+         skSZ6[iRAp] = np.sqrt(s2num / denom**2)
+
+
          # kSZ2: T * Mh v / s2Hit
          num = np.sum(t * k / s2Hit)
          denom = np.sum(k**2 / s2Hit)
@@ -591,36 +606,59 @@ class ThumbStack(object):
 
 
          # subtracting mean
-         t = self.filtMap[mask, iRAp] - np.mean(self.filtMap[mask, iRAp])
-         k = self.Catalog.integratedKSZ[mask] - np.mean(self.Catalog.integratedKSZ[mask])
+         tNoMean = self.filtMap[mask, iRAp] - np.mean(self.filtMap[mask, iRAp])
+         vNoMean = - self.Catalog.vR[mask] + np.mean(self.Catalog.vR[mask])
+         kNoMean = self.Catalog.integratedKSZ[mask] - np.mean(self.Catalog.integratedKSZ[mask])
          s2True = fVarFromHitCount[iRAp](self.filtNoiseStdDev[mask, iRAp]**2)
          s2Hit = self.filtNoiseStdDev[mask, iRAp]**2
 
          # kSZ3: T * Mh v / s2Hit, subtracting mean
-         num = np.sum(t * k / s2Hit)
-         denom = np.sum(k**2 / s2Hit)
-         s2num = np.sum(s2True * (k / s2Hit)**2)
+         num = np.sum(tNoMean * kNoMean / s2Hit)
+         denom = np.sum(kNoMean**2 / s2Hit)
+         s2num = np.sum(s2True * (kNoMean / s2Hit)**2)
          #
          kSZ3[iRAp] = num / denom
          skSZ3[iRAp] = np.sqrt(s2num / denom**2)
 
-         # kSZ4: T * Mh v / s2Hit, subtracting mean,
+         # kSZ4: T * Mh v / s2True, subtracting mean,
          # and using the measured noise weights
-         num = np.sum(t * k / s2True)
-         denom = np.sum(k**2 / s2True)
+         num = np.sum(tNoMean * kNoMean / s2True)
+         denom = np.sum(kNoMean**2 / s2True)
          #
          kSZ4[iRAp] = num / denom
          skSZ4[iRAp] = np.sqrt(1. / denom)
-         
+
+# Preferred estimator:
+         # kSZ5: T * v / s2True, subtracting mean,
+         # and using the measured noise weights
+         num = np.sum(tNoMean * vNoMean / s2True)
+         denom = np.sum(kNoMean * vNoMean / s2True)
+         s2num = np.sum(s2True * (vNoMean / s2True)**2)
+         #
+         kSZ5[iRAp] = num / denom
+         skSZ5[iRAp] = np.sqrt(s2num / denom**2)
+
+         # kSZ7: T * v / s2Hit, subtracting mean,
+         num = np.sum(tNoMean * vNoMean / s2Hit)
+         denom = np.sum(kNoMean * vNoMean / s2Hit)
+         s2num = np.sum(s2True * (vNoMean / s2Hit)**2)
+         #
+         kSZ7[iRAp] = num / denom
+         skSZ7[iRAp] = np.sqrt(s2num / denom**2)
+
+
       
       fig=plt.figure(0)
       ax=fig.add_subplot(111)
       #
       #self.RApMpch
       ax.errorbar(self.RApArcmin, kSZ1, skSZ1, label=r'$Tv/\sigma^2$')
-      ax.errorbar(self.RApArcmin+0.01, kSZ2, skSZ2, label=r'$TMv/\sigma^2$')
-      ax.errorbar(self.RApArcmin+0.02, kSZ3, skSZ3, label=r'$TMv/\sigma^2$, sub. T,Mv')
-      ax.errorbar(self.RApArcmin+0.03, kSZ4, skSZ4, label=r'$TMv/\sigma^2$, sub. T,Mv, better noise')
+      ax.errorbar(self.RApArcmin+0.01, kSZ6, skSZ6, label=r'$Tv/\sigma^2$, better noise')
+      ax.errorbar(self.RApArcmin+0.02, kSZ7, skSZ7, label=r'$Tv/\sigma^2$, sub. T,v')
+      ax.errorbar(self.RApArcmin+0.03, kSZ5, skSZ5, label=r'$Tv/\sigma^2$, sub. T,v, better noise')
+      ax.errorbar(self.RApArcmin+0.04, kSZ2, skSZ2, label=r'$TMv/\sigma^2$')
+      ax.errorbar(self.RApArcmin+0.05, kSZ3, skSZ3, label=r'$TMv/\sigma^2$, sub. T,Mv')
+      ax.errorbar(self.RApArcmin+0.06, kSZ4, skSZ4, label=r'$TMv/\sigma^2$, sub. T,Mv, better noise')
       #
       ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
       ax.set_xlabel(r'$R$ [arcmin]')

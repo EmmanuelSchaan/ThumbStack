@@ -68,16 +68,19 @@ massConversion = MassConversionKravtsov14()
 cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False)
 #cmassSMariana.plotHistograms()
 #cmassSMariana.plotFootprint()
+#cmassMariana.printProperties()
 #
 cmassNMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False)
 #cmassNMariana.plotHistograms()
 #cmassNMariana.plotFootprint()
+#cmassMariana.printProperties()
 #
 # combined catalog
 cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
 cmassMariana.addCatalog(cmassNMariana, save=False)
 #cmassMariana.plotHistograms()
 #cmassMariana.plotFootprint()
+#cmassMariana.printProperties()
 
 
 ###################################################################################
@@ -197,7 +200,7 @@ ts = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name,
 
 #ts.analyzeObject(0, test=True)
 
-ts.examineCmbMaps()
+#ts.examineCmbMaps()
 
 # Expected std dev of AP filter, function of disk radius in rad
 #fsApActual = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=fCl, lMin=1., lMax=1.e5)
