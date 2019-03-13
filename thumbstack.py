@@ -843,6 +843,8 @@ class ThumbStack(object):
 
 
    def kszCovBootstrap(self, nSamples=1000, nProc=1):
+      """Estimate kSZ cavariance matrix from bootstrap resampling.
+      """
       # list of all objects, overlapping or not
       I = np.arange(self.Catalog.nObj)
       # remove the objects that overlap with point sources
@@ -886,6 +888,55 @@ class ThumbStack(object):
       return cov
 
 
+   def kszCovShuffleV(self, nSamples=1000, nProc=1):
+      """Estimate kSZ cavariance matrix from shuffling the velocities.
+      """
+      # list of all objects, overlapping or not
+      I = np.arange(self.Catalog.nObj)
+      # remove the objects that overlap with point sources
+      mask = self.catalogMask(overlap=True, psMask=True)
+      
+      def resample(iSample):
+         print "starting sample number", iSample
+         # make sure each random resample is really independent
+         np.random.seed(iSample)
+         # shuffle only the overlapping objects,
+         # leave the other objects untouched
+         J = I.copy()
+         J[mask] = np.random.permutation(J[mask])
+         
+#         print "test len(J) =", len(J)
+#         print "do masks agree?", np.sum(mask-mask[J])
+#         print "test s2Hit before:", np.any(~np.isfinite(self.filtNoiseStdDev[mask,:]))
+#         x = self.filtNoiseStdDev[J,:]
+#         print "test s2Hit after:", np.any(~np.isfinite(self.filtNoiseStdDev[mask[J],:]))
+
+         # run kSZ estimator on the current resample: shuffle only vr and ksz
+         # no need to shuffle the mask, since masked objects are still masked
+         kSZ, skSZ = self.kszEstimator(filtMap=self.filtMap, v=-self.Catalog.vR[J], k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev, mask=mask)
+         
+#         if np.any(~np.isfinite(kSZ)):
+#            print "problem: kSZ=", kSZ
+
+         return kSZ, skSZ
+      
+      tStart = time()
+      with sharedmem.MapReduce(np=nProc) as pool:
+         result = np.array(pool.map(resample, range(nSamples)))
+      tStop = time()
+      print "took", (tStop-tStart)/60., "min"
+      # unpack results
+      kSZSamples = result[:,0,:] # shape (nObj, nRAp)
+      skSZSamples = result[:,1,:]
+
+      # estimate covariance matrix
+      cov = np.cov(kSZSamples, rowvar=False)
+
+      return cov
+
+
+
+
 
    def saveKsz(self, nSamples=1000, nProc=1):
       # kSZ signal and estimated variance
@@ -895,14 +946,23 @@ class ThumbStack(object):
       data[:,1] = skSZ
       np.savetxt(self.pathOut+"/ksz.txt", data)
       
-      cov = self.kszCovBootstrap(nSamples=1000, nProc=nProc)
-      np.savetxt(self.pathOut+"/cov_ksz.txt", cov)
+      # cov mat from bootstrap
+      cov = self.kszCovBootstrap(nSamples=nSamples, nProc=nProc)
+      np.savetxt(self.pathOut+"/cov_ksz_bootstrap.txt", cov)
+   
+      # cov mat from shuffling the velocities
+      cov = self.kszCovShuffleV(nSamples=nSamples, nProc=nProc)
+      np.savetxt(self.pathOut+"/cov_ksz_shufflev.txt", cov)
+
    
    def loadKsz(self, plot=False):
       data = np.genfromtxt(self.pathOut+"/ksz.txt")
       self.kSZ = data[:,0]
       self.skSZ = data[:,1]
-      self.covKsz = np.genfromtxt(self.pathOut+"/cov_ksz.txt")
+      self.covKszBootstrap = np.genfromtxt(self.pathOut+"/cov_ksz_bootstrap.txt")
+      self.covKszShuffleV = np.genfromtxt(self.pathOut+"/cov_ksz_shufflev.txt")
+      self.covKsz = self.covKszBootstrap.copy()
+
 
    def computeSnrKsz(self):
       # Compute chi^2_null
