@@ -209,9 +209,10 @@ ts = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name,
 #ts.measureVarFromHitCount(plot=True)
 #ts.measureKSZ()
 
-cov = ts.kszCovBootstrap(nSamples=1000, nProc=nProc)
-print np.sqrt(np.diag(cov))
+#cov = ts.kszCovBootstrap(nSamples=1000, nProc=nProc)
+#print np.sqrt(np.diag(cov))
 
+ts.computeSnrKsz()
 
 
 '''

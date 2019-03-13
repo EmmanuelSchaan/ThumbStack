@@ -48,7 +48,9 @@ class ThumbStack(object):
       
       self.measureVarFromHitCount(plot=False)
 
-
+      if True:
+         self.saveKsz(nSamples=10000, nProc=self.nProc)
+      self.loadKsz()
 
 
 
@@ -882,3 +884,36 @@ class ThumbStack(object):
       cov = np.cov(kSZSamples, rowvar=False)
 
       return cov
+
+
+
+   def saveKsz(self, nSamples=1000, nProc=1):
+      # kSZ signal and estimated variance
+      kSZ, skSZ = self.kszEstimator()
+      data = np.zeros((self.nRAp,2))
+      data[:,0] = kSZ
+      data[:,1] = skSZ
+      np.savetxt(self.pathOut+"/ksz.txt", data)
+      
+      cov = self.kszCovBootstrap(nSamples=1000, nProc=nProc)
+      np.savetxt(self.pathOut+"/cov_ksz.txt", cov)
+   
+   def loadKsz(self, plot=False):
+      data = np.genfromtxt(self.pathOut+"/ksz.txt")
+      self.kSZ = data[:,0]
+      self.skSZ = data[:,1]
+      self.covKsz = np.genfromtxt(self.pathOut+"/cov_ksz.txt")
+
+   def computeSnrKsz(self):
+      # Compute chi^2_null
+      chi2Null = self.kSZ.dot( np.linalg.inv(self.covKsz).dot(self.kSZ) )
+      # goodness of fit for null hypothesis
+      print "null chi2Null=", chi2Null
+      pteNull = 1.- stats.chi2.cdf(chi2Null, len(self.kSZ))
+      print "null pte=", pteNull
+      # pte as a function of sigma, for a Gaussian random variable
+      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
+      sigmaNull = optimize.brentq(fsigmaToPTE , 0., 50.)
+      print "null sigma significance=", sigmaNull
+
+
