@@ -214,6 +214,15 @@ ts = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name,
 
 ts.computeSnrKsz()
 
+# quantify tSZ contamination to the kSZ signal (ignore profile shape)
+t = np.column_stack((ts.Catalog.integratedY for i in range(ts.nRAp)))   # copy for each AP radius
+tSZBias, stSZBias = ts.kszEstimator(filtMap=t, v=-ts.Catalog.vR, k=ts.Catalog.integratedKSZ, filtNoiseStdDev=ts.filtNoiseStdDev, mask=mask)
+
+# simple check: should give 1 for all apertures (ignore profile shape)
+t = np.column_stack((ts.Catalog.integratedKSZ for i in range(ts.nRAp)))   # copy for each AP radius
+kSZBias, skSZBias = ts.kszEstimator(filtMap=t, v=-ts.Catalog.vR, k=ts.Catalog.integratedKSZ, filtNoiseStdDev=ts.filtNoiseStdDev, mask=mask)
+
+
 
 '''
 iObj = 0

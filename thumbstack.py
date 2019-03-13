@@ -776,9 +776,7 @@ class ThumbStack(object):
       fig.clf()
 
 
-
    ##################################################################################
-
 
 
    def kszEstimator(self, filtMap=None, v=None, k=None, filtNoiseStdDev=None, mask=None):
@@ -841,6 +839,8 @@ class ThumbStack(object):
       return kSZ, skSZ
 
 
+   ##################################################################################
+   
 
    def kszCovBootstrap(self, nSamples=1000, nProc=1):
       """Estimate kSZ cavariance matrix from bootstrap resampling.
@@ -881,11 +881,11 @@ class ThumbStack(object):
       # unpack results
       kSZSamples = result[:,0,:] # shape (nObj, nRAp)
       skSZSamples = result[:,1,:]
-
+      # compute the mean
+      mean = np.mean(kSZSamples)
       # estimate covariance matrix
       cov = np.cov(kSZSamples, rowvar=False)
-
-      return cov
+      return mean, cov
 
 
    def kszCovShuffleV(self, nSamples=1000, nProc=1):
@@ -928,14 +928,14 @@ class ThumbStack(object):
       # unpack results
       kSZSamples = result[:,0,:] # shape (nObj, nRAp)
       skSZSamples = result[:,1,:]
-
+      # compute the mean
+      mean = np.mean(kSZSamples)
       # estimate covariance matrix
       cov = np.cov(kSZSamples, rowvar=False)
-
-      return cov
-
+      return mean, cov
 
 
+   ##################################################################################
 
 
    def saveKsz(self, nSamples=1000, nProc=1):
@@ -946,12 +946,14 @@ class ThumbStack(object):
       data[:,1] = skSZ
       np.savetxt(self.pathOut+"/ksz.txt", data)
       
-      # cov mat from bootstrap
-      cov = self.kszCovBootstrap(nSamples=nSamples, nProc=nProc)
+      # null test and cov mat from bootstrap
+      mean, cov = self.kszCovBootstrap(nSamples=nSamples, nProc=nProc)
+      np.savetxt(self.pathOut+"/null_ksz_bootstrap.txt", mean)
       np.savetxt(self.pathOut+"/cov_ksz_bootstrap.txt", cov)
    
-      # cov mat from shuffling the velocities
-      cov = self.kszCovShuffleV(nSamples=nSamples, nProc=nProc)
+      # null test and cov mat from shuffling the velocities
+      mean, cov = self.kszCovShuffleV(nSamples=nSamples, nProc=nProc)
+      np.savetxt(self.pathOut+"/mean_ksz_shufflev.txt", mean)
       np.savetxt(self.pathOut+"/cov_ksz_shufflev.txt", cov)
 
    
@@ -964,6 +966,9 @@ class ThumbStack(object):
       self.covKsz = self.covKszBootstrap.copy()
 
 
+   ##################################################################################
+   
+
    def computeSnrKsz(self):
       # Compute chi^2_null
       chi2Null = self.kSZ.dot( np.linalg.inv(self.covKsz).dot(self.kSZ) )
@@ -975,5 +980,9 @@ class ThumbStack(object):
       fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
       sigmaNull = optimize.brentq(fsigmaToPTE , 0., 50.)
       print "null sigma significance=", sigmaNull
+
+
+   ##################################################################################
+
 
 
