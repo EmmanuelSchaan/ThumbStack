@@ -790,27 +790,42 @@ class ThumbStack(object):
          # remove the objects that overlap with point sources
          mask = self.catalogMask(overlap=True, psMask=True)
       if filtMap is None:
-         filtMap = self.filtMap[mask,:]
+         filtMap = self.filtMap.copy()
       if v is None:
-         v = -self.Catalog.vR[mask]
+         v = -self.Catalog.vR.copy()
       if k is None:
-         k = self.Catalog.integratedKSZ[mask]
+         k = self.Catalog.integratedKSZ.copy()
       if filtNoiseStdDev is None:
-         filtNoiseStdDev = self.filtNoiseStdDev[mask,:]
+         filtNoiseStdDev = self.filtNoiseStdDev.copy()
+         
+#      if np.any(~np.isfinite(v)) or np.any(~np.isfinite(k)):
+#         print "problem, input infinite"
 
       kSZ = np.zeros(self.nRAp)
       skSZ = np.zeros(self.nRAp)
       for iRAp in range(self.nRAp):
-         print "starting w AP", iRAp
          # AP filter values at the current radius
-         t = filtMap[:, iRAp]
+         t = filtMap[mask, iRAp]
          # subtracting mean
          tNoMean = t - np.mean(t)
-         vNoMean = v - np.mean(v)
-         kNoMean = k - np.mean(k)
+         vNoMean = v[mask] - np.mean(v[mask])
+         kNoMean = k[mask] - np.mean(k[mask])
          # hit count and measured total noise (CMB + detector)
-         s2True = self.fVarFromHitCount[iRAp](filtNoiseStdDev[:, iRAp]**2)
-         s2Hit = filtNoiseStdDev[:, iRAp]**2
+         s2Hit = filtNoiseStdDev[mask, iRAp]**2
+         s2True = self.fVarFromHitCount[iRAp](s2Hit)
+         
+#         if np.any(~np.isfinite(s2Hit)):
+#            print "problem s2Hit", s2Hit[np.where(~np.isfinite(s2Hit))]
+#         if np.any(~np.isfinite(s2True)):
+#            print "problem s2True", s2True
+#         if np.any(~np.isfinite(t)):
+#            print "problem t", t
+#         if np.any(~np.isfinite(tNoMean)):
+#            print "problem tNoMean", tNoMean
+#         if np.any(~np.isfinite(vNoMean)):
+#            print "problem vNoMean", vNoMean
+#         if np.any(~np.isfinite(kNoMean)):
+#            print "problem kNoMean", kNoMean
 
          # T * v / s2True, subtracting mean,
          # and using the measured noise weights
@@ -837,13 +852,21 @@ class ThumbStack(object):
          np.random.seed(iSample)
          # resample the overlapping objects from the overlapping objects, with replacement
          # leave the other objects untouched
-         print "1", iSample
-         I[mask] = np.random.choice(I[mask], size=np.sum(mask), replace=True)
-         print "2", iSample
-         # run kSZ estimator on the current resample
-         kSZ, skSZ = self.kszEstimator(filtMap=self.filtMap[I,:], v=-self.Catalog.vR[I], k=self.Catalog.integratedKSZ[I], filtNoiseStdDev=self.filtNoiseStdDev[I,:], mask=mask[I])
+         J = I.copy()
+         J[mask] = np.random.choice(I[mask], size=np.sum(mask), replace=True)
          
-         print "finished sample number", iSample
+#         print "test len(J) =", len(J)
+#         print "do masks agree?", np.sum(mask-mask[J])
+#         print "test s2Hit before:", np.any(~np.isfinite(self.filtNoiseStdDev[mask,:]))
+#         x = self.filtNoiseStdDev[J,:]
+#         print "test s2Hit after:", np.any(~np.isfinite(self.filtNoiseStdDev[mask[J],:]))
+
+         # run kSZ estimator on the current resample
+         kSZ, skSZ = self.kszEstimator(filtMap=self.filtMap[J,:], v=-self.Catalog.vR[J], k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev[J,:], mask=mask[J])
+         
+#         if np.any(~np.isfinite(kSZ)):
+#            print "problem: kSZ=", kSZ
+
          return kSZ, skSZ
       
       tStart = time()
@@ -857,6 +880,5 @@ class ThumbStack(object):
 
       # estimate covariance matrix
       cov = np.cov(kSZSamples, rowvar=False)
-      print "test the shape:", cov.shape
 
       return cov
