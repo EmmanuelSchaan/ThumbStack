@@ -961,8 +961,13 @@ class ThumbStack(object):
       data = np.genfromtxt(self.pathOut+"/ksz.txt")
       self.kSZ = data[:,0]
       self.skSZ = data[:,1]
+      
+      self.kSZNullBootstrap = np.genfromtxt(self.pathOut+"/mean_ksz_bootstrap.txt")
       self.covKszBootstrap = np.genfromtxt(self.pathOut+"/cov_ksz_bootstrap.txt")
+      
+      self.kSZNullShuffleV = np.genfromtxt(self.pathOut+"/mean_ksz_shufflev.txt")
       self.covKszShuffleV = np.genfromtxt(self.pathOut+"/cov_ksz_shufflev.txt")
+
       self.covKsz = self.covKszBootstrap.copy()
 
 
@@ -985,4 +990,26 @@ class ThumbStack(object):
    ##################################################################################
 
 
+   def kszNullTests(self):
+      """Compute and plot null tests.
+      """
+
+      # tSZ bias: tSZ contamination to the kSZ signal (ignore profile shape)
+      t = np.column_stack((self.Catalog.integratedY for i in range(self.nRAp)))   # copy for each AP radius
+      tSZBias, stSZBias = self.kszEstimator(filtMap=t, v=-self.Catalog.vR, k=self.Catalog.integratedKSZ, filtNoiseStdDev=self.filtNoiseStdDev, mask=mask)
+
+      # basic check: should give 1 for all apertures (ignore profile shape)
+      t = np.column_stack((self.Catalog.integratedKSZ for i in range(self.nRAp)))   # copy for each AP radius
+      kSZBias, skSZBias = self.kszEstimator(filtMap=t, v=-self.Catalog.vR, k=self.Catalog.integratedKSZ, filtNoiseStdDev=self.filtNoiseStdDev, mask=mask)
+
+      # Sign Null: replace v by |v|, should get zero
+      kSZNullAbsV, skSZNullAbsV = self.kszEstimator(filtMap=self.filtMap, v=np.abs(self.Catalog.vR), k=np.abs(self.Catalog.integratedKSZ), filtNoiseStdDev=self.filtNoiseStdDev, mask=mask)
+
+      # Bootstrap null:
+      #self.kSZNullBootstrap
+      #the cov should be divided by sqrt(nSamples) for the null test
+
+      # Shuffle v null:
+      #self.kSZNullShuffleV
+      #the cov should be divided by sqrt(nSamples) for the null test
 
