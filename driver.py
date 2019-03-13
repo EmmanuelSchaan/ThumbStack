@@ -207,8 +207,10 @@ ts = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name,
 #fsApNoiseless = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=cmb1_4.flensedTT, lMin=1., lMax=1.e5)
 #ts.examineHistograms(fsAp=[fsApActual, fsApNoiseless])
 
-#fVarFromHitCount = ts.measureVarFromHitCount()
-ts.measureKSZ()
+#ts.measureVarFromHitCount(plot=True)
+#ts.measureKSZ()
+
+cov = ts.kszCovBootstrap(nSamples=10, nProc=10)
 
 
 

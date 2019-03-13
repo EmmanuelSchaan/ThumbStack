@@ -45,6 +45,8 @@ class ThumbStack(object):
       if save:
          self.saveFiltering(nProc=self.nProc)
       self.loadFiltering()
+      
+      self.measureVarFromHitCount(plot=False)
 
 
 
@@ -432,16 +434,17 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def measureVarFromHitCount(self):
+   def measureVarFromHitCount(self, plot=False):
       """Returns a list of functions, one for each AP filter radius,
       where the function takes filtNoiseStdDev**2 as input and returns the
       actual measured filter variance.
       To be used for noise weighting in the stacking
       """
+      print "- interpolate the relation hit count - noise"
       # keep only objects that overlap, and mask point sources
       mask = self.catalogMask(overlap=True, psMask=True)
    
-      fVarFromHitCount = []
+      self.fVarFromHitCount = []
       for iRAp in range(self.nRAp):
          x = self.filtNoiseStdDev[mask, iRAp]**2
          y = self.filtMap[mask, iRAp].copy()
@@ -459,34 +462,34 @@ class ThumbStack(object):
          sBinnedVar /= np.sqrt(binCounts)
          
          # interpolate, to use as noise weighting
-         fVarFromHitCount.append( interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) )
+         self.fVarFromHitCount.append( interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) )
+         
+         if plot:
+            # plot
+            fig=plt.figure(0)
+            ax=fig.add_subplot(111)
+            #
+            # measured
+            ax.errorbar(binCenters, binnedVar*(180.*60./np.pi)**2, yerr=sBinnedVar*(180.*60./np.pi)**2, fmt='.', label=r'measured')
+            #
+            # interpolated
+            newX = np.logspace(np.log10(np.min(x)/2.), np.log10(np.max(x)*2.), 10.*nBins, 10.)
+            newY = np.array(map(self.fVarFromHitCount[iRAp], newX))
+            ax.plot(newX, newY*(180.*60./np.pi)**2, label=r'interpolated')
+            #
+            ax.set_xscale('log', nonposx='clip')
+            ax.set_yscale('log', nonposy='clip')
+            ax.set_xlabel(r'Det. noise var. from combined hit [arbitrary]')
+            ax.set_ylabel(r'Measured var. [$\mu$K.arcmin$^2$]')
+            #
+            path = self.pathFig+"/binned_noise_vs_hit"+str(iRAp)+".pdf"
+            fig.savefig(path, bbox_inches='tight')
+            fig.clf()
 
-         # plot
-         fig=plt.figure(0)
-         ax=fig.add_subplot(111)
-         #
-         # measured
-         ax.errorbar(binCenters, binnedVar*(180.*60./np.pi)**2, yerr=sBinnedVar*(180.*60./np.pi)**2, fmt='.', label=r'measured')
-         #
-         # interpolated
-         newX = np.logspace(np.log10(np.min(x)/2.), np.log10(np.max(x)*2.), 10.*nBins, 10.)
-         newY = np.array(map(fVarFromHitCount[iRAp], newX))
-         ax.plot(newX, newY*(180.*60./np.pi)**2, label=r'interpolated')
-         #
-         ax.set_xscale('log', nonposx='clip')
-         ax.set_yscale('log', nonposy='clip')
-         ax.set_xlabel(r'Det. noise var. from combined hit [arbitrary]')
-         ax.set_ylabel(r'Measured var. [$\mu$K.arcmin$^2$]')
-         #
-         path = self.pathFig+"/binned_noise_vs_hit"+str(iRAp)+".pdf"
-         fig.savefig(path, bbox_inches='tight')
-         fig.clf()
-
-      return fVarFromHitCount
+      return
 
 
    ##################################################################################
-
 
 
    def examineHistograms(self, fsAp=[]):
@@ -550,11 +553,11 @@ class ThumbStack(object):
          myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'Std dev value [arbitrary]', semilogy=True)
 
 
-
+   ##################################################################################
 
    def measureKSZ(self):
 
-      # then  remove the objects that overlap with point sources
+      # remove the objects that overlap with point sources
       mask = self.catalogMask(overlap=True, psMask=True)
 
       kSZ1 = np.zeros(self.nRAp)
@@ -572,12 +575,12 @@ class ThumbStack(object):
       kSZ7 = np.zeros(self.nRAp)
       skSZ7 = np.zeros(self.nRAp)
 
-      fVarFromHitCount = self.measureVarFromHitCount()
+
       for iRAp in range(self.nRAp):
          t = self.filtMap[mask, iRAp]# - np.mean(self.filtMap[mask, iRAp])
          v = - self.Catalog.vR[mask]# + np.mean(self.Catalog.vR[mask])
          k = self.Catalog.integratedKSZ[mask]# - np.mean(self.Catalog.integratedKSZ[mask])
-         s2True = fVarFromHitCount[iRAp](self.filtNoiseStdDev[mask, iRAp]**2)
+         s2True = self.fVarFromHitCount[iRAp](self.filtNoiseStdDev[mask, iRAp]**2)
          s2Hit = self.filtNoiseStdDev[mask, iRAp]**2
 
 
@@ -611,7 +614,7 @@ class ThumbStack(object):
          tNoMean = self.filtMap[mask, iRAp] - np.mean(self.filtMap[mask, iRAp])
          vNoMean = - self.Catalog.vR[mask] + np.mean(self.Catalog.vR[mask])
          kNoMean = self.Catalog.integratedKSZ[mask] - np.mean(self.Catalog.integratedKSZ[mask])
-         s2True = fVarFromHitCount[iRAp](self.filtNoiseStdDev[mask, iRAp]**2)
+         s2True = self.fVarFromHitCount[iRAp](self.filtNoiseStdDev[mask, iRAp]**2)
          s2Hit = self.filtNoiseStdDev[mask, iRAp]**2
 
          # kSZ3: T * Mh v / s2Hit, subtracting mean
@@ -772,14 +775,88 @@ class ThumbStack(object):
 
 
 
+   ##################################################################################
 
 
 
+   def kszEstimator(self, filtMap=None, v=None, k=None, filtNoiseStdDev=None, mask=None):
+      """ Returns alpha_kSZ and an estimate of sigma(alpha_kSZ).
+      filtMap: default is self.filtMap
+      vR: default is - self.Catalog.vR
+      kSZ: default is self.Catalog.integratedKSZ
+      mask: default is self.catalogMask(overlap=True, psMask=True)
+      """
+      if mask is None:
+         # remove the objects that overlap with point sources
+         mask = self.catalogMask(overlap=True, psMask=True)
+      if filtMap is None:
+         filtMap = self.filtMap[mask,:]
+      if v is None:
+         v = -self.Catalog.vR[mask]
+      if k is None:
+         k = self.Catalog.integratedKSZ[mask]
+      if filtNoiseStdDev is None:
+         filtNoiseStdDev = self.filtNoiseStdDev[mask,:]
+
+      kSZ = np.zeros(self.nRAp)
+      skSZ = np.zeros(self.nRAp)
+      for iRAp in range(self.nRAp):
+         print "starting w AP", iRAp
+         # AP filter values at the current radius
+         t = filtMap[:, iRAp]
+         # subtracting mean
+         tNoMean = t - np.mean(t)
+         vNoMean = v - np.mean(v)
+         kNoMean = k - np.mean(k)
+         # hit count and measured total noise (CMB + detector)
+         s2True = self.fVarFromHitCount[iRAp](filtNoiseStdDev[:, iRAp]**2)
+         s2Hit = filtNoiseStdDev[:, iRAp]**2
+
+         # T * v / s2True, subtracting mean,
+         # and using the measured noise weights
+         num = np.sum(tNoMean * vNoMean / s2True)
+         denom = np.sum(kNoMean * vNoMean / s2True)
+         s2num = np.sum(s2True * (vNoMean / s2True)**2)
+         #
+         kSZ[iRAp] = num / denom
+         skSZ[iRAp] = np.sqrt(s2num / denom**2)
+
+      return kSZ, skSZ
 
 
 
+   def kszCovBootstrap(self, nSamples=1000, nProc=1):
+      # list of all objects, overlapping or not
+      I = np.arange(self.Catalog.nObj)
+      # remove the objects that overlap with point sources
+      mask = self.catalogMask(overlap=True, psMask=True)
+      
+      def resample(iSample):
+         print "starting sample number", iSample
+         # make sure each random resample is really independent
+         np.random.seed(iSample)
+         # resample the overlapping objects from the overlapping objects, with replacement
+         # leave the other objects untouched
+         print "1", iSample
+         I[mask] = np.random.choice(I[mask], size=np.sum(mask), replace=True)
+         print "2", iSample
+         # run kSZ estimator on the current resample
+         kSZ, skSZ = self.kszEstimator(filtMap=self.filtMap[I,:], v=-self.Catalog.vR[I], k=self.Catalog.integratedKSZ[I], filtNoiseStdDev=self.filtNoiseStdDev[I,:], mask=mask[I])
+         
+         print "finished sample number", iSample
+         return kSZ, skSZ
+      
+      tStart = time()
+      with sharedmem.MapReduce(np=nProc) as pool:
+         result = np.array(pool.map(resample, range(nSamples)))
+      tStop = time()
+      print "took", (tStop-tStart)/60., "min"
+      # unpack results
+      kSZSamples = result[:,0,:] # shape (nObj, nRAp)
+      skSZSamples = result[:,1,:]
 
+      # estimate covariance matrix
+      cov = np.cov(kSZSamples, rowvar=False)
+      print "test the shape:", cov.shape
 
-
-
-
+      return cov
