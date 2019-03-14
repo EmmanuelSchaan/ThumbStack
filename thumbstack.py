@@ -20,6 +20,9 @@ class ThumbStack(object):
       self.cmbMask = cmbMask
       self.cmbHit = cmbHit
       
+      # number of samples for bootstraps, shuffles
+      self.nSamples = 1000
+      
       # Output path
       self.pathOut = "./output/thumbstack/"+self.name
       if not os.path.exists(self.pathOut):
@@ -48,8 +51,8 @@ class ThumbStack(object):
       
       self.measureVarFromHitCount(plot=False)
 
-      if True:
-         self.saveKsz(nSamples=10000, nProc=self.nProc)
+      if save:
+         self.saveKsz(nSamples=self.nSamples, nProc=self.nProc)
       self.loadKsz()
 
 
@@ -681,18 +684,18 @@ class ThumbStack(object):
       ax2.set_xticklabels(newticks)
       ax2.set_xlim(ax.get_xlim())
       ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
-      ax2.xaxis.set_label_coords(0.5, 1.1)
+      ax2.xaxis.set_label_coords(0.5, 1.15)
       #
       # extra ordinate: signal in muK * arcmin^2
       ax3 = ax.twinx()
       ticks = ax.get_yticks()
       ax3.set_yticks(ticks)
       newticks = np.array(ticks) * np.mean(self.Catalog.integratedKSZ[mask]) * (180.*60./np.pi)**2 # [muK*arcmin^2]
-      #newticks = np.round(newticks, 2)
+      newticks = np.round(newticks, 3)
       ax3.set_yticklabels(newticks)
       ax3.set_ylim(ax.get_ylim())
       ax3.set_ylabel(r'$\langle T_\text{kSZ} \rangle$ [$\mu$K.arcmin$^2$]', fontsize=20)
-      ax3.yaxis.set_label_coords(1.1, 0.5)
+      ax3.yaxis.set_label_coords(1.2, 0.5)
       #
       path = self.pathFig+"/ksz.pdf"
       fig.savefig(path, bbox_inches='tight')
@@ -725,18 +728,18 @@ class ThumbStack(object):
       ax2.set_xticklabels(newticks)
       ax2.set_xlim(ax.get_xlim())
       ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
-      ax2.xaxis.set_label_coords(0.5, 1.1)
+      ax2.xaxis.set_label_coords(0.5, 1.15)
       #
       # extra ordinate: signal in muK * arcmin^2
       ax3 = ax.twinx()
       ticks = ax.get_yticks()
       ax3.set_yticks(ticks)
       newticks = np.array(ticks) * np.mean(self.Catalog.integratedKSZ[mask]) * (180.*60./np.pi)**2 # [muK*arcmin^2]
-      #newticks = np.round(newticks, 2)
+      newticks = np.round(newticks, 3)
       ax3.set_yticklabels(newticks)
       ax3.set_ylim(ax.get_ylim())
       ax3.set_ylabel(r'$\langle T_\text{kSZ} \rangle$ [$\mu$K.arcmin$^2$]', fontsize=20)
-      ax3.yaxis.set_label_coords(1.1, 0.5)
+      ax3.yaxis.set_label_coords(1.2, 0.5)
       #
       path = self.pathFig+"/sksz.pdf"
       fig.savefig(path, bbox_inches='tight')
@@ -769,7 +772,7 @@ class ThumbStack(object):
       ax2.set_xticklabels(newticks)
       ax2.set_xlim(ax.get_xlim())
       ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
-      ax2.xaxis.set_label_coords(0.5, 1.1)
+      ax2.xaxis.set_label_coords(0.5, 1.15)
       #
       path = self.pathFig+"/snr_ksz.pdf"
       fig.savefig(path, bbox_inches='tight')
@@ -882,7 +885,7 @@ class ThumbStack(object):
       kSZSamples = result[:,0,:] # shape (nObj, nRAp)
       skSZSamples = result[:,1,:]
       # compute the mean
-      mean = np.mean(kSZSamples)
+      mean = np.mean(kSZSamples, axis=0)
       # estimate covariance matrix
       cov = np.cov(kSZSamples, rowvar=False)
       return mean, cov
@@ -929,7 +932,7 @@ class ThumbStack(object):
       kSZSamples = result[:,0,:] # shape (nObj, nRAp)
       skSZSamples = result[:,1,:]
       # compute the mean
-      mean = np.mean(kSZSamples)
+      mean = np.mean(kSZSamples, axis=0)
       # estimate covariance matrix
       cov = np.cov(kSZSamples, rowvar=False)
       return mean, cov
@@ -953,7 +956,7 @@ class ThumbStack(object):
    
       # null test and cov mat from shuffling the velocities
       mean, cov = self.kszCovShuffleV(nSamples=nSamples, nProc=nProc)
-      np.savetxt(self.pathOut+"/mean_ksz_shufflev.txt", mean)
+      np.savetxt(self.pathOut+"/null_ksz_shufflev.txt", mean)
       np.savetxt(self.pathOut+"/cov_ksz_shufflev.txt", cov)
 
    
@@ -962,10 +965,10 @@ class ThumbStack(object):
       self.kSZ = data[:,0]
       self.skSZ = data[:,1]
       
-      self.kSZNullBootstrap = np.genfromtxt(self.pathOut+"/mean_ksz_bootstrap.txt")
+      self.kSZNullBootstrap = np.genfromtxt(self.pathOut+"/null_ksz_bootstrap.txt")
       self.covKszBootstrap = np.genfromtxt(self.pathOut+"/cov_ksz_bootstrap.txt")
       
-      self.kSZNullShuffleV = np.genfromtxt(self.pathOut+"/mean_ksz_shufflev.txt")
+      self.kSZNullShuffleV = np.genfromtxt(self.pathOut+"/null_ksz_shufflev.txt")
       self.covKszShuffleV = np.genfromtxt(self.pathOut+"/cov_ksz_shufflev.txt")
 
       self.covKsz = self.covKszBootstrap.copy()
@@ -993,23 +996,91 @@ class ThumbStack(object):
    def kszNullTests(self):
       """Compute and plot null tests.
       """
-
+      
+      # remove the objects that overlap with point sources
+      mask = self.catalogMask(overlap=True, psMask=True)
+      
       # tSZ bias: tSZ contamination to the kSZ signal (ignore profile shape)
+      # expected y signal for each object, based on mass
       t = np.column_stack((self.Catalog.integratedY for i in range(self.nRAp)))   # copy for each AP radius
-      tSZBias, stSZBias = self.kszEstimator(filtMap=t, v=-self.Catalog.vR, k=self.Catalog.integratedKSZ, filtNoiseStdDev=self.filtNoiseStdDev, mask=mask)
+      # convert from y to dT
+      Tcmb = 2.726
+      h = 6.63e-34
+      kB = 1.38e-23
+      def f(nu):
+         """frequency dependence for tSZ temperature
+         """
+         x = h*nu/(kB*Tcmb)
+         return x*(np.exp(x)+1.)/(np.exp(x)-1.) -4.
+      t *= f(150.e9) * Tcmb * 1.e6  # muK
+      print np.mean(t), np.std(t)
+      # run into the estimator
+      tSZBias, stSZBias = self.kszEstimator(filtMap=t)
 
-      # basic check: should give 1 for all apertures (ignore profile shape)
+      # basic estimator check: should give 1 for all apertures (ignore profile shape)
       t = np.column_stack((self.Catalog.integratedKSZ for i in range(self.nRAp)))   # copy for each AP radius
-      kSZBias, skSZBias = self.kszEstimator(filtMap=t, v=-self.Catalog.vR, k=self.Catalog.integratedKSZ, filtNoiseStdDev=self.filtNoiseStdDev, mask=mask)
+      kSZBias, skSZBias = self.kszEstimator(filtMap=t)
 
-      # Sign Null: replace v by |v|, should get zero
-      kSZNullAbsV, skSZNullAbsV = self.kszEstimator(filtMap=self.filtMap, v=np.abs(self.Catalog.vR), k=np.abs(self.Catalog.integratedKSZ), filtNoiseStdDev=self.filtNoiseStdDev, mask=mask)
+#      # Sign Null: replace v by |v|, should get zero
+#      # This does null the kSZ, but no longer nulls tSZ and dust
+#      # --> not a very useful null test
+#      kSZNullAbsV, skSZNullAbsV = self.kszEstimator(v=np.abs(self.Catalog.vR), k=np.abs(self.Catalog.integratedKSZ))
 
-      # Bootstrap null:
-      #self.kSZNullBootstrap
-      #the cov should be divided by sqrt(nSamples) for the null test
 
-      # Shuffle v null:
-      #self.kSZNullShuffleV
-      #the cov should be divided by sqrt(nSamples) for the null test
 
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # 1-sigma error band
+      ax.fill_between(self.RApArcmin, -np.sqrt(np.diag(self.covKszBootstrap)), np.sqrt(np.diag(self.covKszBootstrap)), edgecolor='', facecolor='gray', alpha=0.2)
+      #
+      # Bootstrap convergence test?
+      # Bootstrap mean should match measured signal
+      ax.errorbar(self.RApArcmin+0.03, self.kSZNullBootstrap-self.kSZ, np.sqrt(np.diag(self.covKszBootstrap))/np.sqrt(self.nSamples), fmt='--', label=r'Bootstrap convergence')
+      #
+      # Estimator bias: should return 1 when run on the expected signal
+      ax.errorbar(self.RApArcmin+0.01, kSZBias-1., fmt='--', label=r'Estimator bias')
+      #
+      # tSZ bias
+      ax.errorbar(self.RApArcmin, tSZBias, fmt='--', label=r'tSZ bias')
+      print tSZBias
+      #
+#      ax.errorbar(self.RApArcmin+0.02, kSZNullAbsV, label=r'$v \leftarrow |v|$')
+      #
+      # Shuffle v test: should trivially give zero
+      ax.errorbar(self.RApArcmin+0.04, self.kSZNullShuffleV, np.sqrt(np.diag(self.covKszShuffleV))/np.sqrt(self.nSamples), label=str(self.nSamples)+r' v shuffles')
+      #
+      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+      ax.set_xlabel(r'$R$ [arcmin]')
+      ax.set_ylabel(r'$\alpha_\text{kSZ}$')
+      ax.set_ylim((-0.45, 0.45))
+      #
+      # extra abscissa: disk radius in comoving Mpc/h
+      ax2 = ax.twiny()
+      ticks = ax.get_xticks()
+      ax2.set_xticks(ticks)
+      newticks = np.array(ticks) * np.pi/(180.*60.) * self.U.bg.comoving_distance(np.mean(self.Catalog.Z[mask]))  # disk radius in Mpc/h
+      newticks = np.round(newticks, 2)
+      ax2.set_xticklabels(newticks)
+      ax2.set_xlim(ax.get_xlim())
+      ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
+      ax2.xaxis.set_label_coords(0.5, 1.15)
+      #
+      # extra ordinate: signal in muK * arcmin^2
+      ax3 = ax.twinx()
+      ticks = ax.get_yticks()
+      ax3.set_yticks(ticks)
+      newticks = np.array(ticks) * np.mean(self.Catalog.integratedKSZ[mask]) * (180.*60./np.pi)**2 # [muK*arcmin^2]
+      newticks = np.round(newticks, 3)
+      ax3.set_yticklabels(newticks)
+      ax3.set_ylim(ax.get_ylim())
+      ax3.set_ylabel(r'$\langle T_\text{kSZ} \rangle$ [$\mu$K.arcmin$^2$]', fontsize=20)
+      ax3.yaxis.set_label_coords(1.2, 0.5)
+      #
+      path = self.pathFig+"/null_ksz.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+
+
+   ##################################################################################
