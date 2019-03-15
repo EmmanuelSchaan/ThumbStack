@@ -124,11 +124,16 @@ class Catalog(object):
             self.Mvir[iObj] = self.MassConversion.fmStarTomVir(mStellar)
 
       # for object without a mass, use the mean mass from the others
-      meanMstellar = np.mean(self.Mstellar[self.hasM.astype('bool')])
-      self.Mstellar[~self.hasM.astype('bool')] = meanMstellar
-      #
-      meanMvir = np.mean(self.Mvir[self.hasM.astype('bool')])
-      self.Mvir[~self.hasM.astype('bool')] = meanMvir
+      if np.sum(self.hasM)>0:
+         meanMstellar = np.mean(self.Mstellar[self.hasM.astype('bool')])
+         self.Mstellar[~self.hasM.astype('bool')] = meanMstellar
+         #
+         meanMvir = np.mean(self.Mvir[self.hasM.astype('bool')])
+         self.Mvir[~self.hasM.astype('bool')] = meanMvir
+      # if no object has a mass, make a random guess, rather than keeping 0
+      else:
+         self.Mstellar = 2.6e11   # random guess
+         self.Mvir = self.MassConversion.fmStarTomVir(2.6e11)
 
 
 

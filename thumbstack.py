@@ -37,6 +37,8 @@ class ThumbStack(object):
       if not os.path.exists(self.pathTestFig):
          os.makedirs(self.pathTestFig)
 
+
+      print "- Thumbstack: "+str(self.name)
    
 #      self.loadMaps(nProc=self.nProc)
       self.loadAPRadii()
@@ -457,6 +459,8 @@ class ThumbStack(object):
 
          # define bins
          nBins = 21
+#         print "Binning for measuring var from hit count:", x
+#         print "Binning for measuring var from hit count:", np.min(x), np.max(x), np.min(y), np.max(y)
          BinsX = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
          
          # compute histograms
@@ -560,7 +564,7 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def measureKSZ(self):
+   def compareKszEstimators(self):
 
       # remove the objects that overlap with point sources
       mask = self.catalogMask(overlap=True, psMask=True)
@@ -975,19 +979,68 @@ class ThumbStack(object):
 
 
    ##################################################################################
-   
+
+
+   def ftheoryKsz(self, sigma_cluster):
+      """Alpha_ksz signal, between 0 and 1.
+      assumes that the projected cluster profile is a 2d Gaussian,
+      with sigma_cluster in arcmin
+      assumes equal area disk-ring filter
+      """
+      return (1. - np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2))**2
+
 
    def computeSnrKsz(self):
+   
       # Compute chi^2_null
       chi2Null = self.kSZ.dot( np.linalg.inv(self.covKsz).dot(self.kSZ) )
       # goodness of fit for null hypothesis
+      print "number of dof:", len(self.kSZ)
       print "null chi2Null=", chi2Null
       pteNull = 1.- stats.chi2.cdf(chi2Null, len(self.kSZ))
       print "null pte=", pteNull
       # pte as a function of sigma, for a Gaussian random variable
       fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
       sigmaNull = optimize.brentq(fsigmaToPTE , 0., 50.)
-      print "null sigma significance=", sigmaNull
+      print "null sigma significance=", sigmaNull, "sigmas"
+      print ""
+
+      # Gaussian model: find best fit amplitude
+      sigma_cluster = 1.5  # arcmin
+      theory = self.ftheoryKsz(sigma_cluster)
+      def fchi2(p):
+         a = p[0]
+         result = (self.kSZ-a*theory).dot( np.linalg.inv(self.covKsz).dot(self.kSZ-a*theory) )
+         result -= chi2Null
+         return result
+      # Minimize the chi squared
+      p0 = 1.
+      res = optimize.minimize(fchi2, p0)
+      #print res
+      abest = res.x[0]
+      #sbest= res.x[1]
+      print "best-fit amplitude=", abest
+      print "number of dof:", len(self.kSZ) - 1
+      print ""
+
+      # goodness of fit for best fit
+      chi2Best = fchi2([abest])+chi2Null
+      print "best-fit chi2=", chi2Best
+      pteBest = 1.- stats.chi2.cdf(chi2Best, len(self.kSZ)-1.)
+      print "best-fit pte=", pteBest
+      # pte as a function of sigma, for a Gaussian random variable
+      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteBest
+      sigma = optimize.brentq(fsigmaToPTE , 0., 50.)
+      print "pte sigma significance=", sigma, "sigmas"
+      print ""
+
+      # favour of best fit over null
+      print "fiducial delta chi2=", fchi2([1.])
+      print "best-fit sqrt(delta chi2)=", np.sqrt(abs(fchi2([abest]))), "sigmas"
+      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.))
+      pte = fsigmaToPTE( np.sqrt(abs(fchi2([abest]))) )
+      print "pte (if Gaussian)=", pte
+
 
 
    ##################################################################################
