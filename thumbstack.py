@@ -948,9 +948,10 @@ class ThumbStack(object):
    def saveKsz(self, nSamples=1000, nProc=1):
       # kSZ signal and estimated variance
       kSZ, skSZ = self.kszEstimator()
-      data = np.zeros((self.nRAp,2))
-      data[:,0] = kSZ
-      data[:,1] = skSZ
+      data = np.zeros((self.nRAp,3))
+      data[:,0] = self.RApArcmin
+      data[:,1] = kSZ
+      data[:,2] = skSZ
       np.savetxt(self.pathOut+"/ksz.txt", data)
       
       # null test and cov mat from bootstrap
@@ -966,8 +967,8 @@ class ThumbStack(object):
    
    def loadKsz(self, plot=False):
       data = np.genfromtxt(self.pathOut+"/ksz.txt")
-      self.kSZ = data[:,0]
-      self.skSZ = data[:,1]
+      self.kSZ = data[:,1]
+      self.skSZ = data[:,2]
       
       self.kSZNullBootstrap = np.genfromtxt(self.pathOut+"/null_ksz_bootstrap.txt")
       self.covKszBootstrap = np.genfromtxt(self.pathOut+"/cov_ksz_bootstrap.txt")
