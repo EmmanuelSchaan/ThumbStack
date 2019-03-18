@@ -73,9 +73,9 @@ class ThumbStack(object):
       self.RApMpch = np.linspace(self.rApMinMpch, self.rApMaxMpch, self.nRAp)
       
       # Aperture radii in arcmin
-      self.rAnMinArcmin = 1.
-      self.rAnMaxArcmin = 4.
-      self.RApArcmin = np.linspace(self.rAnMinArcmin, self.rAnMaxArcmin, self.nRAp)
+      self.rApMinArcmin = 1.
+      self.rApMaxArcmin = 4.
+      self.RApArcmin = np.linspace(self.rApMinArcmin, self.rApMaxArcmin, self.nRAp)
 
 
    ##################################################################################
@@ -979,6 +979,142 @@ class ThumbStack(object):
       self.covKsz = self.covKszBootstrap.copy()
 
 
+   ##################################################################################
+   
+   def plotCov(self):
+
+      # Bootstrap covariance
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # pcolor wants x and y to be edges of cell,
+      # ie one more element, and offset by half a cell
+      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+      #
+      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+      cp=ax.pcolormesh(X, Y, self.covKszBootstrap, cmap='YlOrRd')
+      #
+      ax.set_aspect('equal')
+      plt.colorbar(cp)
+      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_xlabel(r'R [arcmin]')
+      ax.set_ylabel(r'R [arcmin]')
+      #
+      path = self.pathFig+"/cov_ksz_bootstrap.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+
+      # Bootstrap corr coeff
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # pcolor wants x and y to be edges of cell,
+      # ie one more element, and offset by half a cell
+      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+      #
+      cov = self.covKszBootstrap.copy()
+      sigma = np.sqrt(np.diag(cov))
+      cor = np.array([[cov[i1, i2] / (sigma[i1]*sigma[i2]) for i2 in range(self.nRAp)] for i1 in range(self.nRAp)])
+      cp=ax.pcolormesh(X, Y, cor, cmap='YlOrRd')
+      #
+      ax.set_aspect('equal')
+      plt.colorbar(cp)
+      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_xlabel(r'R [arcmin]')
+      ax.set_ylabel(r'R [arcmin]')
+      #
+      path = self.pathFig+"/cor_ksz_bootstrap.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+
+
+
+
+      # Shuffle v covariance
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # pcolor wants x and y to be edges of cell,
+      # ie one more element, and offset by half a cell
+      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+      #
+      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+      cp=ax.pcolormesh(X, Y, self.covKszShuffleV, cmap='YlOrRd')
+      #
+      ax.set_aspect('equal')
+      plt.colorbar(cp)
+      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_xlabel(r'R [arcmin]')
+      ax.set_ylabel(r'R [arcmin]')
+      #
+      path = self.pathFig+"/cov_ksz_shufflev.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+
+      # Bootstrap corr coeff
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # pcolor wants x and y to be edges of cell,
+      # ie one more element, and offset by half a cell
+      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+      #
+      cov = self.covKszShuffleV.copy()
+      sigma = np.sqrt(np.diag(cov))
+      cor = np.array([[cov[i1, i2] / (sigma[i1]*sigma[i2]) for i2 in range(self.nRAp)] for i1 in range(self.nRAp)])
+      cp=ax.pcolormesh(X, Y, cor, cmap='YlOrRd')
+      #
+      ax.set_aspect('equal')
+      plt.colorbar(cp)
+      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_xlabel(r'R [arcmin]')
+      ax.set_ylabel(r'R [arcmin]')
+      #
+      path = self.pathFig+"/cor_ksz_shufflev.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+
+
+      # Comparison bootstrap VS Shuffle v
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # pcolor wants x and y to be edges of cell,
+      # ie one more element, and offset by half a cell
+      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+      #
+      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+      cp=ax.pcolormesh(X, Y, self.covKszBootstrap - self.covKszShuffleV, cmap='YlOrRd')
+      #
+      ax.set_aspect('equal')
+      plt.colorbar(cp)
+      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_xlabel(r'R [arcmin]')
+      ax.set_ylabel(r'R [arcmin]')
+      #
+      path = self.pathFig+"/cov_ksz_bootstrap-shufflev.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+
+   
+   
    ##################################################################################
 
 

@@ -178,7 +178,7 @@ tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name
 
 #tsCmassM.kszNullTests()
 
-
+tsCmassM.plotCov()
 
 
 
