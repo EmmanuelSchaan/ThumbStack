@@ -227,11 +227,6 @@ class ThumbStack(object):
       Hence:
       int d^2theta * Filter = 0.
       r0 and r1 are the radius of the disk and ring in radians.
-      Output:
-      filtMap: [map unit * sr]
-      filtMask: [mask unit * sr]
-      filtNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
-      diskArea: [sr]
       """
       # coordinates of the square map (between -1 and 1 deg, or whatever the size is)
       # local coordinates in rad.
@@ -262,7 +257,7 @@ class ThumbStack(object):
       filtMask = np.sum((radius<=r1) * (1-stampMask))   # [dimensionless]
       
       # quantify noise std dev in the filter
-      filtNoiseStdDev = np.sqrt(np.sum((pixArea * filter)**2 / stampHit)) # to get the std devs [sr / sqrt(hit unit)]
+      filtNoiseStdDev = np.sqrt(np.sum((pixArea * filter)**2 / stampHit)) # to get the std devs [sr / hit unit]
 
 
       if test:
@@ -295,15 +290,8 @@ class ThumbStack(object):
    ##################################################################################
 
 
-
+   # analysis to be done for each object
    def analyzeObject(self, iObj, test=False):
-      '''Analysis to be done for each object.
-      Returns:
-      filtMap: [map unit * sr]
-      filtMask: [mask unit * sr]
-      filtNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
-      diskArea: [sr]
-      '''
       
       if iObj%1000==0:
          print "- analyze object", iObj
@@ -326,15 +314,21 @@ class ThumbStack(object):
          
          # loop over the radii for the AP filter
          for iRAp in range(self.nRAp):
+            
 #            # disk radius in comoving Mpc/h
 #            rApMpch = self.RApMpch[iRAp]
 #            # convert to radians at the given redshift
 #            r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
 
+
             # Disk radius in rad
             r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
+            
+            
             # choose an equal area AP filter
             r1 = r0 * np.sqrt(2.)
+            
+            
             
             # perform the filtering
             filtMap[iRAp], filtMask[iRAp], filtNoiseStdDev[iRAp], diskArea[iRAp] = self.diskRingFilter(opos, stampMap, stampMask, stampHit, r0, r1, test=test)
@@ -447,9 +441,9 @@ class ThumbStack(object):
 
    def measureVarFromHitCount(self, plot=False):
       """Returns a list of functions, one for each AP filter radius,
-      where the function takes filtNoiseStdDev**2 \propto [(map var) * sr^2] as input and returns the
-      actual measured filter variance [(map unit)^2 * sr^2].
-      To be used for noise weighting in the stacking.
+      where the function takes filtNoiseStdDev**2 as input and returns the
+      actual measured filter variance.
+      To be used for noise weighting in the stacking
       """
       print "- interpolate the relation hit count - noise"
       # keep only objects that overlap, and mask point sources
@@ -792,12 +786,10 @@ class ThumbStack(object):
 
 
    def tszKszEstimator(self, filtMap=None, v=None, k=None, filtNoiseStdDev=None, mask=None):
-      """ Measures stacked tSZ and kSZ, as a function of aperture.
-      Returns tSZ, stSZ, kSZ, skSZ in [map unit * sr]
-      Input:
+      """ Returns tSZ, s(tSZ), kSZ, s(kSZ)
       filtMap: default is self.filtMap
-      vR: default is - self.Catalog.vR / c
-      kSZ: default is self.Catalog.integratedKSZ. Not used currently
+      vR: default is - self.Catalog.vR
+      kSZ: default is self.Catalog.integratedKSZ
       mask: default is self.catalogMask(overlap=True, psMask=True)
       """
       if mask is None:
@@ -806,7 +798,7 @@ class ThumbStack(object):
       if filtMap is None:
          filtMap = self.filtMap.copy()
       if v is None:
-         v = -self.Catalog.vR.copy() / 3.e5  # v/c [dimless]
+         v = -self.Catalog.vR.copy()
       if k is None:
          k = self.Catalog.integratedKSZ.copy()
       if filtNoiseStdDev is None:
@@ -856,10 +848,7 @@ class ThumbStack(object):
          # T * v / s2True, subtracting mean,
          # and using the measured noise weights
          num = np.sum(tNoMean * vNoMean / s2True)
-         # show the result in terms of alpha[dimless]
-         #denom = np.sum(kNoMean * vNoMean / s2True)
-         # show the result in terms of AP filtered kSZ [muK * sr]
-         denom = np.sum(vNoMean**2 / s2True)
+         denom = np.sum(kNoMean * vNoMean / s2True)
          s2num = np.sum(s2True * (vNoMean / s2True)**2)
          #
          kSZ[iRAp] = num / denom
@@ -977,11 +966,11 @@ class ThumbStack(object):
       # tSZ/kSZ signal and estimated variance
       tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator()
       data = np.zeros((self.nRAp,5))
-      data[:,0] = self.RApArcmin # [arcmin]
-      data[:,1] = tSZ # [map unit * sr]
-      data[:,2] = stSZ # [map unit * sr]
-      data[:,3] = kSZ # [map unit * sr]
-      data[:,4] = skSZ # [map unit * sr]
+      data[:,0] = self.RApArcmin
+      data[:,1] = tSZ
+      data[:,2] = stSZ
+      data[:,3] = kSZ
+      data[:,4] = skSZ
       np.savetxt(self.pathOut+"/tsz_ksz.txt", data)
       
       # null test and cov mat from bootstrap
@@ -1001,10 +990,10 @@ class ThumbStack(object):
    
    def loadTszKsz(self, plot=False):
       data = np.genfromtxt(self.pathOut+"/tsz_ksz.txt")
-      self.tSZ = data[:,1] # [map unit * sr]
-      self.stSZ = data[:,2] # [map unit * sr]
-      self.kSZ = data[:,3] # [map unit * sr]
-      self.skSZ = data[:,4] # [map unit * sr]
+      self.tSZ = data[:,1]
+      self.stSZ = data[:,2]
+      self.kSZ = data[:,3]
+      self.skSZ = data[:,4]
 
       self.tSZNullBootstrap = np.genfromtxt(self.pathOut+"/null_tsz_bootstrap.txt")
       self.covTszBootstrap = np.genfromtxt(self.pathOut+"/cov_tsz_bootstrap.txt")
@@ -1227,9 +1216,9 @@ class ThumbStack(object):
 
    def ftheoryGaussianProfile(self, sigma_cluster):
       """Alpha_ksz signal, between 0 and 1.
-      Assumes that the projected cluster profile is a 2d Gaussian,
+      assumes that the projected cluster profile is a 2d Gaussian,
       with sigma_cluster in arcmin
-      Assumes equal area disk-ring filter
+      assumes equal area disk-ring filter
       """
       return (1. - np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2))**2
 

@@ -182,10 +182,11 @@ tsCmassM.plotCovTszKsz()
 
 
 ###################################################################################
-'''
+
 name = cmassSMariana.name + "_pactf150daynight"
 tsCmassSM = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsCmassSM.compareKszEstimators()
+#tsCmassSM.computeSnrTsz()
 #tsCmassSM.computeSnrKsz()
 #tsCmassSM.kszNullTests()
 #tsCmassSM.plotCovKsz()
@@ -193,6 +194,7 @@ tsCmassSM = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, na
 name = cmassNMariana.name + "_pactf150daynight"
 tsCmassNM = ThumbStack(u, cmassNMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsCmassNM.compareKszEstimators()
+#tsCmassNM.computeSnrTsz()
 #tsCmassNM.computeSnrKsz()
 #tsCmassNM.kszNullTests()
 #tsCmassNM.plotCovKsz()
@@ -200,6 +202,7 @@ tsCmassNM = ThumbStack(u, cmassNMariana, pact150Map, pact150Mask, pact150Hit, na
 name = cmassSKendrick.name + "_pactf150daynight"
 tsCmassSK = ThumbStack(u, cmassSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsCmassSK.compareKszEstimators()
+#tsCmassSK.computeSnrTsz()
 #tsCmassSK.computeSnrKsz()
 #tsCmassSK.kszNullTests()
 #tsCmassSK.plotCovKsz()
@@ -207,6 +210,7 @@ tsCmassSK = ThumbStack(u, cmassSKendrick, pact150Map, pact150Mask, pact150Hit, n
 name = cmassNKendrick.name + "_pactf150daynight"
 tsCmassNK = ThumbStack(u, cmassNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsCmassNK.compareKszEstimators()
+#tsCmassNK.computeSnrTsz()
 #tsCmassNK.computeSnrKsz()
 #tsCmassNK.kszNullTests()
 #tsCmassNK.plotCovKsz()
@@ -214,6 +218,7 @@ tsCmassNK = ThumbStack(u, cmassNKendrick, pact150Map, pact150Mask, pact150Hit, n
 name = cmassKendrick.name + "_pactf150daynight"
 tsCmassK = ThumbStack(u, cmassKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsCmassK.compareKszEstimators()
+#tsCmassK.computeSnrTsz()
 #tsCmassK.computeSnrKsz()
 #tsCmassK.kszNullTests()
 #tsCmassK.plotCovKsz()
@@ -221,6 +226,7 @@ tsCmassK = ThumbStack(u, cmassKendrick, pact150Map, pact150Mask, pact150Hit, nam
 name = lowzSKendrick.name + "_pactf150daynight"
 tsLowzSK = ThumbStack(u, lowzSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsLowzSK.compareKszEstimators()
+#tsLowzSK.computeSnrTsz()
 #tsLowzSK.computeSnrKsz()
 #tsLowzSK.kszNullTests()
 #tsLowzSK.plotCovKsz()
@@ -228,6 +234,7 @@ tsLowzSK = ThumbStack(u, lowzSKendrick, pact150Map, pact150Mask, pact150Hit, nam
 name = lowzNKendrick.name + "_pactf150daynight"
 tsLowzNK = ThumbStack(u, lowzNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsLowzNK.compareKszEstimators()
+#tsLowzNK.computeSnrTsz()
 #tsLowzNK.computeSnrKsz()
 #tsLowzNK.kszNullTests()
 #tsLowzNK.plotCovKsz()
@@ -235,6 +242,7 @@ tsLowzNK = ThumbStack(u, lowzNKendrick, pact150Map, pact150Mask, pact150Hit, nam
 name = lowzKendrick.name + "_pactf150daynight"
 tsLowzK = ThumbStack(u, lowzKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsLowzK.compareKszEstimators()
+#tsLowzK.computeSnrTsz()
 #tsLowzK.computeSnrKsz()
 #tsLowzK.kszNullTests()
 #tsLowzK.plotCovKsz()
@@ -242,28 +250,31 @@ tsLowzK = ThumbStack(u, lowzKendrick, pact150Map, pact150Mask, pact150Hit, name=
 name = bossKendrick.name + "_pactf150daynight"
 tsBossK = ThumbStack(u, bossKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsBossK.compareKszEstimators()
+#tsBossK.computeSnrTsz()
 #tsBossK.computeSnrKsz()
 #tsBossK.kszNullTests()
 #tsBossK.plotCovKsz()
-'''
+
 
 ###################################################################################
 # Plot kSZ for the various samples
 
 
-'''
 # plot CMASS Mariana
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 #
+# convert from sr to arcmin^2
+factor = (180.*60./np.pi)**2
+#
 # CMASS M
-ax.errorbar(tsCmassNM.RApArcmin, tsCmassNM.kSZ, np.sqrt(np.diag(tsCmassNM.covKsz)), fmt='--', c='r', label=r'CMASS N M')
-ax.errorbar(tsCmassSM.RApArcmin+0.01, tsCmassSM.kSZ, np.sqrt(np.diag(tsCmassSM.covKsz)), fmt='-.', c='r', label=r'CMASS S M')
-ax.errorbar(tsCmassM.RApArcmin+0.02, tsCmassM.kSZ, np.sqrt(np.diag(tsCmassM.covKsz)), c='r', label=r'CMASS M')
+ax.errorbar(tsCmassM.RApArcmin+0.02, factor * tsCmassM.kSZ, factor * np.sqrt(np.diag(tsCmassM.covKsz)), c='r', label=r'CMASS M')
+ax.errorbar(tsCmassNM.RApArcmin, factor * tsCmassNM.kSZ, factor * np.sqrt(np.diag(tsCmassNM.covKsz)), fmt='--', c='r', alpha=0.2, label=r'CMASS N M')
+ax.errorbar(tsCmassSM.RApArcmin+0.01, factor * tsCmassSM.kSZ, factor * np.sqrt(np.diag(tsCmassSM.covKsz)), fmt='-.', c='r', alpha=0.2, label=r'CMASS S M')
 #
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$\alpha_\text{kSZ}$')
+ax.set_ylabel(r'$\T_\text{kSZ}$ [$\mu K\cdot$arcmin$^2$]')
 ax.set_ylim((0., 2.))
 #
 path = tsCmassM.pathFig+"/ksz_cmass_mariana.pdf"
@@ -276,13 +287,13 @@ fig=plt.figure(0)
 ax=fig.add_subplot(111)
 #
 # CMASS K
-ax.errorbar(tsCmassNK.RApArcmin, tsCmassNK.kSZ, np.sqrt(np.diag(tsCmassNK.covKsz)), fmt='--', c='r', label=r'CMASS N K')
-ax.errorbar(tsCmassSK.RApArcmin+0.01, tsCmassSK.kSZ, np.sqrt(np.diag(tsCmassSK.covKsz)), fmt='-.', c='r', label=r'CMASS S K')
-ax.errorbar(tsCmassK.RApArcmin+0.02, tsCmassK.kSZ, np.sqrt(np.diag(tsCmassK.covKsz)), c='r', label=r'CMASS K')
+ax.errorbar(tsCmassK.RApArcmin+0.02, factor * tsCmassK.kSZ, factor * np.sqrt(np.diag(tsCmassK.covKsz)), c='r', label=r'CMASS K')
+ax.errorbar(tsCmassNK.RApArcmin, factor * tsCmassNK.kSZ, factor * np.sqrt(np.diag(tsCmassNK.covKsz)), fmt='--', c='r', alpha=0.2, label=r'CMASS N K')
+ax.errorbar(tsCmassSK.RApArcmin+0.01, factor * tsCmassSK.kSZ, factor * np.sqrt(np.diag(tsCmassSK.covKsz)), fmt='-.', c='r', alpha=0.2, label=r'CMASS S K')
 #
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$\alpha_\text{kSZ}$')
+ax.set_ylabel(r'$\T_\text{kSZ}$ [$\mu K\cdot$arcmin$^2$]')
 ax.set_ylim((0., 2.))
 #
 path = tsCmassK.pathFig+"/ksz_cmass_kendrick.pdf"
@@ -295,16 +306,16 @@ fig=plt.figure(0)
 ax=fig.add_subplot(111)
 #
 # CMASS K
-ax.errorbar(tsLowzNK.RApArcmin, tsLowzNK.kSZ, np.sqrt(np.diag(tsLowzNK.covKsz)), fmt='--', c='r', label=r'LOWZ N K')
-ax.errorbar(tsLowzSK.RApArcmin+0.01, tsLowzSK.kSZ, np.sqrt(np.diag(tsLowzSK.covKsz)), fmt='-.', c='r', label=r'LOWZ S K')
-ax.errorbar(tsLowzK.RApArcmin+0.02, tsLowzK.kSZ, np.sqrt(np.diag(tsLowzK.covKsz)), c='r', label=r'LOWZ K')
+ax.errorbar(tsLowzK.RApArcmin+0.02, factor * tsLowzK.kSZ, factor * np.sqrt(np.diag(tsLowzK.covKsz)), c='r', label=r'LOWZ K')
+ax.errorbar(tsLowzNK.RApArcmin, factor * tsLowzNK.kSZ, factor * np.sqrt(np.diag(tsLowzNK.covKsz)), fmt='--', c='r', alpha=0.2, label=r'LOWZ N K')
+ax.errorbar(tsLowzSK.RApArcmin+0.01, factor * tsLowzSK.kSZ, factor * np.sqrt(np.diag(tsLowzSK.covKsz)), fmt='-.', c='r', alpha=0.2, label=r'LOWZ S K')
 #
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$\alpha_\text{kSZ}$')
+ax.set_ylabel(r'$\T_\text{kSZ}$ [$\mu K\cdot$arcmin$^2$]')
 ax.set_ylim((0., 2.))
 #
 path = tsLowzK.pathFig+"/ksz_lowz_kendrick.pdf"
 fig.savefig(path, bbox_inches='tight')
 fig.clf()
-'''
+

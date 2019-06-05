@@ -27,6 +27,7 @@ import rotfuncs
 #########################################################################
 
 pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/"
+pathOut = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2018_08_10/"
 
 
 #########################################################################
@@ -51,6 +52,9 @@ Cl = np.array(map(fClStitched, L))
 
 # Generate pixell map, GRF with the desired power spectrum
 nSide = 4096   # this is what pixell chooses when converting our CAR map to healpix
+
+# set the random seed
+np.random.seed(1)
 hpGrfMap = hp.sphtfunc.synfast(Cl, nSide, lmax=None, mmax=None, alm=False, pol=False, pixwin=False, fwhm=0.0, sigma=None, new=False, verbose=False)
 
 
@@ -66,7 +70,7 @@ hitMap = enmap.read_map(pathHit)
 grfMap = reproject.enmap_from_healpix(hpGrfMap, hitMap.shape, hitMap.wcs, rot=None)
 
 # save the new map
-enmap.write_map(pathIn+"grf_f150_daynight.fits", grfMap)
+enmap.write_map(pathOut+"grf_f150_daynight.fits", grfMap)
 
 
 
