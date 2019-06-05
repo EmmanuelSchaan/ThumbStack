@@ -54,8 +54,8 @@ class ThumbStack(object):
       self.measureVarFromHitCount(plot=save)
 
       if save:
-         self.saveTszKsz(nSamples=self.nSamples, nProc=self.nProc)
-      self.loadTszKsz()
+         self.saveKsz(nSamples=self.nSamples, nProc=self.nProc)
+      self.loadKsz()
 
 
 
@@ -561,7 +561,6 @@ class ThumbStack(object):
 
 
    ##################################################################################
-   ##################################################################################
 
    def compareKszEstimators(self):
 
@@ -785,8 +784,8 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def tszKszEstimator(self, filtMap=None, v=None, k=None, filtNoiseStdDev=None, mask=None):
-      """ Returns tSZ, s(tSZ), kSZ, s(kSZ)
+   def kszEstimator(self, filtMap=None, v=None, k=None, filtNoiseStdDev=None, mask=None):
+      """ Returns alpha_kSZ and an estimate of sigma(alpha_kSZ).
       filtMap: default is self.filtMap
       vR: default is - self.Catalog.vR
       kSZ: default is self.Catalog.integratedKSZ
@@ -833,16 +832,6 @@ class ThumbStack(object):
 #         if np.any(~np.isfinite(kNoMean)):
 #            print "problem kNoMean", kNoMean
 
-         # tSZ
-         # Subtracting mean,
-         # and using the measured noise weights
-         num = np.sum(t / s2True)
-         denom = np.sum(1. / s2True)
-         #
-         tSZ[iRAp] = num / denom
-         stSZ[iRAp] = np.sqrt(1. / denom)
-         
-         # kSZ
          # T * v / s2True, subtracting mean,
          # and using the measured noise weights
          num = np.sum(tNoMean * vNoMean / s2True)
@@ -852,14 +841,14 @@ class ThumbStack(object):
          kSZ[iRAp] = num / denom
          skSZ[iRAp] = np.sqrt(s2num / denom**2)
 
-      return tSZ, stSZ, kSZ, skSZ
+      return kSZ, skSZ
 
 
    ##################################################################################
    
 
-   def tszKszCovBootstrap(self, nSamples=1000, nProc=1):
-      """Estimate tSZ/kSZ covariance matrix from bootstrap resampling.
+   def kszCovBootstrap(self, nSamples=1000, nProc=1):
+      """Estimate kSZ cavariance matrix from bootstrap resampling.
       """
       # list of all objects, overlapping or not
       I = np.arange(self.Catalog.nObj)
@@ -882,12 +871,12 @@ class ThumbStack(object):
 #         print "test s2Hit after:", np.any(~np.isfinite(self.filtNoiseStdDev[mask[J],:]))
 
          # run kSZ estimator on the current resample
-         tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator(filtMap=self.filtMap[J,:], v=-self.Catalog.vR[J], k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev[J,:], mask=mask[J])
+         kSZ, skSZ = self.kszEstimator(filtMap=self.filtMap[J,:], v=-self.Catalog.vR[J], k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev[J,:], mask=mask[J])
          
 #         if np.any(~np.isfinite(kSZ)):
 #            print "problem: kSZ=", kSZ
 
-         return tSZ, stSZ, kSZ, skSZ
+         return kSZ, skSZ
       
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
@@ -895,20 +884,17 @@ class ThumbStack(object):
       tStop = time()
       print "took", (tStop-tStart)/60., "min"
       # unpack results
-      tSZSamples = result[:,0,:] # shape (nObj, nRAp)
-      stSZSamples = result[:,1,:]
-      kSZSamples = result[:,2,:]
-      skSZSamples = result[:,3,:]
-      # estimate mean and cov
-      meanTsz = np.mean(tSZSamples, axis=0)
-      covTsz = np.cov(tSZSamples, rowvar=False)
-      meanKsz = np.mean(kSZSamples, axis=0)
-      covKsz = np.cov(kSZSamples, rowvar=False)
-      return meanTsz, covTsz, meanKsz, covKsz
+      kSZSamples = result[:,0,:] # shape (nObj, nRAp)
+      skSZSamples = result[:,1,:]
+      # compute the mean
+      mean = np.mean(kSZSamples, axis=0)
+      # estimate covariance matrix
+      cov = np.cov(kSZSamples, rowvar=False)
+      return mean, cov
 
 
-   def tszKszCovShuffleV(self, nSamples=1000, nProc=1):
-      """Estimate tSZ/kSZ covariance matrix from shuffling the velocities.
+   def kszCovShuffleV(self, nSamples=1000, nProc=1):
+      """Estimate kSZ cavariance matrix from shuffling the velocities.
       """
       # list of all objects, overlapping or not
       I = np.arange(self.Catalog.nObj)
@@ -932,12 +918,12 @@ class ThumbStack(object):
 
          # run kSZ estimator on the current resample: shuffle only vr and ksz
          # no need to shuffle the mask, since masked objects are still masked
-         tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator(filtMap=self.filtMap, v=-self.Catalog.vR[J], k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev, mask=mask)
+         kSZ, skSZ = self.kszEstimator(filtMap=self.filtMap, v=-self.Catalog.vR[J], k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev, mask=mask)
          
 #         if np.any(~np.isfinite(kSZ)):
 #            print "problem: kSZ=", kSZ
 
-         return tSZ, stSZ, kSZ, skSZ
+         return kSZ, skSZ
       
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
@@ -945,99 +931,57 @@ class ThumbStack(object):
       tStop = time()
       print "took", (tStop-tStart)/60., "min"
       # unpack results
-      tSZSamples = result[:,0,:] # shape (nObj, nRAp)
-      stSZSamples = result[:,1,:]
-      kSZSamples = result[:,2,:]
-      skSZSamples = result[:,3,:]
-      # estimate mean and cov
-      meanTsz = np.mean(tSZSamples, axis=0)
-      covTsz = np.cov(tSZSamples, rowvar=False)
-      meanKsz = np.mean(kSZSamples, axis=0)
-      covKsz = np.cov(kSZSamples, rowvar=False)
-      return meanTsz, covTsz, meanKsz, covKsz
+      kSZSamples = result[:,0,:] # shape (nObj, nRAp)
+      skSZSamples = result[:,1,:]
+      # compute the mean
+      mean = np.mean(kSZSamples, axis=0)
+      # estimate covariance matrix
+      cov = np.cov(kSZSamples, rowvar=False)
+      return mean, cov
 
 
    ##################################################################################
 
 
-   def saveTszKsz(self, nSamples=1000, nProc=1):
-      # tSZ/kSZ signal and estimated variance
-      tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator()
-      data = np.zeros((self.nRAp,5))
+   def saveKsz(self, nSamples=1000, nProc=1):
+      # kSZ signal and estimated variance
+      kSZ, skSZ = self.kszEstimator()
+      data = np.zeros((self.nRAp,3))
       data[:,0] = self.RApArcmin
-      data[:,1] = tSZ
-      data[:,2] = stSZ
-      data[:,3] = kSZ
-      data[:,4] = skSZ
-      np.savetxt(self.pathOut+"/tsz_ksz.txt", data)
+      data[:,1] = kSZ
+      data[:,2] = skSZ
+      np.savetxt(self.pathOut+"/ksz.txt", data)
       
       # null test and cov mat from bootstrap
-      meanTsz, covTsz, meanKsz, covKsz = self.tszKszCovBootstrap(nSamples=nSamples, nProc=nProc)
-      np.savetxt(self.pathOut+"/null_tsz_bootstrap.txt", meanTsz)
-      np.savetxt(self.pathOut+"/cov_tsz_bootstrap.txt", covTsz)
-      np.savetxt(self.pathOut+"/null_ksz_bootstrap.txt", meanKsz)
-      np.savetxt(self.pathOut+"/cov_ksz_bootstrap.txt", covKsz)
+      mean, cov = self.kszCovBootstrap(nSamples=nSamples, nProc=nProc)
+      np.savetxt(self.pathOut+"/null_ksz_bootstrap.txt", mean)
+      np.savetxt(self.pathOut+"/cov_ksz_bootstrap.txt", cov)
    
       # null test and cov mat from shuffling the velocities
-      meanTsz, covTsz, meanKsz, covKsz = self.kszCovShuffleV(nSamples=nSamples, nProc=nProc)
-      np.savetxt(self.pathOut+"/null_tsz_shufflev.txt", meanTsz)
-      np.savetxt(self.pathOut+"/cov_tsz_shufflev.txt", covTsz)
-      np.savetxt(self.pathOut+"/null_ksz_shufflev.txt", meanKsz)
-      np.savetxt(self.pathOut+"/cov_ksz_shufflev.txt", covKsz)
+      mean, cov = self.kszCovShuffleV(nSamples=nSamples, nProc=nProc)
+      np.savetxt(self.pathOut+"/null_ksz_shufflev.txt", mean)
+      np.savetxt(self.pathOut+"/cov_ksz_shufflev.txt", cov)
+
    
-   
-   def loadTszKsz(self, plot=False):
+   def loadKsz(self, plot=False):
       data = np.genfromtxt(self.pathOut+"/ksz.txt")
-      self.tSZ = data[:,1]
-      self.stSZ = data[:,2]
-      self.kSZ = data[:,3]
-      self.skSZ = data[:,4]
-
-      self.tSZNullBootstrap = np.genfromtxt(self.pathOut+"/null_tsz_bootstrap.txt")
-      self.covTszBootstrap = np.genfromtxt(self.pathOut+"/cov_tsz_bootstrap.txt")
-      #
-      self.tSZNullShuffleV = np.genfromtxt(self.pathOut+"/null_tsz_shufflev.txt")
-      self.covTszShuffleV = np.genfromtxt(self.pathOut+"/cov_tsz_shufflev.txt")
-      #
-      self.covTsz = self.covTszBootstrap.copy()
-
+      self.kSZ = data[:,1]
+      self.skSZ = data[:,2]
+      
       self.kSZNullBootstrap = np.genfromtxt(self.pathOut+"/null_ksz_bootstrap.txt")
       self.covKszBootstrap = np.genfromtxt(self.pathOut+"/cov_ksz_bootstrap.txt")
-      #
+      
       self.kSZNullShuffleV = np.genfromtxt(self.pathOut+"/null_ksz_shufflev.txt")
       self.covKszShuffleV = np.genfromtxt(self.pathOut+"/cov_ksz_shufflev.txt")
-      #
+
       self.covKsz = self.covKszBootstrap.copy()
 
 
    ##################################################################################
    
-   def plotCovTszKsz(self):
-      
-      # Bootstrap tSZ
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # pcolor wants x and y to be edges of cell,
-      # ie one more element, and offset by half a cell
-      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
-      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
-      #
-      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
-      cp=ax.pcolormesh(X, Y, self.covTszBootstrap, cmap='YlOrRd')
-      #
-      ax.set_aspect('equal')
-      plt.colorbar(cp)
-      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_xlabel(r'R [arcmin]')
-      ax.set_ylabel(r'R [arcmin]')
-      #
-      path = self.pathFig+"/cov_tsz_bootstrap.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-      
-      # Bootstrap kSZ
+   def plotCov(self):
+
+      # Bootstrap covariance
       fig=plt.figure(0)
       ax=fig.add_subplot(111)
       #
@@ -1060,33 +1004,8 @@ class ThumbStack(object):
       fig.savefig(path, bbox_inches='tight')
       fig.clf()
 
-      # Bootstrap tSZ corr coeff
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # pcolor wants x and y to be edges of cell,
-      # ie one more element, and offset by half a cell
-      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
-      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
-      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
-      #
-      cov = self.covTszBootstrap.copy()
-      sigma = np.sqrt(np.diag(cov))
-      cor = np.array([[cov[i1, i2] / (sigma[i1]*sigma[i2]) for i2 in range(self.nRAp)] for i1 in range(self.nRAp)])
-      cp=ax.pcolormesh(X, Y, cor, cmap='YlOrRd', vmin=0., vmax=1.)
-      #
-      ax.set_aspect('equal')
-      plt.colorbar(cp)
-      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_xlabel(r'R [arcmin]')
-      ax.set_ylabel(r'R [arcmin]')
-      #
-      path = self.pathFig+"/cor_tsz_bootstrap.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
 
-      # Bootstrap kSZ corr coeff
+      # Bootstrap corr coeff
       fig=plt.figure(0)
       ax=fig.add_subplot(111)
       #
@@ -1140,7 +1059,7 @@ class ThumbStack(object):
       fig.clf()
 
 
-      # Shuffle v corr coeff
+      # Bootstrap corr coeff
       fig=plt.figure(0)
       ax=fig.add_subplot(111)
       #
@@ -1168,7 +1087,7 @@ class ThumbStack(object):
 
 
 
-      # Compare bootstrap VS Shuffle v for kSZ
+      # Compare bootstrap VS Shuffle v
       fig=plt.figure(0)
       ax=fig.add_subplot(111)
       #
@@ -1212,7 +1131,7 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def ftheoryGaussianProfile(self, sigma_cluster):
+   def ftheoryKsz(self, sigma_cluster):
       """Alpha_ksz signal, between 0 and 1.
       assumes that the projected cluster profile is a 2d Gaussian,
       with sigma_cluster in arcmin
@@ -1222,7 +1141,6 @@ class ThumbStack(object):
 
 
    def computeSnrKsz(self):
-      print "*** kSZ SNR ***"
    
       # Compute chi^2_null
       chi2Null = self.kSZ.dot( np.linalg.inv(self.covKsz).dot(self.kSZ) )
@@ -1239,7 +1157,7 @@ class ThumbStack(object):
 
       # Gaussian model: find best fit amplitude
       sigma_cluster = 1.5  # arcmin
-      theory = self.ftheoryGaussianProfile(sigma_cluster)
+      theory = self.ftheoryKsz(sigma_cluster)
       def fchi2(p):
          a = p[0]
          result = (self.kSZ-a*theory).dot( np.linalg.inv(self.covKsz).dot(self.kSZ-a*theory) )
@@ -1274,58 +1192,6 @@ class ThumbStack(object):
       print "pte (if Gaussian)=", pte
 
 
-
-   def computeSnrTsz(self):
-      print "*** tSZ SNR ***"
-      
-      # Compute chi^2_null
-      chi2Null = self.tSZ.dot( np.linalg.inv(self.covTsz).dot(self.tSZ) )
-      # goodness of fit for null hypothesis
-      print "number of dof:", len(self.tSZ)
-      print "null chi2Null=", chi2Null
-      pteNull = 1.- stats.chi2.cdf(chi2Null, len(self.tSZ))
-      print "null pte=", pteNull
-      # pte as a function of sigma, for a Gaussian random variable
-      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
-      sigmaNull = optimize.brentq(fsigmaToPTE , 0., 50.)
-      print "null sigma significance=", sigmaNull, "sigmas"
-      print ""
-
-      # Gaussian model: find best fit amplitude
-      sigma_cluster = 1.5  # arcmin
-      theory = self.ftheoryGaussianProfile(sigma_cluster)
-      def fchi2(p):
-         a = p[0]
-         result = (self.tSZ-a*theory).dot( np.linalg.inv(self.covTsz).dot(self.tSZ-a*theory) )
-         result -= chi2Null
-         return result
-      # Minimize the chi squared
-      p0 = 1.
-      res = optimize.minimize(fchi2, p0)
-      #print res
-      abest = res.x[0]
-      #sbest= res.x[1]
-      print "best-fit amplitude=", abest
-      print "number of dof:", len(self.tSZ) - 1
-      print ""
-
-      # goodness of fit for best fit
-      chi2Best = fchi2([abest])+chi2Null
-      print "best-fit chi2=", chi2Best
-      pteBest = 1.- stats.chi2.cdf(chi2Best, len(self.tSZ)-1.)
-      print "best-fit pte=", pteBest
-      # pte as a function of sigma, for a Gaussian random variable
-      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteBest
-      sigma = optimize.brentq(fsigmaToPTE , 0., 50.)
-      print "pte sigma significance=", sigma, "sigmas"
-      print ""
-
-      # favour of best fit over null
-      print "fiducial delta chi2=", fchi2([1.])
-      print "best-fit sqrt(delta chi2)=", np.sqrt(abs(fchi2([abest]))), "sigmas"
-      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.))
-      pte = fsigmaToPTE( np.sqrt(abs(fchi2([abest]))) )
-      print "pte (if Gaussian)=", pte
 
    ##################################################################################
 
@@ -1421,5 +1287,3 @@ class ThumbStack(object):
 
 
    ##################################################################################
-   ##################################################################################
-
