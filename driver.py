@@ -184,63 +184,63 @@ tsCmassM.plotCovTszKsz()
 ###################################################################################
 '''
 name = cmassSMariana.name + "_pactf150daynight"
-tsCmassSM = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassSM = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsCmassSM.compareKszEstimators()
 #tsCmassSM.computeSnrKsz()
 #tsCmassSM.kszNullTests()
 #tsCmassSM.plotCovKsz()
 
 name = cmassNMariana.name + "_pactf150daynight"
-tsCmassNM = ThumbStack(u, cmassNMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassNM = ThumbStack(u, cmassNMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsCmassNM.compareKszEstimators()
 #tsCmassNM.computeSnrKsz()
 #tsCmassNM.kszNullTests()
 #tsCmassNM.plotCovKsz()
 
 name = cmassSKendrick.name + "_pactf150daynight"
-tsCmassSK = ThumbStack(u, cmassSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassSK = ThumbStack(u, cmassSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsCmassSK.compareKszEstimators()
 #tsCmassSK.computeSnrKsz()
 #tsCmassSK.kszNullTests()
 #tsCmassSK.plotCovKsz()
 
 name = cmassNKendrick.name + "_pactf150daynight"
-tsCmassNK = ThumbStack(u, cmassNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassNK = ThumbStack(u, cmassNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsCmassNK.compareKszEstimators()
 #tsCmassNK.computeSnrKsz()
 #tsCmassNK.kszNullTests()
 #tsCmassNK.plotCovKsz()
 
 name = cmassKendrick.name + "_pactf150daynight"
-tsCmassK = ThumbStack(u, cmassKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassK = ThumbStack(u, cmassKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsCmassK.compareKszEstimators()
 #tsCmassK.computeSnrKsz()
 #tsCmassK.kszNullTests()
 #tsCmassK.plotCovKsz()
 
 name = lowzSKendrick.name + "_pactf150daynight"
-tsLowzSK = ThumbStack(u, lowzSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsLowzSK = ThumbStack(u, lowzSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsLowzSK.compareKszEstimators()
 #tsLowzSK.computeSnrKsz()
 #tsLowzSK.kszNullTests()
 #tsLowzSK.plotCovKsz()
 
 name = lowzNKendrick.name + "_pactf150daynight"
-tsLowzNK = ThumbStack(u, lowzNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsLowzNK = ThumbStack(u, lowzNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsLowzNK.compareKszEstimators()
 #tsLowzNK.computeSnrKsz()
 #tsLowzNK.kszNullTests()
 #tsLowzNK.plotCovKsz()
 
 name = lowzKendrick.name + "_pactf150daynight"
-tsLowzK = ThumbStack(u, lowzKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsLowzK = ThumbStack(u, lowzKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsLowzK.compareKszEstimators()
 #tsLowzK.computeSnrKsz()
 #tsLowzK.kszNullTests()
 #tsLowzK.plotCovKsz()
 
 name = bossKendrick.name + "_pactf150daynight"
-tsBossK = ThumbStack(u, bossKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsBossK = ThumbStack(u, bossKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 #tsBossK.compareKszEstimators()
 #tsBossK.computeSnrKsz()
 #tsBossK.kszNullTests()

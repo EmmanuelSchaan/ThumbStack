@@ -807,6 +807,8 @@ class ThumbStack(object):
 #      if np.any(~np.isfinite(v)) or np.any(~np.isfinite(k)):
 #         print "problem, input infinite"
 
+      tSZ = np.zeros(self.nRAp)
+      stSZ = np.zeros(self.nRAp)
       kSZ = np.zeros(self.nRAp)
       skSZ = np.zeros(self.nRAp)
       for iRAp in range(self.nRAp):
@@ -979,7 +981,7 @@ class ThumbStack(object):
       np.savetxt(self.pathOut+"/cov_ksz_bootstrap.txt", covKsz)
    
       # null test and cov mat from shuffling the velocities
-      meanTsz, covTsz, meanKsz, covKsz = self.kszCovShuffleV(nSamples=nSamples, nProc=nProc)
+      meanTsz, covTsz, meanKsz, covKsz = self.tszKszCovShuffleV(nSamples=nSamples, nProc=nProc)
       np.savetxt(self.pathOut+"/null_tsz_shufflev.txt", meanTsz)
       np.savetxt(self.pathOut+"/cov_tsz_shufflev.txt", covTsz)
       np.savetxt(self.pathOut+"/null_ksz_shufflev.txt", meanKsz)
@@ -987,7 +989,7 @@ class ThumbStack(object):
    
    
    def loadTszKsz(self, plot=False):
-      data = np.genfromtxt(self.pathOut+"/ksz.txt")
+      data = np.genfromtxt(self.pathOut+"/tsz_ksz.txt")
       self.tSZ = data[:,1]
       self.stSZ = data[:,2]
       self.kSZ = data[:,3]
@@ -1352,16 +1354,16 @@ class ThumbStack(object):
       t *= f(150.e9) * Tcmb * 1.e6  # muK
       print np.mean(t), np.std(t)
       # run into the estimator
-      tSZBias, stSZBias = self.kszEstimator(filtMap=t)
+      tSZ, stSZ, tSZBias, stSZBias = self.tszKszEstimator(filtMap=t)
 
       # basic estimator check: should give 1 for all apertures (ignore profile shape)
       t = np.column_stack((self.Catalog.integratedKSZ for i in range(self.nRAp)))   # copy for each AP radius
-      kSZBias, skSZBias = self.kszEstimator(filtMap=t)
+      tSZ, stSZ, kSZBias, skSZBias = self.tszKszEstimator(filtMap=t)
 
 #      # Sign Null: replace v by |v|, should get zero
 #      # This does null the kSZ, but no longer nulls tSZ and dust
 #      # --> not a very useful null test
-#      kSZNullAbsV, skSZNullAbsV = self.kszEstimator(v=np.abs(self.Catalog.vR), k=np.abs(self.Catalog.integratedKSZ))
+#      kSZNullAbsV, skSZNullAbsV = self.tszKszEstimator(v=np.abs(self.Catalog.vR), k=np.abs(self.Catalog.integratedKSZ))
 
 
 

@@ -26,8 +26,8 @@ import rotfuncs
 #########################################################################
 #########################################################################
 
-
 pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/"
+
 
 #########################################################################
 
@@ -43,15 +43,19 @@ sClMeasured = data[:,2]
 # Stitch the two spectra at ell=100, to avoid high noise, and interpolate
 ClTheory = np.array(map(cmb1_4.flensedTT, lCen))
 ClStitched = ClTheory * (lCen<=100.) + ClMeasured * (lCen>100.)
-fClStitched = interp1d(lCen, ClStitched, kind='linear', boundary_error=False, fill_value=0.)
+fClStitched = interp1d(lCen, ClStitched, kind='linear', bounds_error=False, fill_value=0.)
 
 # generate power spectrum array for every ell
 L = np.arange(1., np.max(lCen))
 Cl = np.array(map(fClStitched, L))
 
 # Generate pixell map, GRF with the desired power spectrum
-nSide = ?
-hpGrfMap = hp.sphtfunc.synfast(Cl, nSide, lmax=None, mmax=None, alm=False, pol=False, pixwin=False, fwhm=0.0, sigma=None, new=False, verbose=True)
+nSide = 4096   # this is what pixell chooses when converting our CAR map to healpix
+hpGrfMap = hp.sphtfunc.synfast(Cl, nSide, lmax=None, mmax=None, alm=False, pol=False, pixwin=False, fwhm=0.0, sigma=None, new=False, verbose=False)
+
+
+# Check the power spectrum of the GRF matches the input
+
 
 
 # read CAR hit map to get the desired pixellation properties
@@ -62,7 +66,7 @@ hitMap = enmap.read_map(pathHit)
 grfMap = reproject.enmap_from_healpix(hpGrfMap, hitMap.shape, hitMap.wcs, rot=None)
 
 # save the new map
-enmap.write_map(pathIn+"grf_f150.fits", grfMap)
+enmap.write_map(pathIn+"grf_f150_daynight.fits", grfMap)
 
 
 
