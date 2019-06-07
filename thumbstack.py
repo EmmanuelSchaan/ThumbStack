@@ -860,10 +860,13 @@ class ThumbStack(object):
          #denom = np.sum(kNoMean * vNoMean / s2True)
          # show the result in terms of AP filtered kSZ [muK * sr]
          denom = np.sum(vNoMean**2 / s2True)
-         s2num = np.sum(s2True * (vNoMean / s2True)**2)
          #
          kSZ[iRAp] = num / denom
-         skSZ[iRAp] = np.sqrt(s2num / denom**2)
+         skSZ[iRAp] = np.sqrt(1. / denom)
+         #
+         # rescale by the RMS v/c, to get a fair quantity to compare to tSZ
+         kSZ[iRAp] *= np.std(vNoMean)
+         skSZ[iRAp] *= np.std(vNoMean)
 
       return tSZ, stSZ, kSZ, skSZ
 
@@ -895,7 +898,7 @@ class ThumbStack(object):
 #         print "test s2Hit after:", np.any(~np.isfinite(self.filtNoiseStdDev[mask[J],:]))
 
          # run kSZ estimator on the current resample
-         tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator(filtMap=self.filtMap[J,:], v=-self.Catalog.vR[J], k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev[J,:], mask=mask[J])
+         tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator(filtMap=self.filtMap[J,:], v=-self.Catalog.vR[J]/3.e5, k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev[J,:], mask=mask[J])
          
 #         if np.any(~np.isfinite(kSZ)):
 #            print "problem: kSZ=", kSZ

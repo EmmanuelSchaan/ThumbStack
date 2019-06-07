@@ -98,7 +98,7 @@ class Catalog(object):
       #
       # velocity in spherical coordinates,
       # from catalog of spherical displacements
-      self.vR = data[:,15]  # [km/s]   from spherical catalo
+      self.vR = data[:,15]  # [km/s]   from spherical catalog
       self.vTheta = data[:,16]   # [km/s]
       self.vPhi = data[:,17]  # [km/s]
       #
