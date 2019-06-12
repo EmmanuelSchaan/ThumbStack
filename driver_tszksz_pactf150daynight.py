@@ -155,7 +155,7 @@ from thumbstack import *
 
 
 name = cmassMariana.name + "_pactf150daynight"
-tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
+tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
 #mask = tsCmassM.catalogMask(overlap=True, psMask=True)
@@ -172,17 +172,17 @@ tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name
 #cov = tsCmassM.kszCovBootstrap(nSamples=1000, nProc=nProc)
 #print np.sqrt(np.diag(cov))
 
-
+'''
 tsCmassM.compareKszEstimators()
 tsCmassM.computeSnrTsz()
 tsCmassM.computeSnrKsz()
 tsCmassM.kszNullTests()
 tsCmassM.plotCovTszKsz()
-
+'''
 
 
 ###################################################################################
-
+'''
 name = cmassSMariana.name + "_pactf150daynight"
 tsCmassSM = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 tsCmassSM.compareKszEstimators()
@@ -254,7 +254,7 @@ tsBossK.computeSnrTsz()
 tsBossK.computeSnrKsz()
 tsBossK.kszNullTests()
 tsBossK.plotCovTszKsz()
-
+'''
 
 ###################################################################################
 # Plot kSZ for the various samples
