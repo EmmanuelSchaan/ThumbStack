@@ -45,7 +45,7 @@ pathMap = pathIn + "act_planck_f150_prelim_map_mono.fits"
 pathHit = pathIn + "act_planck_f150_prelim_div_mono.fits"
 
 # mask sits in the older folder
-pathPSMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/source_mask_s16_simonecat_sn5_cross_20171105.fits"
+pathPSMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/source_mask_s16_simonecat_sn5_cross_20171105.fits"
 
 print "Read maps"
 baseMap = enmap.read_map(pathMap)
