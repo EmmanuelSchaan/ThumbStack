@@ -64,16 +64,16 @@ print("WCS attributes: "+str(baseMap.wcs))
 myHistogram(baseMap[0], nBins=71, lim=(-10.*np.std(baseMap[0]), 10.*np.std(baseMap[0])), S2Theory=[110.**2], path=pathFig+"hist_T_nomask.pdf", nameLatex=r'$T$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 # Q histogram
-myHistogram(baseMap[1], nBins=71, lim=(-10.*np.std(baseMap[1]), 10.*np.std(baseMap[1])), S2Theory=None, path=pathFig+"hist_Q_nomask.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(baseMap[1], nBins=71, lim=(-10.*np.std(baseMap[1]), 10.*np.std(baseMap[1])), S2Theory=[], path=pathFig+"hist_Q_nomask.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 # U histogram
-myHistogram(baseMap[2], nBins=71, lim=(-10.*np.std(baseMap[2]), 10.*np.std(baseMap[2])), S2Theory=None, path=pathFig+"hist_U_nomask.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(baseMap[2], nBins=71, lim=(-10.*np.std(baseMap[2]), 10.*np.std(baseMap[2])), S2Theory=[], path=pathFig+"hist_U_nomask.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 # PS mask
-myHistogram(psMask, nBins=71, lim=(np.min(psMask), np.max(psMask)), S2Theory=None, path=pathFig+"hist_psmask.pdf", nameLatex=r'Mask values', semilogx=False, semilogy=True, doGauss=False)
+myHistogram(psMask, nBins=71, lim=(np.min(psMask), np.max(psMask)), S2Theory=[], path=pathFig+"hist_psmask.pdf", nameLatex=r'Mask values', semilogx=False, semilogy=True, doGauss=False)
 
 # PS mask
-myHistogram(hitMap, nBins=71, lim=(np.min(hitMap), np.max(hitMap)), S2Theory=None, path=pathFig+"hist_hit_nomask.pdf", nameLatex=r'Hit map values', semilogx=False, semilogy=True, doGauss=False)
+myHistogram(hitMap, nBins=71, lim=(np.min(hitMap), np.max(hitMap)), S2Theory=[], path=pathFig+"hist_hit_nomask.pdf", nameLatex=r'Hit map values', semilogx=False, semilogy=True, doGauss=False)
 
 
 
@@ -160,7 +160,7 @@ footMask = hp.read_map(pathIn+"f150_footprint_mask.fits")
 #planckMask = hp.read_map(pathPlanckMask)
 
 # Read the Planck Galactic mask
-pathPlanckMask = pathIn+"/HFI_Mask_GalPlane-apo0_2048_R2.00.fits"
+pathPlanckMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/HFI_Mask_GalPlane-apo0_2048_R2.00.fits"
 # field, fsky:
 #0, 0.20
 #1, 0.40
@@ -291,12 +291,12 @@ myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), S2Theory=[110.**2]
 # Q histogram
 x = hMap[1][fullMask.astype('bool')]
 #x -= np.mean(x)
-myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), S2Theory=None, path=pathFig+"hist_Q_masked.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), S2Theory=[], path=pathFig+"hist_Q_masked.pdf", nameLatex=r'$Q$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 # U histogram
 x = hMap[2][fullMask.astype('bool')]
 #x -= np.mean(x)
-myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), S2Theory=None, path=pathFig+"hist_U_masked.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
+myHistogram(x, nBins=71, lim=(-10.*np.std(x), 10.*np.std(x)), S2Theory=[], path=pathFig+"hist_U_masked.pdf", nameLatex=r'$U$ [$\mu$K]', semilogx=False, semilogy=True, doGauss=True)
 
 
 #########################################################################
@@ -480,7 +480,7 @@ np.savetxt(pathIn+"f150_power_T_masked.txt", data)
 # Planck 143GHz map: measure its power spectrum
 
 # load the Planck 143GHz
-hP143Map = hp.read_map(pathIn+"HFI_SkyMap_143_2048_R2.02_full.fits")
+hP143Map = hp.read_map("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/HFI_SkyMap_143_2048_R2.02_full.fits")
 
 # rotate the map to equatorial coordinates
 rot = hp.Rotator(coord=['G','C'])  # Transforms galactic to equatorial coordinates
