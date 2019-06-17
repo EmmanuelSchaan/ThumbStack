@@ -15,5 +15,11 @@
 cd /global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/
 source ~/python_profile.sh
 
-python generate_mocks_grf_f150_daynight.py
-#python generate_mocks_grf_f90_daynight.py
+
+# Old CMB maps
+#python generate_mocks_grf_f150_daynight_2018_08_10.py
+
+
+# New CMB maps
+python generate_mocks_grf_f150_night_2019_03_11.py
+

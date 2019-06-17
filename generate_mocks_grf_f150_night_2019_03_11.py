@@ -29,10 +29,14 @@ import rotfuncs
 nProc = 10  # 32 cores on cori, but would run out of memory. 10 works. 15 runs out of memory.
 nMocks = 1000
 
-pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/"
-pathOut = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2018_08_10/"
-pathFig = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/figures/cmb_map/mocks_grf_planck_act_coadd_2018_08_10/"
+pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/"
+pathOut = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
+pathFig = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/figures/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
 
+if not os.path.exists(pathOut):
+   os.makedirs(pathOut)
+if not os.path.exists(pathFig):
+   os.makedirs(pathFig)
 
 #########################################################################
 
@@ -57,7 +61,7 @@ Cl = np.array(map(fClStitched, L))
 # Map properties needed to generate the GRF
 nSide = 4096   # this is what pixell chooses when converting our CAR map to healpix
 # read CAR hit map to get the desired pixellation properties
-pathHit = pathIn + "f150_daynight_all_div_mono.fits"
+pathHit = pathIn + "act_planck_f150_prelim_div_mono.fits"
 hitMap = enmap.read_map(pathHit)
 hitShape = hitMap.shape
 hitWcs = hitMap.wcs
