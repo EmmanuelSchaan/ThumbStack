@@ -49,7 +49,7 @@ lCen = data[:,0]
 ClMeasured = np.nan_to_num(data[:,1])
 sClMeasured = np.nan_to_num(data[:,2])
 
-# Stitch the two spectra at ell=100, to avoid high noise, and interpolate
+# Stitch the two spectra at ell=100, to avoid high noise at low ell, and interpolate
 ClTheory = np.array(map(cmb1_4.flensedTT, lCen))
 ClStitched = ClTheory * (lCen<=100.) + ClMeasured * (lCen>100.)
 fClStitched = interp1d(lCen, ClStitched, kind='linear', bounds_error=False, fill_value=0.)
@@ -68,7 +68,7 @@ hitWcs = hitMap.wcs
 
 #########################################################################
 # Create the mocks
-
+'''
 def genGRF(iMock):
    # set the random seed
    np.random.seed(iMock)
@@ -88,12 +88,12 @@ with sharedmem.MapReduce(np=nProc) as pool:
    np.array(pool.map(genGRF, range(nMocks)))
 tStop = time()
 print "Took", (tStop-tStart)/60., "min"
-
+'''
 
 #########################################################################
 # Check that the power spectra match the input
 
-'''
+
 def powerSpectrum(hMap, mask=None, theory=[], fsCl=None, nBins=51, lRange=None, plot=False, path="./figures/tests/test_power.pdf", save=False):
    """Compute the power spectrum of a healpix map.
    """
@@ -195,7 +195,14 @@ lCen = result[0,0,:]
 ClMocks = np.mean(result[:,1,:], axis=0)
 sClMocks = np.std(result[:,2,:], axis=0) / np.sqrt(nMocks)
 
+# save to file
+data = np.zeros((len(lCen), 3))
+data[:,0] = lCen
+data[:1] = ClMocks
+data[:,2] = sClMocks
+np.savetxt(pathOut + "mean_cl.txt", data)
 
+# plot power spectrum
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 #
@@ -215,4 +222,4 @@ ax.set_ylabel(r'$\ell(\ell+1) C_\ell / (2\pi)$')
 #
 fig.savefig(pathFig+"power_"+str(nMocks)+"mocks_grf_f150_daynight.pdf", bbox_inches='tight')
 fig.clf()
-'''
+
