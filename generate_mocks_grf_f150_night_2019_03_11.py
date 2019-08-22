@@ -175,6 +175,7 @@ def powerSpectrum(hMap, mask=None, theory=[], fsCl=None, nBins=51, lRange=None, 
 
 
 def measurePower(iMock):
+   print "- measuring power for mock", iMock
    # read the map
    hpGrfMap = hp.read_map(pathOut+"hp_mock_"+str(iMock)+"_grf_f150_daynight.fits")
    # measure its power spectrum

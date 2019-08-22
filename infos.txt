@@ -1,0 +1,5 @@
+These mock maps are based on the following galaxy catalogs:
+cmass_dr12_N_mariana.txt
+cmass_dr12_S_mariana.txt
+- all objects have the same Gaussian profile, with sigma_cluster = 1.5', regardless of redshift.
+- for the amplitude of the signal, it is normalized so that the integral of the Gaussian is 1.
