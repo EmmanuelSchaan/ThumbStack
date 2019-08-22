@@ -111,82 +111,62 @@ bossKendrick.addCatalog(lowzNKendrick, save=False)
 ###################################################################################
 # Read CMB maps
 
-# Planck + ACT 150GHz day and night
-pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/"
-#
-pathMap = pathIn + "act_planck_f150_prelim_map_mono.fits"
-pathHit = pathIn + "act_planck_f150_prelim_div_mono.fits"
-pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"
-pathPower = pathIn + "f150_power_T_masked.txt"
-
-
-
-
-
 nMocks = 1000
 
+
+# Path to mocks
 
 # directory of GRF mocks
 pathGRF = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
 # path to mean power spectrum of GRF mocks
 pathPower = pathGRF + "mean_cl.txt"
-# path to true hit count map
-pathHit = 
-
 # path to each GRF mock map
 pathMap = pathGRF + "mock_"+str(iMock)+"_grf_f150_daynight.fits"
 
-
-
-
-
-
-
-
-
-tStart = time()
-print "- Read CMB map, mask and hit count"
-pact150Map = enmap.read_map(pathMap)[0]   # keep only temperature
-pact150Mask = enmap.read_map(pathMask)
-pact150Hit = enmap.read_map(pathHit)
-tStop = time()
-print "took", tStop-tStart, "sec"
-
-# measured power spectrum
-data = np.genfromtxt(pathPower)  # l, Cl, sCl
-data = np.nan_to_num(data)
-fCl = interp1d(data[:,0], data[:,1], kind='linear', bounds_error=False, fill_value=0.)
-
-# theory power spectrum
-cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# path to true hit count map and mask: Planck + ACT 150GHz day and night
+pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/"
+pathHit = pathIn + "act_planck_f150_prelim_div_mono.fits"
+pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"
 
 
 ###################################################################################
-###################################################################################
-# Stacking
+
+def analyzeMock(iMock):
+
+   ###################################################################################
+   # Read CMB maps
+   
+   tStart = time()
+   print "- Read CMB map, mask and hit count"
+   pact150Map = enmap.read_map(pathMap)[0]   # keep only temperature
+   pact150Mask = enmap.read_map(pathMask)
+   pact150Hit = enmap.read_map(pathHit)
+   tStop = time()
+   print "took", tStop-tStart, "sec"
+
+   # measured power spectrum
+   data = np.genfromtxt(pathPower)  # l, Cl, sCl
+   data = np.nan_to_num(data)
+   fCl = interp1d(data[:,0], data[:,1], kind='linear', bounds_error=False, fill_value=0.)
+
+   # theory power spectrum
+   cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
 
 
-import thumbstack
-reload(thumbstack)
-from thumbstack import *
+   ###################################################################################
+   # Stacking
+
+   #import thumbstack
+   #reload(thumbstack)
+   #from thumbstack import *
+
+   name = cmassKendrick.name + "_pactf150night20190311_mock"+str(iMock)
+   tsCmassK = ThumbStack(u, cmassKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
-name = cmassMariana.name + "_pactf150night20190311"
-tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+
+   ###################################################################################
+
 
 
 #mask = tsCmassM.catalogMask(overlap=True, psMask=True)
