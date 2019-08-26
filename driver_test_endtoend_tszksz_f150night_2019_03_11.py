@@ -105,7 +105,7 @@ name = cmassMariana.name + "_pactf150night20190311_test_endtoend_counts"
 tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
-tsCmassM.analyzeObject(0, test=True)
+#tsCmassM.analyzeObject(0, test=True)
 tsCmassM.examineCmbMaps()
 
 

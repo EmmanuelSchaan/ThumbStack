@@ -133,7 +133,7 @@ class ThumbStack(object):
       mask = (self.cmbMask>0.5)[0]
 
       # mask, after re-thresholding
-      x = mask.copy()
+      x = 1. * mask.copy()
       path = self.pathFig+"/hist_cmbmask_postrethresh.pdf"
       myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'CMB mask value', semilogy=True)
 
@@ -151,7 +151,7 @@ class ThumbStack(object):
    ##################################################################################
    
 
-   def extractStamp(self, ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea', test=False):
+   def extractStamp(self, ra, dec, dxDeg=0.3, dyDeg=0.3, resArcmin=0.25, proj='cea', test=False):
       """Extracts a small CEA or CAR map around the given position, with the given angular size and resolution.
       """
 
@@ -322,7 +322,7 @@ class ThumbStack(object):
          z = self.Catalog.Z[iObj]
          
          # extract postage stamp around it
-         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=0.25, dyDeg=0.25, resArcmin=0.25, proj='cea', test=test)
+         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=0.3, dyDeg=0.3, resArcmin=0.25, proj='cea', test=test)
          
          # loop over the radii for the AP filter
          for iRAp in range(self.nRAp):
