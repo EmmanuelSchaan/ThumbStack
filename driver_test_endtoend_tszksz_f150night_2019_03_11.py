@@ -68,7 +68,7 @@ cmassMariana.addCatalog(cmassNMariana, save=False)
 
 ###################################################################################
 ###################################################################################
-# Read CMB maps
+# Read CMB maps: map, mask, hit count map
 
 # directory of mocks
 pathMock = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/mock_maps_CMASS_DR12_mariana/"
@@ -84,6 +84,7 @@ pathPower = pathIn + "f150_power_T_masked.txt"
 # read maps in common for all mocks
 pact150Mask = enmap.read_map(pathMask)
 pact150Hit = enmap.read_map(pathHit)
+pact150Map = enmap.read_map(pathMap)[0]   # keep only temperature
 
 # theory power spectrum
 cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
@@ -96,13 +97,9 @@ import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
-
-# Read mock map
-pact150Map = enmap.read_map(pathMap)#[0]   # keep only temperature
-
 # Stacking
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_counts"
-tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 #tsCmassM.analyzeObject(0, test=True)

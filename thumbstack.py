@@ -63,7 +63,6 @@ class ThumbStack(object):
    ##################################################################################
    
    def loadAPRadii(self):
-   
       # radii to use for AP filter: comoving Mpc/h
       self.nRAp = 9  #4
       
@@ -82,21 +81,21 @@ class ThumbStack(object):
    
    def sky2map(self, ra, dec, map):
       '''Gives the map value at coordinates (ra, dec).
-      The value is interpolated between the nearest pixels.
+      ra, dec in degrees.
+      Uses nearest neighbor, no interpolation.
       Will return 0 if the coordinates requested are outside the map
       '''
       # interpolate the map to the given sky coordinates
-      sourcecoord = np.array([dec, ra]) * utils.degree
+      sourcecoord = np.array([dec, ra]) * utils.degree   # convert from degrees to radians
       # use nearest neighbor interpolation
       return map.at(sourcecoord, prefilter=False, mask_nan=False, order=0)
    
    
-   ##################################################################################
    
-   def saveOverlapFlag(self, nProc=1):
+   def saveOverlapFlag(self, thresh=1.e-5, nProc=1):
       print "Create overlap flag"
       # find if a given object overlaps with the CMB hit map
-      def foverlap(iObj, thresh=1.e-5):
+      def foverlap(iObj):
          '''Returns 1. if the object overlaps with the hit map and 0. otherwise.
          '''
          if iObj%100000==0:
@@ -153,17 +152,17 @@ class ThumbStack(object):
 
    def extractStamp(self, ra, dec, dxDeg=0.3, dyDeg=0.3, resArcmin=0.25, proj='cea', test=False):
       """Extracts a small CEA or CAR map around the given position, with the given angular size and resolution.
+      ra, dec in degrees.
+      Does it for the map, the mask and the hit count.
       """
 
       # define geometry of small square maps to be extracted
-      # here 0.5deg * 0.5deg, with 0.25arcmin pixel
+      # here dxDeg * dyDeg, with 0.25arcmin pixel
       # the center of the small square map will be specified later
       # car: not equal area, but equally-spaced coordinates
       # cea: equal area pixels, but coordinates are not equally spaced
       # previous kSZ paper: went out to 5arcmin
       # Planck paper CV: went out to 18 arcmin
-      # --> let's go to 18'*sqrt(2) = 25' \simeq 0.5deg
-      # probably good to extract bigger stamp than needed for now
       shape, wcs = enmap.geometry(np.array([[-0.5*dxDeg,-0.5*dyDeg],[0.5*dxDeg,0.5*dyDeg]])*utils.degree, res=resArcmin*utils.arcmin, proj=proj)
       stampMap = enmap.zeros(shape, wcs)
       stampMask = enmap.zeros(shape, wcs)
@@ -174,9 +173,8 @@ class ThumbStack(object):
       opos = stampMap.posmap()
 
       # coordinate of the center of the square map we want to extract
-      # (known point source)
       # ra, dec in this order
-      sourcecoord = np.array([ra, dec])*utils.degree
+      sourcecoord = np.array([ra, dec])*utils.degree  # convert from degrees to radians
 
       # corresponding true coordinates on the big healpy map
       ipos = rotfuncs.recenter(opos[::-1], [0,0,sourcecoord[0],sourcecoord[1]])[::-1]
@@ -222,19 +220,19 @@ class ThumbStack(object):
       """Apply an AP filter (disk minus ring) to a stamp map:
       AP = int d^2theta * Filter * map.
       Unit is [map unit * sr]
-      The filter is dimensionless:
+      The filter function is dimensionless:
       Filter = 1 in the disk, - (disk area)/(ring area) in the ring, 0 outside.
       Hence:
       int d^2theta * Filter = 0.
       r0 and r1 are the radius of the disk and ring in radians.
+      stampMask should have values 0 and 1 only.
       Output:
       filtMap: [map unit * sr]
       filtMask: [mask unit * sr]
       filtNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
       diskArea: [sr]
       """
-      # coordinates of the square map (between -1 and 1 deg, or whatever the size is)
-      # local coordinates in rad.
+      # coordinates of the square map in radians
       # zero is at the center of the map
       # output map position [{dec,ra},ny,nx]
       dec = opos[0,:,:]
@@ -321,8 +319,12 @@ class ThumbStack(object):
          dec = self.Catalog.DEC[iObj] # in deg
          z = self.Catalog.Z[iObj]
          
+         # choose postage stamp size to fit the largest ring
+         dArcmin = np.ceil(2. * self.rApMaxArcmin * np.sqrt(2.))
+         dDeg = dArcmin / 60.
+         
          # extract postage stamp around it
-         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=0.3, dyDeg=0.3, resArcmin=0.25, proj='cea', test=test)
+         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=dDeg, dyDeg=dDeg, resArcmin=0.25, proj='cea', test=test)
          
          # loop over the radii for the AP filter
          for iRAp in range(self.nRAp):
@@ -411,44 +413,13 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def stack(self, quantity, mask, weights, norm=True):
-      '''Stacks the quantity for the objects selected by mask,
-      applying weights from weight.
-      The quantity can be a single value per object, or an array for each object,
-      like e.g. self.filtMap.
-      Norm=True if you want to normalize by the sum of the weights.
-      '''
-      result = np.sum(quantity[mask,:] * weights[mask,np.newaxis], axis=0)
-      if norm:
-         result /= np.sum(weights[mask,np.newaxis], axis=0)
-      return result
-
-
-   def plotStack(self, stack, stackError=None, ylim=None, name='dT', nameLatex=r'$\delta T$ [$\mu$K]' ):
-      """Generic stack plotter.
-      """
-      fig=plt.figure(0)
-      ax=fig.subplot(111)
-      #
-      if stackError is None:
-         ax.plot(self.RApMpch, stack, 'o-')
-      else:
-         ax.errorbar(self.RApMpch, stack, yerr=stackError, fmt='o-')
-      #
-      ax.set_xlabel(r'$R$ [cMpc/h]')
-      ax.set_ylabel(nameLatex)
-#      fig.savefig(self.pathFig+"/stack_"+name+".pdf")
-#      fig.clf()
-      plt.show()
-
-
-   ##################################################################################
-
 
    def measureVarFromHitCount(self, plot=False):
       """Returns a list of functions, one for each AP filter radius,
       where the function takes filtNoiseStdDev**2 \propto [(map var) * sr^2] as input and returns the
       actual measured filter variance [(map unit)^2 * sr^2].
+      The functions are expected to be linear if the detector noise is the main source of noise,
+      and if the hit counts indeed reflect the detector noise.
       To be used for noise weighting in the stacking.
       """
       print "- interpolate the relation hit count - noise"
@@ -461,10 +432,8 @@ class ThumbStack(object):
          y = self.filtMap[mask, iRAp].copy()
          y = (y - np.mean(y))**2
 
-         # define bins
+         # define bins of hit count values
          nBins = 21
-#         print "Binning for measuring var from hit count:", x
-#         print "Binning for measuring var from hit count:", np.min(x), np.max(x), np.min(y), np.max(y)
          BinsX = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
          
          # compute histograms
@@ -504,6 +473,361 @@ class ThumbStack(object):
 
    ##################################################################################
 
+
+   def stackedProfile(self, est, iBootstrap=None, iVShuffle=None):
+      """Returns the estimated profile and its uncertainty for each aperture.
+      est: string to select the estimator
+      iBootstrap: index for bootstrap resampling
+      iVShuffle: index for shuffling velocities
+      """
+      # select objects that overlap, and reject point sources
+      mask = self.catalogMask(overlap=True, psMask=True)
+      # temperatures [muK * sr]
+      t = self.filtMap[mask, :]
+      t -= np.mean(t)
+      # v/c [dimless]
+      v = -self.Catalog.vR[mask] / 3.e5
+      v -= np.mean(v)
+      # hit count and measured total noise (CMB + detector)
+      s2Hit = filtNoiseStdDev[mask, :]**2
+      s2Full = self.fVarFromHitCount[:](s2Hit)
+      # halo masses
+      hasm = self.Catalog.hasM[mask]
+      m = self.Catalog.Mvir[mask]
+      m[-hasm] = np.mean(m[hasm])   # for halos without a mass, use the mean mass
+      
+      if iBoostrap is not None:
+         # make sure each resample is independent,
+         # and make the resampling reproducible
+         np.random.seed(iBoostrap)
+         # list of overlapping objects
+         nObj = np.sum(mask)
+         I = np.arange(nObj)
+         # choose with replacement from this list
+         J = np.random.choice(I, size=nObj, replace=True)
+         #
+         t = t[J,:]
+         v = v[J]
+         s2Hit = s2Hit[J,:]
+         s2Full = s2Full[J,:]
+         m = m[J]
+      
+      if iVShuffle is not None:
+         # make sure each shuffling is independent,
+         # and make the shuffling reproducible
+         np.random.seed(iVShuffle)
+         # list of overlapping objects
+         nObj = np.sum(mask)
+         I = np.arange(nObj)
+         # shuffle the velocities
+         J = np.random.permutation(I)
+         #
+         v = v[J]
+      
+      # tSZ: uniform weighting
+      if est=='tsz_uniformweight':
+         stack = np.mean(t, axis=0)
+         sStack = np.sqrt(np.sum(s2Full, axis=0)) / t.shape[0]
+      # tSZ: detector-noise weighted (hit count)
+      elif est=='tsz_hitweight':
+         stack = np.sum(t/s2Hit, axis=0) / np.sum(1./s2Hit, axis=0)
+         sStack = np.sum(s2Full/s2Hit**2, axis=0) / np.sum(1./s2Hit, axis=0)**2
+         sStack = np.sqrt(sStack)
+      # tSZ: full noise weighted (detector noise + CMB)
+      elif est=='tsz_varweight':
+         stack = np.sum(t/s2Full , axis=0) / np.sum(1./s2Full, axis=0)
+         sStack = 1. / np.sum(1./s2Full, axis=0)
+         sStack = np.sqrt(sStack)
+
+      # kSZ: uniform weighting
+      elif est=='ksz_uniformweight':
+         stack = np.mean(t*v[:,np.newaxis], axis=0) / np.sum(v[:,np.newaxis]**2, axis=0)
+         sStack = np.sum(s2Full*v[:,np.newaxis]**2, axis=0) / np.sum(v[:,np.newaxis]**2, axis=0)**2
+         sStack = np.sqrt(sStack)
+      # kSZ: detector-noise weighted (hit count)
+      elif est=='ksz_hitweight':
+         stack = np.sum(t*v[:,np.newaxis]/s2Hit, axis=0) / np.sum(v[:,np.newaxis]**2/s2Hit, axis=0)
+         sStack = np.sum(s2Full*v[:,np.newaxis]**2/s2Hit**2, axis=0) / np.sum(v[:,np.newaxis]**2/s2Hit, axis=0)**2
+         sStack = np.sqrt(sStack)
+      # kSZ: full noise weighted (detector noise + CMB)
+      elif est=='ksz_varweight':
+         stack = np.sum(t*v[:,np.newaxis]/s2Full, axis=0) / np.sum(v[:,np.newaxis]**2/s2Full, axis=0)
+         sStack = np.sum(s2Full*v[:,np.newaxis]**2/s2Full**2, axis=0) / np.sum(v[:,np.newaxis]**2/s2Full, axis=0)**2
+         sStack = np.sqrt(sStack)
+      # kSZ: full noise weighted (detector noise + CMB)
+      elif est=='ksz_massvarweight':
+         stack = np.sum(t*m[:,np.newaxis] * v[:,np.newaxis]/s2Full, axis=0)
+         stack /= np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2/s2Full, axis=0)
+         sStack = np.sum(s2Full * m[:,np.newaxis]**2 * v[:,np.newaxis]**2/s2Full**2, axis=0)
+         sStack /= np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2/s2Full, axis=0)**2
+         sStack = np.sqrt(sStack)
+
+      return stack, sStack
+
+
+   ##################################################################################
+
+   def SaveCovBootstrapStackedProfile(self, est, nSamples=1000, nProc=1)
+      """Estimate covariance matrix for the stacked profile from bootstrap resampling
+      """
+      tStart = time()
+      with sharedmem.MapReduce(np=nProc) as pool:
+         f = lambda iSample: self.stackedProfile(est, iBootstrap=iSample)
+         result = np.array(pool.map(f, range(nSamples)))
+      tStop = time()
+      print "took", (tStop-tStart)/60., "min"
+      # unpack results
+      stackSamples = result[:,0,:] # shape (nSamples, nRAp)
+      #sStackSamples = result[:,1,:]
+      # estimate cov
+      covStack = np.cov(stackSamples, rowvar=False)
+      # save it to file
+      np.savetxt(self.pathOut+"/cov_"+est+"_bootstrap.txt", covStack)
+      
+
+   def SaveCovVShuffleStackedProfile(self, est, nSamples=1000, nProc=1)
+      """Estimate covariance matrix for the stacked profile from shuffling velocities
+      """
+      tStart = time()
+      with sharedmem.MapReduce(np=nProc) as pool:
+         f = lambda iSample: self.stackedProfile(est, iVshuffle=iSample)
+         result = np.array(pool.map(f, range(nSamples)))
+      tStop = time()
+      print "took", (tStop-tStart)/60., "min"
+      # unpack results
+      stackSamples = result[:,0,:] # shape (nSamples, nRAp)
+      #sStackSamples = result[:,1,:]
+      # estimate cov
+      covStack = np.cov(stackSamples, rowvar=False)
+      # save it to file
+      np.savetxt(self.pathOut+"/cov_"+est+"_vshuffle.txt", covStack)
+
+
+   ##################################################################################
+
+   def saveStackedProfiles(self):
+      data = np.zeros((self.nRAp, 3))
+      data[:,0] = self.RApArcmin # [arcmin]
+      
+      # all stacked profiles
+      Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+      for iEst in range(len(Est)):
+         est = Est[iEst]
+         data[:,1], data[:,2] = self.stackedProfile(est) # [map unit * sr]
+         np.savetxt(self.pathOut+"/"+est+".txt", data)
+
+      # covariance matrices from bootstrap,
+      # only for a few select estimators
+      Est = ['tsz_varweight', 'ksz_varweight']
+      for iEst in range(len(Est)):
+         est = Est[iEst]
+         self.SaveCovBootstrapStackedProfile(est, nSamples=1000, nProc=self.nProc)
+
+      # covariance matrices from shuffling velocities,
+      # for ksz only
+      Est = ['ksz_varweight']
+      for iEst in range(len(Est)):
+         est = Est[iEst]
+         self.SaveCovVShuffleStackedProfile(est, nSamples=1000, nProc=self.nProc)
+
+
+   def loadStackedProfiles(self):
+      self.stackedProfile = {}
+      self.sStackedProfile = {}
+      self.covBootstrap = {}
+      self.covVShuffle = {}
+      
+      # all stacked profiles
+      Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+      for iEst in range(len(Est)):
+         est = Est[iEst]
+         data = np.genfromtxt(self.pathOut+"/"+est+".txt")
+         self.stackedProfile[est] = data[:,1]
+         self.sStackedProfile[est] = data[:,2]
+      
+      # covariance matrices from bootstrap,
+      # only for a few select estimators
+      Est = ['tsz_varweight', 'ksz_varweight']
+      for iEst in range(len(Est)):
+         est = Est[iEst]
+         self.covBootstrap[est] = np.genfromtxt(self.pathOut+"/cov_"+est+"_bootstrap.txt")
+      
+      # covariance matrices from shuffling velocities,
+      # for ksz only
+      Est = ['ksz_varweight']
+      for iEst in range(len(Est)):
+         est = Est[iEst]
+         self.covVShuffle[est] = np.genfromtxt(self.pathOut+"/cov_"+est+"_vshuffle.txt")
+
+
+   ##################################################################################
+
+   def plotStackedProfile(self, Est, name=None):
+      """Compares stacked profiles, and their uncertainties.
+      """
+      if name is None:
+         name = Est[0]
+      
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # convert from sr to arcmin^2
+      factor = (180.*60./np.pi)**2
+      #
+      for est in Est:
+         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[est], factor * self.sStackedProfile[est], fmt='-', label=est)
+      #
+      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+      ax.set_xlabel(r'$R$ [arcmin]')
+      ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
+      #ax.set_ylim((0., 2.))
+      #
+      path = self.pathFig+"/"+name+".pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # convert from sr to arcmin^2
+      factor = (180.*60./np.pi)**2
+      #
+      for est in Est:
+         ax.plot(self.RApArcmin, factor * self.sStackedProfile[est], ls='-', label=est)
+         if est in self.covBootstrap:
+            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covBootstrap[est])), ls='--', label=est)
+         if est in self.covBootstrap:
+            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covVshuffle[est])), ls='.-', label=est)
+      #
+      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+      ax.set_xlabel(r'$R$ [arcmin]')
+      ax.set_ylabel(r'$\sigma(T)$ [$\mu K\cdot\text{arcmin}^2$]')
+      #ax.set_ylim((0., 2.))
+      #
+      path = self.pathFig+"/s_"+name+".pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+   def plotAllStackedProfiles(self):
+      # tSZ
+      Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight']
+      self.plotStackedProfile(Est, name="tsz")
+      # kSZ
+      Est = ['ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+      self.plotStackedProfile(Est, name="ksz")
+
+
+   ##################################################################################
+   
+   def plotCov(self, cov, name=""):
+      # Covariance matrix
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # pcolor wants x and y to be edges of cell,
+      # ie one more element, and offset by half a cell
+      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+      #
+      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+      cp=ax.pcolormesh(X, Y, cov, cmap='YlOrRd')
+      #
+      ax.set_aspect('equal')
+      plt.colorbar(cp)
+      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_xlabel(r'R [arcmin]')
+      ax.set_ylabel(r'R [arcmin]')
+      #
+      path = self.pathFig+"/cov_"+name+".pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+      # Correlation coefficient
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # pcolor wants x and y to be edges of cell,
+      # ie one more element, and offset by half a cell
+      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+      #
+      sigma = np.sqrt(np.diag(cov))
+      cor = np.array([[cov[i1, i2] / (sigma[i1]*sigma[i2]) for i2 in range(self.nRAp)] for i1 in range(self.nRAp)])
+      cp=ax.pcolormesh(X, Y, cor, cmap='YlOrRd', vmin=0., vmax=1.)
+      #
+      ax.set_aspect('equal')
+      plt.colorbar(cp)
+      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+      ax.set_xlabel(r'R [arcmin]')
+      ax.set_ylabel(r'R [arcmin]')
+      #
+      path = self.pathFig+"/cor_"+name+".pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+   def plotAllCov(self):
+      # covariance matrices from bootstrap,
+      # only for a few select estimators
+      Est = ['tsz_varweight', 'ksz_varweight']
+      for iEst in range(len(Est)):
+         est = Est[iEst]
+         self.plotCov(self.covBootstrap[est], est+"_bootstrap")
+      
+      # covariance matrices from shuffling velocities,
+      # for ksz only
+      Est = ['ksz_varweight']
+      for iEst in range(len(Est)):
+         est = Est[iEst]
+         self.plotCov(self.covVShuffle[est], est+"_vshuffle")
+
+
+   ##################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ##################################################################################
+   ##################################################################################
+   ##################################################################################
 
    def examineHistograms(self, fsAp=[]):
       """fsAp is an optional list of functions of rAp in radians, which return the expected std def of the AP filter
@@ -569,699 +893,699 @@ class ThumbStack(object):
    ##################################################################################
    ##################################################################################
 
-   def compareKszEstimators(self):
-
-      # remove the objects that overlap with point sources
-      mask = self.catalogMask(overlap=True, psMask=True)
-
-      kSZ1 = np.zeros(self.nRAp)
-      skSZ1 = np.zeros(self.nRAp)
-      kSZ2 = np.zeros(self.nRAp)
-      skSZ2 = np.zeros(self.nRAp)
-      kSZ3 = np.zeros(self.nRAp)
-      skSZ3 = np.zeros(self.nRAp)
-      kSZ4 = np.zeros(self.nRAp)
-      skSZ4 = np.zeros(self.nRAp)
-      kSZ5 = np.zeros(self.nRAp)
-      skSZ5 = np.zeros(self.nRAp)
-      kSZ6 = np.zeros(self.nRAp)
-      skSZ6 = np.zeros(self.nRAp)
-      kSZ7 = np.zeros(self.nRAp)
-      skSZ7 = np.zeros(self.nRAp)
-
-
-      for iRAp in range(self.nRAp):
-         t = self.filtMap[mask, iRAp]# - np.mean(self.filtMap[mask, iRAp])
-         v = - self.Catalog.vR[mask]# + np.mean(self.Catalog.vR[mask])
-         k = self.Catalog.integratedKSZ[mask]# - np.mean(self.Catalog.integratedKSZ[mask])
-         s2True = self.fVarFromHitCount[iRAp](self.filtNoiseStdDev[mask, iRAp]**2)
-         s2Hit = self.filtNoiseStdDev[mask, iRAp]**2
-
-
-         # kSZ1: T * v / s2Hit
-         num = np.sum(t * v / s2Hit)
-         denom = np.sum(k * v / s2Hit)
-         s2num = np.sum(s2True * (v / s2Hit)**2)
-         #
-         kSZ1[iRAp] = num / denom
-         skSZ1[iRAp] = np.sqrt(s2num / denom**2)
-
-         # kSZ6: T * v / s2True
-         num = np.sum(t * v / s2True)
-         denom = np.sum(k * v / s2True)
-         s2num = np.sum(s2True * (v / s2True)**2)
-         #
-         kSZ6[iRAp] = num / denom
-         skSZ6[iRAp] = np.sqrt(s2num / denom**2)
-
-
-         # kSZ2: T * Mh v / s2Hit
-         num = np.sum(t * k / s2Hit)
-         denom = np.sum(k**2 / s2Hit)
-         s2num = np.sum(s2True * (k / s2Hit)**2)
-         #
-         kSZ2[iRAp] = num / denom
-         skSZ2[iRAp] = np.sqrt(s2num / denom**2)
-
-
-         # subtracting mean
-         tNoMean = self.filtMap[mask, iRAp] - np.mean(self.filtMap[mask, iRAp])
-         vNoMean = - self.Catalog.vR[mask] + np.mean(self.Catalog.vR[mask])
-         kNoMean = self.Catalog.integratedKSZ[mask] - np.mean(self.Catalog.integratedKSZ[mask])
-         s2True = self.fVarFromHitCount[iRAp](self.filtNoiseStdDev[mask, iRAp]**2)
-         s2Hit = self.filtNoiseStdDev[mask, iRAp]**2
-
-         # kSZ3: T * Mh v / s2Hit, subtracting mean
-         num = np.sum(tNoMean * kNoMean / s2Hit)
-         denom = np.sum(kNoMean**2 / s2Hit)
-         s2num = np.sum(s2True * (kNoMean / s2Hit)**2)
-         #
-         kSZ3[iRAp] = num / denom
-         skSZ3[iRAp] = np.sqrt(s2num / denom**2)
-
-         # kSZ4: T * Mh v / s2True, subtracting mean,
-         # and using the measured noise weights
-         num = np.sum(tNoMean * kNoMean / s2True)
-         denom = np.sum(kNoMean**2 / s2True)
-         #
-         kSZ4[iRAp] = num / denom
-         skSZ4[iRAp] = np.sqrt(1. / denom)
-
-# Preferred estimator:
-         # kSZ5: T * v / s2True, subtracting mean,
-         # and using the measured noise weights
-         num = np.sum(tNoMean * vNoMean / s2True)
-         denom = np.sum(kNoMean * vNoMean / s2True)
-         s2num = np.sum(s2True * (vNoMean / s2True)**2)
-         #
-         kSZ5[iRAp] = num / denom
-         skSZ5[iRAp] = np.sqrt(s2num / denom**2)
-
-         # kSZ7: T * v / s2Hit, subtracting mean,
-         num = np.sum(tNoMean * vNoMean / s2Hit)
-         denom = np.sum(kNoMean * vNoMean / s2Hit)
-         s2num = np.sum(s2True * (vNoMean / s2Hit)**2)
-         #
-         kSZ7[iRAp] = num / denom
-         skSZ7[iRAp] = np.sqrt(s2num / denom**2)
-
-
-      
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      #self.RApMpch
-      ax.errorbar(self.RApArcmin, kSZ1, skSZ1, label=r'$Tv/\sigma^2$')
-      ax.errorbar(self.RApArcmin+0.01, kSZ6, skSZ6, label=r'$Tv/\sigma^2$, better noise')
-      ax.errorbar(self.RApArcmin+0.02, kSZ7, skSZ7, label=r'$Tv/\sigma^2$, sub. T,v')
-      ax.errorbar(self.RApArcmin+0.03, kSZ5, skSZ5, label=r'$Tv/\sigma^2$, sub. T,v, better noise')
-      ax.errorbar(self.RApArcmin+0.04, kSZ2, skSZ2, label=r'$TMv/\sigma^2$')
-      ax.errorbar(self.RApArcmin+0.05, kSZ3, skSZ3, label=r'$TMv/\sigma^2$, sub. T,Mv')
-      ax.errorbar(self.RApArcmin+0.06, kSZ4, skSZ4, label=r'$TMv/\sigma^2$, sub. T,Mv, better noise')
-      #
-      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
-      ax.set_xlabel(r'$R$ [arcmin]')
-      ax.set_ylabel(r'$\alpha_\text{kSZ}$')
-      ax.set_ylim((0., 2.5))
-      #
-      # extra abscissa: disk radius in comoving Mpc/h
-      ax2 = ax.twiny()
-      ticks = ax.get_xticks()
-      ax2.set_xticks(ticks)
-      newticks = np.array(ticks) * np.pi/(180.*60.) * self.U.bg.comoving_distance(np.mean(self.Catalog.Z[mask]))  # disk radius in Mpc/h
-      newticks = np.round(newticks, 2)
-      ax2.set_xticklabels(newticks)
-      ax2.set_xlim(ax.get_xlim())
-      ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
-      ax2.xaxis.set_label_coords(0.5, 1.15)
-      #
-      # extra ordinate: signal in muK * arcmin^2
-      ax3 = ax.twinx()
-      ticks = ax.get_yticks()
-      ax3.set_yticks(ticks)
-      newticks = np.array(ticks) * np.mean(self.Catalog.integratedKSZ[mask]) * (180.*60./np.pi)**2 # [muK*arcmin^2]
-      newticks = np.round(newticks, 3)
-      ax3.set_yticklabels(newticks)
-      ax3.set_ylim(ax.get_ylim())
-      ax3.set_ylabel(r'$\langle T_\text{kSZ} \rangle$ [$\mu$K.arcmin$^2$]', fontsize=20)
-      ax3.yaxis.set_label_coords(1.2, 0.5)
-      #
-      path = self.pathFig+"/ksz_comparison.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-
-
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      #self.RApMpch
-      ax.plot(self.RApArcmin, skSZ1, label=r'$Tv/\sigma^2$')
-      ax.plot(self.RApArcmin+0.01, skSZ6, label=r'$Tv/\sigma^2$, better noise')
-      ax.plot(self.RApArcmin+0.02, skSZ7, label=r'$Tv/\sigma^2$, sub. T,v')
-      ax.plot(self.RApArcmin+0.03, skSZ5, label=r'$Tv/\sigma^2$, sub. T,v, better noise')
-      ax.plot(self.RApArcmin+0.04, skSZ2, label=r'$TMv/\sigma^2$')
-      ax.plot(self.RApArcmin+0.05, skSZ3, label=r'$TMv/\sigma^2$, sub. T,Mv')
-      ax.plot(self.RApArcmin+0.06, skSZ4, label=r'$TMv/\sigma^2$, sub. T,Mv, better noise')
-      #
-      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
-      ax.set_xlabel(r'$R$ [arcmin]')
-      ax.set_ylabel(r'$\sigma \left(\alpha_\text{kSZ} \right)$')
-      ax.set_ylim((0., 1.1))
-      #
-      # extra abscissa: disk radius in comoving Mpc/h
-      ax2 = ax.twiny()
-      ticks = ax.get_xticks()
-      ax2.set_xticks(ticks)
-      newticks = np.array(ticks) * np.pi/(180.*60.) * self.U.bg.comoving_distance(np.mean(self.Catalog.Z[mask]))  # disk radius in Mpc/h
-      newticks = np.round(newticks, 2)
-      ax2.set_xticklabels(newticks)
-      ax2.set_xlim(ax.get_xlim())
-      ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
-      ax2.xaxis.set_label_coords(0.5, 1.15)
-      #
-      # extra ordinate: signal in muK * arcmin^2
-      ax3 = ax.twinx()
-      ticks = ax.get_yticks()
-      ax3.set_yticks(ticks)
-      newticks = np.array(ticks) * np.mean(self.Catalog.integratedKSZ[mask]) * (180.*60./np.pi)**2 # [muK*arcmin^2]
-      newticks = np.round(newticks, 3)
-      ax3.set_yticklabels(newticks)
-      ax3.set_ylim(ax.get_ylim())
-      ax3.set_ylabel(r'$\langle T_\text{kSZ} \rangle$ [$\mu$K.arcmin$^2$]', fontsize=20)
-      ax3.yaxis.set_label_coords(1.2, 0.5)
-      #
-      path = self.pathFig+"/sksz_comparison.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-
-
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      #self.RApMpch
-      ax.plot(self.RApArcmin, kSZ1/skSZ1, label=r'$Tv/\sigma^2$')
-      ax.plot(self.RApArcmin+0.01, kSZ6/skSZ6, label=r'$Tv/\sigma^2$, better noise')
-      ax.plot(self.RApArcmin+0.02, kSZ7/skSZ7, label=r'$Tv/\sigma^2$, sub. T,v')
-      ax.plot(self.RApArcmin+0.03, kSZ5/skSZ5, label=r'$Tv/\sigma^2$, sub. T,v, better noise')
-      ax.plot(self.RApArcmin+0.04, kSZ2/skSZ2, label=r'$TMv/\sigma^2$')
-      ax.plot(self.RApArcmin+0.05, kSZ3/skSZ3, label=r'$TMv/\sigma^2$, sub. T,Mv')
-      ax.plot(self.RApArcmin+0.06, kSZ4/skSZ4, label=r'$TMv/\sigma^2$, sub. T,Mv, better noise')
-      #
-      ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
-      ax.set_xlabel(r'$R$ [arcmin]')
-      ax.set_ylabel(r'kSZ SNR')
-      ax.set_ylim((0., 6.))
-      #
-      # extra abscissa: disk radius in comoving Mpc/h
-      ax2 = ax.twiny()
-      ticks = ax.get_xticks()
-      ax2.set_xticks(ticks)
-      newticks = np.array(ticks) * np.pi/(180.*60.) * self.U.bg.comoving_distance(np.mean(self.Catalog.Z[mask]))  # disk radius in Mpc/h
-      newticks = np.round(newticks, 2)
-      ax2.set_xticklabels(newticks)
-      ax2.set_xlim(ax.get_xlim())
-      ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
-      ax2.xaxis.set_label_coords(0.5, 1.15)
-      #
-      path = self.pathFig+"/snr_ksz_comparison.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-
-
-   ##################################################################################
-
-
-   def tszKszEstimator(self, filtMap=None, v=None, k=None, filtNoiseStdDev=None, mask=None):
-      """ Measures stacked tSZ and kSZ, as a function of aperture.
-      Returns tSZ, stSZ, kSZ, skSZ in [map unit * sr]
-      Input:
-      filtMap: default is self.filtMap
-      vR: default is - self.Catalog.vR / c
-      kSZ: default is self.Catalog.integratedKSZ. Not used currently
-      mask: default is self.catalogMask(overlap=True, psMask=True)
-      """
-      if mask is None:
-         # remove the objects that overlap with point sources
-         mask = self.catalogMask(overlap=True, psMask=True)
-      if filtMap is None:
-         filtMap = self.filtMap.copy()
-      if v is None:
-         v = -self.Catalog.vR.copy() / 3.e5  # v/c [dimless]
-      if k is None:
-         k = self.Catalog.integratedKSZ.copy()
-      if filtNoiseStdDev is None:
-         filtNoiseStdDev = self.filtNoiseStdDev.copy()
-         
-#      if np.any(~np.isfinite(v)) or np.any(~np.isfinite(k)):
-#         print "problem, input infinite"
-
-      tSZ = np.zeros(self.nRAp)
-      stSZ = np.zeros(self.nRAp)
-      kSZ = np.zeros(self.nRAp)
-      skSZ = np.zeros(self.nRAp)
-      for iRAp in range(self.nRAp):
-         # AP filter values at the current radius
-         t = filtMap[mask, iRAp]
-         # subtracting mean
-         tNoMean = t - np.mean(t)
-         vNoMean = v[mask] - np.mean(v[mask])
-         kNoMean = k[mask] - np.mean(k[mask])
-         # hit count and measured total noise (CMB + detector)
-         s2Hit = filtNoiseStdDev[mask, iRAp]**2
-         s2True = self.fVarFromHitCount[iRAp](s2Hit)
-         
-#         if np.any(~np.isfinite(s2Hit)):
-#            print "problem s2Hit", s2Hit[np.where(~np.isfinite(s2Hit))]
-#         if np.any(~np.isfinite(s2True)):
-#            print "problem s2True", s2True
-#         if np.any(~np.isfinite(t)):
-#            print "problem t", t
-#         if np.any(~np.isfinite(tNoMean)):
-#            print "problem tNoMean", tNoMean
-#         if np.any(~np.isfinite(vNoMean)):
-#            print "problem vNoMean", vNoMean
-#         if np.any(~np.isfinite(kNoMean)):
-#            print "problem kNoMean", kNoMean
-
-         # tSZ
-         # Subtracting mean,
-         # and using the measured noise weights
-         num = np.sum(t / s2True)
-         denom = np.sum(1. / s2True)
-         #
-         tSZ[iRAp] = num / denom
-         stSZ[iRAp] = np.sqrt(1. / denom)
-         
-         # kSZ
-         # T * v / s2True, subtracting mean,
-         # and using the measured noise weights
-         num = np.sum(tNoMean * vNoMean / s2True)
-         # show the result in terms of alpha[dimless]
-         #denom = np.sum(kNoMean * vNoMean / s2True)
-         # show the result in terms of AP filtered kSZ [muK * sr]
-         denom = np.sum(vNoMean**2 / s2True)
-         #
-         kSZ[iRAp] = num / denom
-         skSZ[iRAp] = np.sqrt(1. / denom)
-         #
-         # rescale by the RMS v/c, to get a fair quantity to compare to tSZ
-         kSZ[iRAp] *= np.std(vNoMean)
-         skSZ[iRAp] *= np.std(vNoMean)
-
-      return tSZ, stSZ, kSZ, skSZ
-
-
-   ##################################################################################
-   
-
-   def tszKszCovBootstrap(self, nSamples=1000, nProc=1):
-      """Estimate tSZ/kSZ covariance matrix from bootstrap resampling.
-      """
-      # list of all objects, overlapping or not
-      I = np.arange(self.Catalog.nObj)
-      # remove the objects that overlap with point sources
-      mask = self.catalogMask(overlap=True, psMask=True)
-      
-      def resample(iSample):
-         print "starting sample number", iSample
-         # make sure each random resample is really independent
-         np.random.seed(iSample)
-         # resample the overlapping objects from the overlapping objects, with replacement
-         # leave the other objects untouched
-         J = I.copy()
-         J[mask] = np.random.choice(I[mask], size=np.sum(mask), replace=True)
-         
-#         print "test len(J) =", len(J)
-#         print "do masks agree?", np.sum(mask-mask[J])
-#         print "test s2Hit before:", np.any(~np.isfinite(self.filtNoiseStdDev[mask,:]))
-#         x = self.filtNoiseStdDev[J,:]
-#         print "test s2Hit after:", np.any(~np.isfinite(self.filtNoiseStdDev[mask[J],:]))
-
-         # run kSZ estimator on the current resample
-         tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator(filtMap=self.filtMap[J,:], v=-self.Catalog.vR[J]/3.e5, k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev[J,:], mask=mask[J])
-         
-#         if np.any(~np.isfinite(kSZ)):
-#            print "problem: kSZ=", kSZ
-
-         return tSZ, stSZ, kSZ, skSZ
-      
-      tStart = time()
-      with sharedmem.MapReduce(np=nProc) as pool:
-         result = np.array(pool.map(resample, range(nSamples)))
-      tStop = time()
-      print "took", (tStop-tStart)/60., "min"
-      # unpack results
-      tSZSamples = result[:,0,:] # shape (nObj, nRAp)
-      stSZSamples = result[:,1,:]
-      kSZSamples = result[:,2,:]
-      skSZSamples = result[:,3,:]
-      # estimate mean and cov
-      meanTsz = np.mean(tSZSamples, axis=0)
-      covTsz = np.cov(tSZSamples, rowvar=False)
-      meanKsz = np.mean(kSZSamples, axis=0)
-      covKsz = np.cov(kSZSamples, rowvar=False)
-      return meanTsz, covTsz, meanKsz, covKsz
-
-
-   def tszKszCovShuffleV(self, nSamples=1000, nProc=1):
-      """Estimate tSZ/kSZ covariance matrix from shuffling the velocities.
-      """
-      # list of all objects, overlapping or not
-      I = np.arange(self.Catalog.nObj)
-      # remove the objects that overlap with point sources
-      mask = self.catalogMask(overlap=True, psMask=True)
-      
-      def resample(iSample):
-         print "starting sample number", iSample
-         # make sure each random resample is really independent
-         np.random.seed(iSample)
-         # shuffle only the overlapping objects,
-         # leave the other objects untouched
-         J = I.copy()
-         J[mask] = np.random.permutation(J[mask])
-         
-#         print "test len(J) =", len(J)
-#         print "do masks agree?", np.sum(mask-mask[J])
-#         print "test s2Hit before:", np.any(~np.isfinite(self.filtNoiseStdDev[mask,:]))
-#         x = self.filtNoiseStdDev[J,:]
-#         print "test s2Hit after:", np.any(~np.isfinite(self.filtNoiseStdDev[mask[J],:]))
-
-         # run kSZ estimator on the current resample: shuffle only vr and ksz
-         # no need to shuffle the mask, since masked objects are still masked
-         tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator(filtMap=self.filtMap, v=-self.Catalog.vR[J], k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev, mask=mask)
-         
-#         if np.any(~np.isfinite(kSZ)):
-#            print "problem: kSZ=", kSZ
-
-         return tSZ, stSZ, kSZ, skSZ
-      
-      tStart = time()
-      with sharedmem.MapReduce(np=nProc) as pool:
-         result = np.array(pool.map(resample, range(nSamples)))
-      tStop = time()
-      print "took", (tStop-tStart)/60., "min"
-      # unpack results
-      tSZSamples = result[:,0,:] # shape (nObj, nRAp)
-      stSZSamples = result[:,1,:]
-      kSZSamples = result[:,2,:]
-      skSZSamples = result[:,3,:]
-      # estimate mean and cov
-      meanTsz = np.mean(tSZSamples, axis=0)
-      covTsz = np.cov(tSZSamples, rowvar=False)
-      meanKsz = np.mean(kSZSamples, axis=0)
-      covKsz = np.cov(kSZSamples, rowvar=False)
-      return meanTsz, covTsz, meanKsz, covKsz
+#   def compareKszEstimators(self):
+#
+#      # remove the objects that overlap with point sources
+#      mask = self.catalogMask(overlap=True, psMask=True)
+#
+#      kSZ1 = np.zeros(self.nRAp)
+#      skSZ1 = np.zeros(self.nRAp)
+#      kSZ2 = np.zeros(self.nRAp)
+#      skSZ2 = np.zeros(self.nRAp)
+#      kSZ3 = np.zeros(self.nRAp)
+#      skSZ3 = np.zeros(self.nRAp)
+#      kSZ4 = np.zeros(self.nRAp)
+#      skSZ4 = np.zeros(self.nRAp)
+#      kSZ5 = np.zeros(self.nRAp)
+#      skSZ5 = np.zeros(self.nRAp)
+#      kSZ6 = np.zeros(self.nRAp)
+#      skSZ6 = np.zeros(self.nRAp)
+#      kSZ7 = np.zeros(self.nRAp)
+#      skSZ7 = np.zeros(self.nRAp)
+#
+#
+#      for iRAp in range(self.nRAp):
+#         t = self.filtMap[mask, iRAp]# - np.mean(self.filtMap[mask, iRAp])
+#         v = - self.Catalog.vR[mask]# + np.mean(self.Catalog.vR[mask])
+#         k = self.Catalog.integratedKSZ[mask]# - np.mean(self.Catalog.integratedKSZ[mask])
+#         s2True = self.fVarFromHitCount[iRAp](self.filtNoiseStdDev[mask, iRAp]**2)
+#         s2Hit = self.filtNoiseStdDev[mask, iRAp]**2
+#
+#
+#         # kSZ1: T * v / s2Hit
+#         num = np.sum(t * v / s2Hit)
+#         denom = np.sum(k * v / s2Hit)
+#         s2num = np.sum(s2True * (v / s2Hit)**2)
+#         #
+#         kSZ1[iRAp] = num / denom
+#         skSZ1[iRAp] = np.sqrt(s2num / denom**2)
+#
+#         # kSZ6: T * v / s2True
+#         num = np.sum(t * v / s2True)
+#         denom = np.sum(k * v / s2True)
+#         s2num = np.sum(s2True * (v / s2True)**2)
+#         #
+#         kSZ6[iRAp] = num / denom
+#         skSZ6[iRAp] = np.sqrt(s2num / denom**2)
+#
+#
+#         # kSZ2: T * Mh v / s2Hit
+#         num = np.sum(t * k / s2Hit)
+#         denom = np.sum(k**2 / s2Hit)
+#         s2num = np.sum(s2True * (k / s2Hit)**2)
+#         #
+#         kSZ2[iRAp] = num / denom
+#         skSZ2[iRAp] = np.sqrt(s2num / denom**2)
+#
+#
+#         # subtracting mean
+#         tNoMean = self.filtMap[mask, iRAp] - np.mean(self.filtMap[mask, iRAp])
+#         vNoMean = - self.Catalog.vR[mask] + np.mean(self.Catalog.vR[mask])
+#         kNoMean = self.Catalog.integratedKSZ[mask] - np.mean(self.Catalog.integratedKSZ[mask])
+#         s2True = self.fVarFromHitCount[iRAp](self.filtNoiseStdDev[mask, iRAp]**2)
+#         s2Hit = self.filtNoiseStdDev[mask, iRAp]**2
+#
+#         # kSZ3: T * Mh v / s2Hit, subtracting mean
+#         num = np.sum(tNoMean * kNoMean / s2Hit)
+#         denom = np.sum(kNoMean**2 / s2Hit)
+#         s2num = np.sum(s2True * (kNoMean / s2Hit)**2)
+#         #
+#         kSZ3[iRAp] = num / denom
+#         skSZ3[iRAp] = np.sqrt(s2num / denom**2)
+#
+#         # kSZ4: T * Mh v / s2True, subtracting mean,
+#         # and using the measured noise weights
+#         num = np.sum(tNoMean * kNoMean / s2True)
+#         denom = np.sum(kNoMean**2 / s2True)
+#         #
+#         kSZ4[iRAp] = num / denom
+#         skSZ4[iRAp] = np.sqrt(1. / denom)
+#
+## Preferred estimator:
+#         # kSZ5: T * v / s2True, subtracting mean,
+#         # and using the measured noise weights
+#         num = np.sum(tNoMean * vNoMean / s2True)
+#         denom = np.sum(kNoMean * vNoMean / s2True)
+#         s2num = np.sum(s2True * (vNoMean / s2True)**2)
+#         #
+#         kSZ5[iRAp] = num / denom
+#         skSZ5[iRAp] = np.sqrt(s2num / denom**2)
+#
+#         # kSZ7: T * v / s2Hit, subtracting mean,
+#         num = np.sum(tNoMean * vNoMean / s2Hit)
+#         denom = np.sum(kNoMean * vNoMean / s2Hit)
+#         s2num = np.sum(s2True * (vNoMean / s2Hit)**2)
+#         #
+#         kSZ7[iRAp] = num / denom
+#         skSZ7[iRAp] = np.sqrt(s2num / denom**2)
+#
+#
+#
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      #self.RApMpch
+#      ax.errorbar(self.RApArcmin, kSZ1, skSZ1, label=r'$Tv/\sigma^2$')
+#      ax.errorbar(self.RApArcmin+0.01, kSZ6, skSZ6, label=r'$Tv/\sigma^2$, better noise')
+#      ax.errorbar(self.RApArcmin+0.02, kSZ7, skSZ7, label=r'$Tv/\sigma^2$, sub. T,v')
+#      ax.errorbar(self.RApArcmin+0.03, kSZ5, skSZ5, label=r'$Tv/\sigma^2$, sub. T,v, better noise')
+#      ax.errorbar(self.RApArcmin+0.04, kSZ2, skSZ2, label=r'$TMv/\sigma^2$')
+#      ax.errorbar(self.RApArcmin+0.05, kSZ3, skSZ3, label=r'$TMv/\sigma^2$, sub. T,Mv')
+#      ax.errorbar(self.RApArcmin+0.06, kSZ4, skSZ4, label=r'$TMv/\sigma^2$, sub. T,Mv, better noise')
+#      #
+#      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+#      ax.set_xlabel(r'$R$ [arcmin]')
+#      ax.set_ylabel(r'$\alpha_\text{kSZ}$')
+#      ax.set_ylim((0., 2.5))
+#      #
+#      # extra abscissa: disk radius in comoving Mpc/h
+#      ax2 = ax.twiny()
+#      ticks = ax.get_xticks()
+#      ax2.set_xticks(ticks)
+#      newticks = np.array(ticks) * np.pi/(180.*60.) * self.U.bg.comoving_distance(np.mean(self.Catalog.Z[mask]))  # disk radius in Mpc/h
+#      newticks = np.round(newticks, 2)
+#      ax2.set_xticklabels(newticks)
+#      ax2.set_xlim(ax.get_xlim())
+#      ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
+#      ax2.xaxis.set_label_coords(0.5, 1.15)
+#      #
+#      # extra ordinate: signal in muK * arcmin^2
+#      ax3 = ax.twinx()
+#      ticks = ax.get_yticks()
+#      ax3.set_yticks(ticks)
+#      newticks = np.array(ticks) * np.mean(self.Catalog.integratedKSZ[mask]) * (180.*60./np.pi)**2 # [muK*arcmin^2]
+#      newticks = np.round(newticks, 3)
+#      ax3.set_yticklabels(newticks)
+#      ax3.set_ylim(ax.get_ylim())
+#      ax3.set_ylabel(r'$\langle T_\text{kSZ} \rangle$ [$\mu$K.arcmin$^2$]', fontsize=20)
+#      ax3.yaxis.set_label_coords(1.2, 0.5)
+#      #
+#      path = self.pathFig+"/ksz_comparison.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
+#
+#
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      #self.RApMpch
+#      ax.plot(self.RApArcmin, skSZ1, label=r'$Tv/\sigma^2$')
+#      ax.plot(self.RApArcmin+0.01, skSZ6, label=r'$Tv/\sigma^2$, better noise')
+#      ax.plot(self.RApArcmin+0.02, skSZ7, label=r'$Tv/\sigma^2$, sub. T,v')
+#      ax.plot(self.RApArcmin+0.03, skSZ5, label=r'$Tv/\sigma^2$, sub. T,v, better noise')
+#      ax.plot(self.RApArcmin+0.04, skSZ2, label=r'$TMv/\sigma^2$')
+#      ax.plot(self.RApArcmin+0.05, skSZ3, label=r'$TMv/\sigma^2$, sub. T,Mv')
+#      ax.plot(self.RApArcmin+0.06, skSZ4, label=r'$TMv/\sigma^2$, sub. T,Mv, better noise')
+#      #
+#      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+#      ax.set_xlabel(r'$R$ [arcmin]')
+#      ax.set_ylabel(r'$\sigma \left(\alpha_\text{kSZ} \right)$')
+#      ax.set_ylim((0., 1.1))
+#      #
+#      # extra abscissa: disk radius in comoving Mpc/h
+#      ax2 = ax.twiny()
+#      ticks = ax.get_xticks()
+#      ax2.set_xticks(ticks)
+#      newticks = np.array(ticks) * np.pi/(180.*60.) * self.U.bg.comoving_distance(np.mean(self.Catalog.Z[mask]))  # disk radius in Mpc/h
+#      newticks = np.round(newticks, 2)
+#      ax2.set_xticklabels(newticks)
+#      ax2.set_xlim(ax.get_xlim())
+#      ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
+#      ax2.xaxis.set_label_coords(0.5, 1.15)
+#      #
+#      # extra ordinate: signal in muK * arcmin^2
+#      ax3 = ax.twinx()
+#      ticks = ax.get_yticks()
+#      ax3.set_yticks(ticks)
+#      newticks = np.array(ticks) * np.mean(self.Catalog.integratedKSZ[mask]) * (180.*60./np.pi)**2 # [muK*arcmin^2]
+#      newticks = np.round(newticks, 3)
+#      ax3.set_yticklabels(newticks)
+#      ax3.set_ylim(ax.get_ylim())
+#      ax3.set_ylabel(r'$\langle T_\text{kSZ} \rangle$ [$\mu$K.arcmin$^2$]', fontsize=20)
+#      ax3.yaxis.set_label_coords(1.2, 0.5)
+#      #
+#      path = self.pathFig+"/sksz_comparison.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
+#
+#
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      #self.RApMpch
+#      ax.plot(self.RApArcmin, kSZ1/skSZ1, label=r'$Tv/\sigma^2$')
+#      ax.plot(self.RApArcmin+0.01, kSZ6/skSZ6, label=r'$Tv/\sigma^2$, better noise')
+#      ax.plot(self.RApArcmin+0.02, kSZ7/skSZ7, label=r'$Tv/\sigma^2$, sub. T,v')
+#      ax.plot(self.RApArcmin+0.03, kSZ5/skSZ5, label=r'$Tv/\sigma^2$, sub. T,v, better noise')
+#      ax.plot(self.RApArcmin+0.04, kSZ2/skSZ2, label=r'$TMv/\sigma^2$')
+#      ax.plot(self.RApArcmin+0.05, kSZ3/skSZ3, label=r'$TMv/\sigma^2$, sub. T,Mv')
+#      ax.plot(self.RApArcmin+0.06, kSZ4/skSZ4, label=r'$TMv/\sigma^2$, sub. T,Mv, better noise')
+#      #
+#      ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
+#      ax.set_xlabel(r'$R$ [arcmin]')
+#      ax.set_ylabel(r'kSZ SNR')
+#      ax.set_ylim((0., 6.))
+#      #
+#      # extra abscissa: disk radius in comoving Mpc/h
+#      ax2 = ax.twiny()
+#      ticks = ax.get_xticks()
+#      ax2.set_xticks(ticks)
+#      newticks = np.array(ticks) * np.pi/(180.*60.) * self.U.bg.comoving_distance(np.mean(self.Catalog.Z[mask]))  # disk radius in Mpc/h
+#      newticks = np.round(newticks, 2)
+#      ax2.set_xticklabels(newticks)
+#      ax2.set_xlim(ax.get_xlim())
+#      ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
+#      ax2.xaxis.set_label_coords(0.5, 1.15)
+#      #
+#      path = self.pathFig+"/snr_ksz_comparison.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
 
 
    ##################################################################################
 
 
-   def saveTszKsz(self, nSamples=1000, nProc=1):
-      # tSZ/kSZ signal and estimated variance
-      tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator()
-      data = np.zeros((self.nRAp,5))
-      data[:,0] = self.RApArcmin # [arcmin]
-      data[:,1] = tSZ # [map unit * sr]
-      data[:,2] = stSZ # [map unit * sr]
-      data[:,3] = kSZ # [map unit * sr]
-      data[:,4] = skSZ # [map unit * sr]
-      np.savetxt(self.pathOut+"/tsz_ksz.txt", data)
-      
-      # null test and cov mat from bootstrap
-      meanTsz, covTsz, meanKsz, covKsz = self.tszKszCovBootstrap(nSamples=nSamples, nProc=nProc)
-      np.savetxt(self.pathOut+"/null_tsz_bootstrap.txt", meanTsz)
-      np.savetxt(self.pathOut+"/cov_tsz_bootstrap.txt", covTsz)
-      np.savetxt(self.pathOut+"/null_ksz_bootstrap.txt", meanKsz)
-      np.savetxt(self.pathOut+"/cov_ksz_bootstrap.txt", covKsz)
-   
-      # null test and cov mat from shuffling the velocities
-      meanTsz, covTsz, meanKsz, covKsz = self.tszKszCovShuffleV(nSamples=nSamples, nProc=nProc)
-      np.savetxt(self.pathOut+"/null_tsz_shufflev.txt", meanTsz)
-      np.savetxt(self.pathOut+"/cov_tsz_shufflev.txt", covTsz)
-      np.savetxt(self.pathOut+"/null_ksz_shufflev.txt", meanKsz)
-      np.savetxt(self.pathOut+"/cov_ksz_shufflev.txt", covKsz)
-   
-   
-   def loadTszKsz(self, plot=False):
-      data = np.genfromtxt(self.pathOut+"/tsz_ksz.txt")
-      self.tSZ = data[:,1] # [map unit * sr]
-      self.stSZ = data[:,2] # [map unit * sr]
-      self.kSZ = data[:,3] # [map unit * sr]
-      self.skSZ = data[:,4] # [map unit * sr]
+#   def tszKszEstimator(self, filtMap=None, v=None, k=None, filtNoiseStdDev=None, mask=None):
+#      """ Measures stacked tSZ and kSZ, as a function of aperture.
+#      Returns tSZ, stSZ, kSZ, skSZ in [map unit * sr]
+#      Input:
+#      filtMap: default is self.filtMap
+#      vR: default is - self.Catalog.vR / c
+#      kSZ: default is self.Catalog.integratedKSZ. Not used currently
+#      mask: default is self.catalogMask(overlap=True, psMask=True)
+#      """
+#      if mask is None:
+#         # remove the objects that overlap with point sources
+#         mask = self.catalogMask(overlap=True, psMask=True)
+#      if filtMap is None:
+#         filtMap = self.filtMap.copy()
+#      if v is None:
+#         v = -self.Catalog.vR.copy() / 3.e5  # v/c [dimless]
+#      if k is None:
+#         k = self.Catalog.integratedKSZ.copy()
+#      if filtNoiseStdDev is None:
+#         filtNoiseStdDev = self.filtNoiseStdDev.copy()
+#
+##      if np.any(~np.isfinite(v)) or np.any(~np.isfinite(k)):
+##         print "problem, input infinite"
+#
+#      tSZ = np.zeros(self.nRAp)
+#      stSZ = np.zeros(self.nRAp)
+#      kSZ = np.zeros(self.nRAp)
+#      skSZ = np.zeros(self.nRAp)
+#      for iRAp in range(self.nRAp):
+#         # AP filter values at the current radius
+#         t = filtMap[mask, iRAp]
+#         # subtracting mean
+#         tNoMean = t - np.mean(t)
+#         vNoMean = v[mask] - np.mean(v[mask])
+#         kNoMean = k[mask] - np.mean(k[mask])
+#         # hit count and measured total noise (CMB + detector)
+#         s2Hit = filtNoiseStdDev[mask, iRAp]**2
+#         s2True = self.fVarFromHitCount[iRAp](s2Hit)
+#
+##         if np.any(~np.isfinite(s2Hit)):
+##            print "problem s2Hit", s2Hit[np.where(~np.isfinite(s2Hit))]
+##         if np.any(~np.isfinite(s2True)):
+##            print "problem s2True", s2True
+##         if np.any(~np.isfinite(t)):
+##            print "problem t", t
+##         if np.any(~np.isfinite(tNoMean)):
+##            print "problem tNoMean", tNoMean
+##         if np.any(~np.isfinite(vNoMean)):
+##            print "problem vNoMean", vNoMean
+##         if np.any(~np.isfinite(kNoMean)):
+##            print "problem kNoMean", kNoMean
+#
+#         # tSZ
+#         # Subtracting mean,
+#         # and using the measured noise weights
+#         num = np.sum(t / s2True)
+#         denom = np.sum(1. / s2True)
+#         #
+#         tSZ[iRAp] = num / denom
+#         stSZ[iRAp] = np.sqrt(1. / denom)
+#
+#         # kSZ
+#         # T * v / s2True, subtracting mean,
+#         # and using the measured noise weights
+#         num = np.sum(tNoMean * vNoMean / s2True)
+#         # show the result in terms of alpha[dimless]
+#         #denom = np.sum(kNoMean * vNoMean / s2True)
+#         # show the result in terms of AP filtered kSZ [muK * sr]
+#         denom = np.sum(vNoMean**2 / s2True)
+#         #
+#         kSZ[iRAp] = num / denom
+#         skSZ[iRAp] = np.sqrt(1. / denom)
+#         #
+#         # rescale by the RMS v/c, to get a fair quantity to compare to tSZ
+#         kSZ[iRAp] *= np.std(vNoMean)
+#         skSZ[iRAp] *= np.std(vNoMean)
+#
+#      return tSZ, stSZ, kSZ, skSZ
 
-      self.tSZNullBootstrap = np.genfromtxt(self.pathOut+"/null_tsz_bootstrap.txt")
-      self.covTszBootstrap = np.genfromtxt(self.pathOut+"/cov_tsz_bootstrap.txt")
-      #
-      self.tSZNullShuffleV = np.genfromtxt(self.pathOut+"/null_tsz_shufflev.txt")
-      self.covTszShuffleV = np.genfromtxt(self.pathOut+"/cov_tsz_shufflev.txt")
-      #
-      self.covTsz = self.covTszBootstrap.copy()
 
-      self.kSZNullBootstrap = np.genfromtxt(self.pathOut+"/null_ksz_bootstrap.txt")
-      self.covKszBootstrap = np.genfromtxt(self.pathOut+"/cov_ksz_bootstrap.txt")
-      #
-      self.kSZNullShuffleV = np.genfromtxt(self.pathOut+"/null_ksz_shufflev.txt")
-      self.covKszShuffleV = np.genfromtxt(self.pathOut+"/cov_ksz_shufflev.txt")
-      #
-      self.covKsz = self.covKszBootstrap.copy()
+   ##################################################################################
+   
+
+#   def tszKszCovBootstrap(self, nSamples=1000, nProc=1):
+#      """Estimate tSZ/kSZ covariance matrix from bootstrap resampling.
+#      """
+#      # list of all objects, overlapping or not
+#      I = np.arange(self.Catalog.nObj)
+#      # remove the objects that overlap with point sources
+#      mask = self.catalogMask(overlap=True, psMask=True)
+#
+#      def resample(iSample):
+#         print "starting sample number", iSample
+#         # make sure each random resample is really independent
+#         np.random.seed(iSample)
+#         # resample the overlapping objects from the overlapping objects, with replacement
+#         # leave the other objects untouched
+#         J = I.copy()
+#         J[mask] = np.random.choice(I[mask], size=np.sum(mask), replace=True)
+#
+##         print "test len(J) =", len(J)
+##         print "do masks agree?", np.sum(mask-mask[J])
+##         print "test s2Hit before:", np.any(~np.isfinite(self.filtNoiseStdDev[mask,:]))
+##         x = self.filtNoiseStdDev[J,:]
+##         print "test s2Hit after:", np.any(~np.isfinite(self.filtNoiseStdDev[mask[J],:]))
+#
+#         # run kSZ estimator on the current resample
+#         tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator(filtMap=self.filtMap[J,:], v=-self.Catalog.vR[J]/3.e5, k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev[J,:], mask=mask[J])
+#
+##         if np.any(~np.isfinite(kSZ)):
+##            print "problem: kSZ=", kSZ
+#
+#         return tSZ, stSZ, kSZ, skSZ
+#
+#      tStart = time()
+#      with sharedmem.MapReduce(np=nProc) as pool:
+#         result = np.array(pool.map(resample, range(nSamples)))
+#      tStop = time()
+#      print "took", (tStop-tStart)/60., "min"
+#      # unpack results
+#      tSZSamples = result[:,0,:] # shape (nObj, nRAp)
+#      stSZSamples = result[:,1,:]
+#      kSZSamples = result[:,2,:]
+#      skSZSamples = result[:,3,:]
+#      # estimate mean and cov
+#      meanTsz = np.mean(tSZSamples, axis=0)
+#      covTsz = np.cov(tSZSamples, rowvar=False)
+#      meanKsz = np.mean(kSZSamples, axis=0)
+#      covKsz = np.cov(kSZSamples, rowvar=False)
+#      return meanTsz, covTsz, meanKsz, covKsz
+#
+#
+#   def tszKszCovShuffleV(self, nSamples=1000, nProc=1):
+#      """Estimate tSZ/kSZ covariance matrix from shuffling the velocities.
+#      """
+#      # list of all objects, overlapping or not
+#      I = np.arange(self.Catalog.nObj)
+#      # remove the objects that overlap with point sources
+#      mask = self.catalogMask(overlap=True, psMask=True)
+#
+#      def resample(iSample):
+#         print "starting sample number", iSample
+#         # make sure each random resample is really independent
+#         np.random.seed(iSample)
+#         # shuffle only the overlapping objects,
+#         # leave the other objects untouched
+#         J = I.copy()
+#         J[mask] = np.random.permutation(J[mask])
+#
+##         print "test len(J) =", len(J)
+##         print "do masks agree?", np.sum(mask-mask[J])
+##         print "test s2Hit before:", np.any(~np.isfinite(self.filtNoiseStdDev[mask,:]))
+##         x = self.filtNoiseStdDev[J,:]
+##         print "test s2Hit after:", np.any(~np.isfinite(self.filtNoiseStdDev[mask[J],:]))
+#
+#         # run kSZ estimator on the current resample: shuffle only vr and ksz
+#         # no need to shuffle the mask, since masked objects are still masked
+#         tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator(filtMap=self.filtMap, v=-self.Catalog.vR[J], k=self.Catalog.integratedKSZ[J], filtNoiseStdDev=self.filtNoiseStdDev, mask=mask)
+#
+##         if np.any(~np.isfinite(kSZ)):
+##            print "problem: kSZ=", kSZ
+#
+#         return tSZ, stSZ, kSZ, skSZ
+#
+#      tStart = time()
+#      with sharedmem.MapReduce(np=nProc) as pool:
+#         result = np.array(pool.map(resample, range(nSamples)))
+#      tStop = time()
+#      print "took", (tStop-tStart)/60., "min"
+#      # unpack results
+#      tSZSamples = result[:,0,:] # shape (nObj, nRAp)
+#      stSZSamples = result[:,1,:]
+#      kSZSamples = result[:,2,:]
+#      skSZSamples = result[:,3,:]
+#      # estimate mean and cov
+#      meanTsz = np.mean(tSZSamples, axis=0)
+#      covTsz = np.cov(tSZSamples, rowvar=False)
+#      meanKsz = np.mean(kSZSamples, axis=0)
+#      covKsz = np.cov(kSZSamples, rowvar=False)
+#      return meanTsz, covTsz, meanKsz, covKsz
 
 
    ##################################################################################
 
 
-   def plotTszKsz(self):
-      # tSZ
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # convert from sr to arcmin^2
-      factor = (180.*60./np.pi)**2
-      #
-      ax.errorbar(self.RApArcmin, factor * self.tSZ, factor * np.sqrt(np.diag(self.covTsz)), fmt='-', c='r')
-      #
-      ax.set_xlabel(r'$R$ [arcmin]')
-      ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-      #ax.set_ylim((0., 2.))
-      #
-      path = self.pathFig+"/tsz.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-      
-      # kSZ
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # convert from sr to arcmin^2
-      factor = (180.*60./np.pi)**2
-      #
-      ax.errorbar(self.RApArcmin, factor * self.kSZ, factor * np.sqrt(np.diag(self.covKsz)), fmt='-', c='r')
-      #
-      ax.set_xlabel(r'$R$ [arcmin]')
-      ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-      #ax.set_ylim((0., 2.))
-      #
-      path = self.pathFig+"/ksz.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
+#   def saveTszKsz(self, nSamples=1000, nProc=1):
+#      # tSZ/kSZ signal and estimated variance
+#      tSZ, stSZ, kSZ, skSZ = self.tszKszEstimator()
+#      data = np.zeros((self.nRAp,5))
+#      data[:,0] = self.RApArcmin # [arcmin]
+#      data[:,1] = tSZ # [map unit * sr]
+#      data[:,2] = stSZ # [map unit * sr]
+#      data[:,3] = kSZ # [map unit * sr]
+#      data[:,4] = skSZ # [map unit * sr]
+#      np.savetxt(self.pathOut+"/tsz_ksz.txt", data)
+#
+#      # null test and cov mat from bootstrap
+#      meanTsz, covTsz, meanKsz, covKsz = self.tszKszCovBootstrap(nSamples=nSamples, nProc=nProc)
+#      np.savetxt(self.pathOut+"/null_tsz_bootstrap.txt", meanTsz)
+#      np.savetxt(self.pathOut+"/cov_tsz_bootstrap.txt", covTsz)
+#      np.savetxt(self.pathOut+"/null_ksz_bootstrap.txt", meanKsz)
+#      np.savetxt(self.pathOut+"/cov_ksz_bootstrap.txt", covKsz)
+#
+#      # null test and cov mat from shuffling the velocities
+#      meanTsz, covTsz, meanKsz, covKsz = self.tszKszCovShuffleV(nSamples=nSamples, nProc=nProc)
+#      np.savetxt(self.pathOut+"/null_tsz_shufflev.txt", meanTsz)
+#      np.savetxt(self.pathOut+"/cov_tsz_shufflev.txt", covTsz)
+#      np.savetxt(self.pathOut+"/null_ksz_shufflev.txt", meanKsz)
+#      np.savetxt(self.pathOut+"/cov_ksz_shufflev.txt", covKsz)
+#
+#
+#   def loadTszKsz(self, plot=False):
+#      data = np.genfromtxt(self.pathOut+"/tsz_ksz.txt")
+#      self.tSZ = data[:,1] # [map unit * sr]
+#      self.stSZ = data[:,2] # [map unit * sr]
+#      self.kSZ = data[:,3] # [map unit * sr]
+#      self.skSZ = data[:,4] # [map unit * sr]
+#
+#      self.tSZNullBootstrap = np.genfromtxt(self.pathOut+"/null_tsz_bootstrap.txt")
+#      self.covTszBootstrap = np.genfromtxt(self.pathOut+"/cov_tsz_bootstrap.txt")
+#      #
+#      self.tSZNullShuffleV = np.genfromtxt(self.pathOut+"/null_tsz_shufflev.txt")
+#      self.covTszShuffleV = np.genfromtxt(self.pathOut+"/cov_tsz_shufflev.txt")
+#      #
+#      self.covTsz = self.covTszBootstrap.copy()
+#
+#      self.kSZNullBootstrap = np.genfromtxt(self.pathOut+"/null_ksz_bootstrap.txt")
+#      self.covKszBootstrap = np.genfromtxt(self.pathOut+"/cov_ksz_bootstrap.txt")
+#      #
+#      self.kSZNullShuffleV = np.genfromtxt(self.pathOut+"/null_ksz_shufflev.txt")
+#      self.covKszShuffleV = np.genfromtxt(self.pathOut+"/cov_ksz_shufflev.txt")
+#      #
+#      self.covKsz = self.covKszBootstrap.copy()
+
+
+   ##################################################################################
+
+
+#   def plotTszKsz(self):
+#      # tSZ
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      # convert from sr to arcmin^2
+#      factor = (180.*60./np.pi)**2
+#      #
+#      ax.errorbar(self.RApArcmin, factor * self.tSZ, factor * np.sqrt(np.diag(self.covTsz)), fmt='-', c='r')
+#      #
+#      ax.set_xlabel(r'$R$ [arcmin]')
+#      ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+#      #ax.set_ylim((0., 2.))
+#      #
+#      path = self.pathFig+"/tsz.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
+#
+#      # kSZ
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      # convert from sr to arcmin^2
+#      factor = (180.*60./np.pi)**2
+#      #
+#      ax.errorbar(self.RApArcmin, factor * self.kSZ, factor * np.sqrt(np.diag(self.covKsz)), fmt='-', c='r')
+#      #
+#      ax.set_xlabel(r'$R$ [arcmin]')
+#      ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+#      #ax.set_ylim((0., 2.))
+#      #
+#      path = self.pathFig+"/ksz.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
 
 
 
-   def plotCovTszKsz(self):
-      
-      # Bootstrap tSZ
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # pcolor wants x and y to be edges of cell,
-      # ie one more element, and offset by half a cell
-      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
-      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
-      #
-      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
-      cp=ax.pcolormesh(X, Y, self.covTszBootstrap, cmap='YlOrRd')
-      #
-      ax.set_aspect('equal')
-      plt.colorbar(cp)
-      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_xlabel(r'R [arcmin]')
-      ax.set_ylabel(r'R [arcmin]')
-      #
-      path = self.pathFig+"/cov_tsz_bootstrap.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-      
-      # Bootstrap kSZ
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # pcolor wants x and y to be edges of cell,
-      # ie one more element, and offset by half a cell
-      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
-      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
-      #
-      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
-      cp=ax.pcolormesh(X, Y, self.covKszBootstrap, cmap='YlOrRd')
-      #
-      ax.set_aspect('equal')
-      plt.colorbar(cp)
-      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_xlabel(r'R [arcmin]')
-      ax.set_ylabel(r'R [arcmin]')
-      #
-      path = self.pathFig+"/cov_ksz_bootstrap.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
+#   def plotCovTszKsz(self):
+#
+#      # Bootstrap tSZ
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      # pcolor wants x and y to be edges of cell,
+#      # ie one more element, and offset by half a cell
+#      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+#      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+#      #
+#      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+#      cp=ax.pcolormesh(X, Y, self.covTszBootstrap, cmap='YlOrRd')
+#      #
+#      ax.set_aspect('equal')
+#      plt.colorbar(cp)
+#      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_xlabel(r'R [arcmin]')
+#      ax.set_ylabel(r'R [arcmin]')
+#      #
+#      path = self.pathFig+"/cov_tsz_bootstrap.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
+#
+#      # Bootstrap kSZ
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      # pcolor wants x and y to be edges of cell,
+#      # ie one more element, and offset by half a cell
+#      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+#      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+#      #
+#      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+#      cp=ax.pcolormesh(X, Y, self.covKszBootstrap, cmap='YlOrRd')
+#      #
+#      ax.set_aspect('equal')
+#      plt.colorbar(cp)
+#      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_xlabel(r'R [arcmin]')
+#      ax.set_ylabel(r'R [arcmin]')
+#      #
+#      path = self.pathFig+"/cov_ksz_bootstrap.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
+#
+#      # Bootstrap tSZ corr coeff
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      # pcolor wants x and y to be edges of cell,
+#      # ie one more element, and offset by half a cell
+#      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+#      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+#      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+#      #
+#      cov = self.covTszBootstrap.copy()
+#      sigma = np.sqrt(np.diag(cov))
+#      cor = np.array([[cov[i1, i2] / (sigma[i1]*sigma[i2]) for i2 in range(self.nRAp)] for i1 in range(self.nRAp)])
+#      cp=ax.pcolormesh(X, Y, cor, cmap='YlOrRd', vmin=0., vmax=1.)
+#      #
+#      ax.set_aspect('equal')
+#      plt.colorbar(cp)
+#      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_xlabel(r'R [arcmin]')
+#      ax.set_ylabel(r'R [arcmin]')
+#      #
+#      path = self.pathFig+"/cor_tsz_bootstrap.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
+#
+#      # Bootstrap kSZ corr coeff
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      # pcolor wants x and y to be edges of cell,
+#      # ie one more element, and offset by half a cell
+#      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+#      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+#      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+#      #
+#      cov = self.covKszBootstrap.copy()
+#      sigma = np.sqrt(np.diag(cov))
+#      cor = np.array([[cov[i1, i2] / (sigma[i1]*sigma[i2]) for i2 in range(self.nRAp)] for i1 in range(self.nRAp)])
+#      cp=ax.pcolormesh(X, Y, cor, cmap='YlOrRd', vmin=0., vmax=1.)
+#      #
+#      ax.set_aspect('equal')
+#      plt.colorbar(cp)
+#      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_xlabel(r'R [arcmin]')
+#      ax.set_ylabel(r'R [arcmin]')
+#      #
+#      path = self.pathFig+"/cor_ksz_bootstrap.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
+#
+#
+#
+#
+#
+#      # Shuffle v covariance
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      # pcolor wants x and y to be edges of cell,
+#      # ie one more element, and offset by half a cell
+#      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+#      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+#      #
+#      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+#      cp=ax.pcolormesh(X, Y, self.covKszShuffleV, cmap='YlOrRd')
+#      #
+#      ax.set_aspect('equal')
+#      plt.colorbar(cp)
+#      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_xlabel(r'R [arcmin]')
+#      ax.set_ylabel(r'R [arcmin]')
+#      #
+#      path = self.pathFig+"/cov_ksz_shufflev.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
+#
+#
+#      # Shuffle v corr coeff
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      # pcolor wants x and y to be edges of cell,
+#      # ie one more element, and offset by half a cell
+#      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+#      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+#      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+#      #
+#      cov = self.covKszShuffleV.copy()
+#      sigma = np.sqrt(np.diag(cov))
+#      cor = np.array([[cov[i1, i2] / (sigma[i1]*sigma[i2]) for i2 in range(self.nRAp)] for i1 in range(self.nRAp)])
+#      cp=ax.pcolormesh(X, Y, cor, cmap='YlOrRd', vmin=0., vmax=1.)
+#      #
+#      ax.set_aspect('equal')
+#      plt.colorbar(cp)
+#      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_xlabel(r'R [arcmin]')
+#      ax.set_ylabel(r'R [arcmin]')
+#      #
+#      path = self.pathFig+"/cor_ksz_shufflev.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
+#
+#
+#
+#      # Compare bootstrap VS Shuffle v for kSZ
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      # pcolor wants x and y to be edges of cell,
+#      # ie one more element, and offset by half a cell
+#      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
+#      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
+#      #
+#      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
+#      cp=ax.pcolormesh(X, Y, self.covKszBootstrap - self.covKszShuffleV, cmap='YlOrRd')
+#      #
+#      ax.set_aspect('equal')
+#      plt.colorbar(cp)
+#      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
+#      ax.set_xlabel(r'R [arcmin]')
+#      ax.set_ylabel(r'R [arcmin]')
+#      #
+#      path = self.pathFig+"/cov_ksz_bootstrap-shufflev.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
+#
+#
+#      # Diagonal: compare bootstrap, shuffled velocities
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      ax.plot(self.RApArcmin, self.skSZ, label=r'semi-analytic')
+#      ax.plot(self.RApArcmin, np.sqrt(np.diag(self.covKszBootstrap)), label=r'bootstrap')
+#      ax.plot(self.RApArcmin, np.sqrt(np.diag(self.covKszShuffleV)), label=r'shuffled v')
+#      #
+#      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+#      ax.set_xlabel(r'$R$ [arcmin]')
+#      ax.set_ylabel(r'$\sigma\left(\alpha_\text{kSZ} \right)$')
+#      #
+#      path = self.pathFig+"/sksz_bootstrap_shufflev_semianalytic.pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
 
-      # Bootstrap tSZ corr coeff
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # pcolor wants x and y to be edges of cell,
-      # ie one more element, and offset by half a cell
-      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
-      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
-      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
-      #
-      cov = self.covTszBootstrap.copy()
-      sigma = np.sqrt(np.diag(cov))
-      cor = np.array([[cov[i1, i2] / (sigma[i1]*sigma[i2]) for i2 in range(self.nRAp)] for i1 in range(self.nRAp)])
-      cp=ax.pcolormesh(X, Y, cor, cmap='YlOrRd', vmin=0., vmax=1.)
-      #
-      ax.set_aspect('equal')
-      plt.colorbar(cp)
-      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_xlabel(r'R [arcmin]')
-      ax.set_ylabel(r'R [arcmin]')
-      #
-      path = self.pathFig+"/cor_tsz_bootstrap.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-
-      # Bootstrap kSZ corr coeff
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # pcolor wants x and y to be edges of cell,
-      # ie one more element, and offset by half a cell
-      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
-      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
-      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
-      #
-      cov = self.covKszBootstrap.copy()
-      sigma = np.sqrt(np.diag(cov))
-      cor = np.array([[cov[i1, i2] / (sigma[i1]*sigma[i2]) for i2 in range(self.nRAp)] for i1 in range(self.nRAp)])
-      cp=ax.pcolormesh(X, Y, cor, cmap='YlOrRd', vmin=0., vmax=1.)
-      #
-      ax.set_aspect('equal')
-      plt.colorbar(cp)
-      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_xlabel(r'R [arcmin]')
-      ax.set_ylabel(r'R [arcmin]')
-      #
-      path = self.pathFig+"/cor_ksz_bootstrap.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-
-
-
-
-
-      # Shuffle v covariance
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # pcolor wants x and y to be edges of cell,
-      # ie one more element, and offset by half a cell
-      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
-      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
-      #
-      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
-      cp=ax.pcolormesh(X, Y, self.covKszShuffleV, cmap='YlOrRd')
-      #
-      ax.set_aspect('equal')
-      plt.colorbar(cp)
-      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_xlabel(r'R [arcmin]')
-      ax.set_ylabel(r'R [arcmin]')
-      #
-      path = self.pathFig+"/cov_ksz_shufflev.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-
-
-      # Shuffle v corr coeff
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # pcolor wants x and y to be edges of cell,
-      # ie one more element, and offset by half a cell
-      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
-      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
-      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
-      #
-      cov = self.covKszShuffleV.copy()
-      sigma = np.sqrt(np.diag(cov))
-      cor = np.array([[cov[i1, i2] / (sigma[i1]*sigma[i2]) for i2 in range(self.nRAp)] for i1 in range(self.nRAp)])
-      cp=ax.pcolormesh(X, Y, cor, cmap='YlOrRd', vmin=0., vmax=1.)
-      #
-      ax.set_aspect('equal')
-      plt.colorbar(cp)
-      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_xlabel(r'R [arcmin]')
-      ax.set_ylabel(r'R [arcmin]')
-      #
-      path = self.pathFig+"/cor_ksz_shufflev.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-
-
-
-      # Compare bootstrap VS Shuffle v for kSZ
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # pcolor wants x and y to be edges of cell,
-      # ie one more element, and offset by half a cell
-      dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
-      RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
-      #
-      X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
-      cp=ax.pcolormesh(X, Y, self.covKszBootstrap - self.covKszShuffleV, cmap='YlOrRd')
-      #
-      ax.set_aspect('equal')
-      plt.colorbar(cp)
-      ax.set_xlim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_ylim((np.min(RApEdgesArcmin), np.max(RApEdgesArcmin)))
-      ax.set_xlabel(r'R [arcmin]')
-      ax.set_ylabel(r'R [arcmin]')
-      #
-      path = self.pathFig+"/cov_ksz_bootstrap-shufflev.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-   
-   
-      # Diagonal: compare bootstrap, shuffled velocities
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      ax.plot(self.RApArcmin, self.skSZ, label=r'semi-analytic')
-      ax.plot(self.RApArcmin, np.sqrt(np.diag(self.covKszBootstrap)), label=r'bootstrap')
-      ax.plot(self.RApArcmin, np.sqrt(np.diag(self.covKszShuffleV)), label=r'shuffled v')
-      #
-      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
-      ax.set_xlabel(r'$R$ [arcmin]')
-      ax.set_ylabel(r'$\sigma\left(\alpha_\text{kSZ} \right)$')
-      #
-      path = self.pathFig+"/sksz_bootstrap_shufflev_semianalytic.pdf"
-      fig.savefig(path, bbox_inches='tight')
-      fig.clf()
-   
    
    ##################################################################################
 
