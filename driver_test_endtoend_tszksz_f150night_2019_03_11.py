@@ -21,6 +21,7 @@ from cmb import *
 # running on cori
 # 68 cores per knl node, 32 cores per haswell node
 #salloc -N 1 --qos=interactive -C haswell -t 04:00:00 -L SCRATCH
+#plt.switch_backend('Agg')
 
 ##################################################################################
 
@@ -70,14 +71,9 @@ cmassMariana.addCatalog(cmassNMariana, save=False)
 # Read CMB maps
 
 # directory of mocks
-pathMock = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/mock_maps_CMASS_DR12_mariana"
-pathMap = pathMock + "CMASS_COUNTS_SMOOTH1.5_8192.fits"
+pathMock = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/mock_maps_CMASS_DR12_mariana/"
+pathMap = pathMock + "CMASS_COUNTS_SMOOTH1.5_8192_car.fits"
 #pathMap = pathMock + "CMASS_VEL_SMOOTH1.5_8192.fits"
-
-
-# path to mean power spectrum of GRF mocks
-pathPower = pathGRF + "mean_cl.txt"
-
 
 # path to true hit count map and mask: Planck + ACT 150GHz day and night
 pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/"
@@ -88,11 +84,6 @@ pathPower = pathIn + "f150_power_T_masked.txt"
 # read maps in common for all mocks
 pact150Mask = enmap.read_map(pathMask)
 pact150Hit = enmap.read_map(pathHit)
-
-# measured power spectrum
-data = np.genfromtxt(pathPower)  # l, Cl, sCl
-data = np.nan_to_num(data)
-fCl = interp1d(data[:,0], data[:,1], kind='linear', bounds_error=False, fill_value=0.)
 
 # theory power spectrum
 cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
@@ -110,10 +101,20 @@ from thumbstack import *
 pact150Map = enmap.read_map(pathMap)#[0]   # keep only temperature
 
 # Stacking
-name = cmassKendrick.name + "_pactf150night20190311_test_endtoend_counts"
-tsCmassK = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_counts"
+tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
+tsCmassM.analyzeObject(0, test=True)
+tsCmassM.examineCmbMaps()
+
+
+tsCmassM.plotTszKsz()
+tsCmassM.compareKszEstimators()
+tsCmassM.computeSnrTsz()
+tsCmassM.computeSnrKsz()
+tsCmassM.kszNullTests()
+tsCmassM.plotCovTszKsz()
 
 
 

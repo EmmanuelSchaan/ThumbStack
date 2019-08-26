@@ -22,7 +22,7 @@ import sys
 
 # For CMB maps
 #from enlib import enmap, utils, powspec
-from pixell import enmap, utils, powspec, enplot
+from pixell import enmap, utils, powspec, enplot, reproject
 import healpy as hp
 # copy rotfuncs.py somewhere on your python path,
 # so you can import it

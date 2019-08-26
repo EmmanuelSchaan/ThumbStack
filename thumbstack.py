@@ -706,7 +706,7 @@ class ThumbStack(object):
       ax3.set_ylabel(r'$\langle T_\text{kSZ} \rangle$ [$\mu$K.arcmin$^2$]', fontsize=20)
       ax3.yaxis.set_label_coords(1.2, 0.5)
       #
-      path = self.pathFig+"/ksz.pdf"
+      path = self.pathFig+"/ksz_comparison.pdf"
       fig.savefig(path, bbox_inches='tight')
       fig.clf()
 
@@ -750,7 +750,7 @@ class ThumbStack(object):
       ax3.set_ylabel(r'$\langle T_\text{kSZ} \rangle$ [$\mu$K.arcmin$^2$]', fontsize=20)
       ax3.yaxis.set_label_coords(1.2, 0.5)
       #
-      path = self.pathFig+"/sksz.pdf"
+      path = self.pathFig+"/sksz_comparison.pdf"
       fig.savefig(path, bbox_inches='tight')
       fig.clf()
 
@@ -783,7 +783,7 @@ class ThumbStack(object):
       ax2.set_xlabel(r'$R$ [cMpc/h]', fontsize=20)
       ax2.xaxis.set_label_coords(0.5, 1.15)
       #
-      path = self.pathFig+"/snr_ksz.pdf"
+      path = self.pathFig+"/snr_ksz_comparison.pdf"
       fig.savefig(path, bbox_inches='tight')
       fig.clf()
 
@@ -1027,7 +1027,45 @@ class ThumbStack(object):
 
 
    ##################################################################################
-   
+
+
+   def plotTszKsz(self):
+      # tSZ
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # convert from sr to arcmin^2
+      factor = (180.*60./np.pi)**2
+      #
+      ax.errorbar(self.RApArcmin, factor * self.tSZ, factor * np.sqrt(np.diag(self.covTsz)), fmt='-', c='r')
+      #
+      ax.set_xlabel(r'$R$ [arcmin]')
+      ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+      #ax.set_ylim((0., 2.))
+      #
+      path = self.pathFig+"/tsz.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+      
+      # kSZ
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # convert from sr to arcmin^2
+      factor = (180.*60./np.pi)**2
+      #
+      ax.errorbar(self.RApArcmin, factor * self.kSZ, factor * np.sqrt(np.diag(self.covKsz)), fmt='-', c='r')
+      #
+      ax.set_xlabel(r'$R$ [arcmin]')
+      ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+      #ax.set_ylim((0., 2.))
+      #
+      path = self.pathFig+"/ksz.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+
+
    def plotCovTszKsz(self):
       
       # Bootstrap tSZ
@@ -1238,110 +1276,112 @@ class ThumbStack(object):
 
 
    def computeSnrKsz(self):
-      print "*** kSZ SNR ***"
-   
-      # Compute chi^2_null
-      chi2Null = self.kSZ.dot( np.linalg.inv(self.covKsz).dot(self.kSZ) )
-      # goodness of fit for null hypothesis
-      print "number of dof:", len(self.kSZ)
-      print "null chi2Null=", chi2Null
-      pteNull = 1.- stats.chi2.cdf(chi2Null, len(self.kSZ))
-      print "null pte=", pteNull
-      # pte as a function of sigma, for a Gaussian random variable
-      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
-      sigmaNull = optimize.brentq(fsigmaToPTE , 0., 50.)
-      print "null sigma significance=", sigmaNull, "sigmas"
-      print ""
 
-      # Gaussian model: find best fit amplitude
-      sigma_cluster = 1.5  # arcmin
-      theory = self.ftheoryGaussianProfile(sigma_cluster)
-      def fchi2(p):
-         a = p[0]
-         result = (self.kSZ-a*theory).dot( np.linalg.inv(self.covKsz).dot(self.kSZ-a*theory) )
-         result -= chi2Null
-         return result
-      # Minimize the chi squared
-      p0 = 1.
-      res = optimize.minimize(fchi2, p0)
-      #print res
-      abest = res.x[0]
-      #sbest= res.x[1]
-      print "best-fit amplitude=", abest
-      print "number of dof:", len(self.kSZ) - 1
-      print ""
+      path = self.pathFig+"/snr_ksz.txt"
+      with open(path, 'w') as f:
+         f.write("*** kSZ SNR ***\n")
+      
+         # Compute chi^2_null
+         chi2Null = self.kSZ.dot( np.linalg.inv(self.covKsz).dot(self.kSZ) )
+         # goodness of fit for null hypothesis
+         f.write("number of dof:"+str(len(self.kSZ))+"\n")
+         f.write("null chi2Null="+str(chi2Null)+"\n")
+         pteNull = 1.- stats.chi2.cdf(chi2Null, len(self.kSZ))
+         f.write("null pte="+str(pteNull)+"\n")
+         # pte as a function of sigma, for a Gaussian random variable
+         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
+         sigmaNull = optimize.brentq(fsigmaToPTE , 0., 50.)
+         f.write("null sigma significance="+str(sigmaNull)+"sigmas\n\n")
 
-      # goodness of fit for best fit
-      chi2Best = fchi2([abest])+chi2Null
-      print "best-fit chi2=", chi2Best
-      pteBest = 1.- stats.chi2.cdf(chi2Best, len(self.kSZ)-1.)
-      print "best-fit pte=", pteBest
-      # pte as a function of sigma, for a Gaussian random variable
-      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteBest
-      sigma = optimize.brentq(fsigmaToPTE , 0., 50.)
-      print "pte sigma significance=", sigma, "sigmas"
-      print ""
+         # Gaussian model: find best fit amplitude
+         sigma_cluster = 1.5  # arcmin
+         theory = self.ftheoryGaussianProfile(sigma_cluster)
+         def fchi2(p):
+            a = p[0]
+            result = (self.kSZ-a*theory).dot( np.linalg.inv(self.covKsz).dot(self.kSZ-a*theory) )
+            result -= chi2Null
+            return result
+         # Minimize the chi squared
+         p0 = 1.
+         res = optimize.minimize(fchi2, p0)
+         #f.write( res
+         abest = res.x[0]
+         #sbest= res.x[1]
+         f.write("best-fit amplitude="+str(abest)+"\n")
+         f.write("number of dof:"+str(len(self.kSZ) - 1)+"\n\n")
 
-      # favour of best fit over null
-      print "fiducial delta chi2=", fchi2([1.])
-      print "best-fit sqrt(delta chi2)=", np.sqrt(abs(fchi2([abest]))), "sigmas"
-      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.))
-      pte = fsigmaToPTE( np.sqrt(abs(fchi2([abest]))) )
-      print "pte (if Gaussian)=", pte
+         # goodness of fit for best fit
+         chi2Best = fchi2([abest])+chi2Null
+         f.write("best-fit chi2="+str(chi2Best)+"\n")
+         pteBest = 1.- stats.chi2.cdf(chi2Best, len(self.kSZ)-1.)
+         f.write("best-fit pte="+str(pteBest)+"\n")
+         # pte as a function of sigma, for a Gaussian random variable
+         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteBest
+         sigma = optimize.brentq(fsigmaToPTE , 0., 50.)
+         f.write("pte sigma significance="+str(sigma)+"sigmas\n\n")
+
+         # favour of best fit over null
+         f.write("fiducial delta chi2="+str(fchi2([1.]))+"\n")
+         f.write("best-fit sqrt(delta chi2)="+str(np.sqrt(abs(fchi2([abest]))))+"sigmas\n")
+         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.))
+         pte = fsigmaToPTE( np.sqrt(abs(fchi2([abest]))) )
+         f.write("pte (if Gaussian)="+str(pte)+"\n")
 
 
 
    def computeSnrTsz(self):
-      print "*** tSZ SNR ***"
+
+      path = self.pathFig+"/snr_tsz.txt"
+      with open(path, 'w') as f:
+         f.write("*** tSZ SNR ***\n")
       
-      # Compute chi^2_null
-      chi2Null = self.tSZ.dot( np.linalg.inv(self.covTsz).dot(self.tSZ) )
-      # goodness of fit for null hypothesis
-      print "number of dof:", len(self.tSZ)
-      print "null chi2Null=", chi2Null
-      pteNull = 1.- stats.chi2.cdf(chi2Null, len(self.tSZ))
-      print "null pte=", pteNull
-      # pte as a function of sigma, for a Gaussian random variable
-      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
-      sigmaNull = optimize.brentq(fsigmaToPTE , 0., 50.)
-      print "null sigma significance=", sigmaNull, "sigmas"
-      print ""
+         # Compute chi^2_null
+         chi2Null = self.tSZ.dot( np.linalg.inv(self.covTsz).dot(self.tSZ) )
+         # goodness of fit for null hypothesis
+         f.write("number of dof:"+str(len(self.tSZ))+"\n")
+         f.write("null chi2Null="+str(chi2Null)+"\n")
+         pteNull = 1.- stats.chi2.cdf(chi2Null, len(self.tSZ))
+         f.write("null pte="+str(pteNull)+"\n")
+         # pte as a function of sigma, for a Gaussian random variable
+         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
+         sigmaNull = optimize.brentq(fsigmaToPTE , 0., 50.)
+         f.write("null sigma significance="+str(sigmaNull)+"sigmas\n\n")
 
-      # Gaussian model: find best fit amplitude
-      sigma_cluster = 1.5  # arcmin
-      theory = self.ftheoryGaussianProfile(sigma_cluster)
-      def fchi2(p):
-         a = p[0]
-         result = (self.tSZ-a*theory).dot( np.linalg.inv(self.covTsz).dot(self.tSZ-a*theory) )
-         result -= chi2Null
-         return result
-      # Minimize the chi squared
-      p0 = 1.
-      res = optimize.minimize(fchi2, p0)
-      #print res
-      abest = res.x[0]
-      #sbest= res.x[1]
-      print "best-fit amplitude=", abest
-      print "number of dof:", len(self.tSZ) - 1
-      print ""
+         # Gaussian model: find best fit amplitude
+         sigma_cluster = 1.5  # arcmin
+         theory = self.ftheoryGaussianProfile(sigma_cluster)
+         def fchi2(p):
+            a = p[0]
+            result = (self.tSZ-a*theory).dot( np.linalg.inv(self.covTsz).dot(self.tSZ-a*theory) )
+            result -= chi2Null
+            return result
+         # Minimize the chi squared
+         p0 = 1.
+         res = optimize.minimize(fchi2, p0)
+         #f.write( res
+         abest = res.x[0]
+         #sbest= res.x[1]
+         f.write("best-fit amplitude="+str(abest)+"\n")
+         f.write("number of dof:"+str(len(self.tSZ) - 1)+"\n\n")
 
-      # goodness of fit for best fit
-      chi2Best = fchi2([abest])+chi2Null
-      print "best-fit chi2=", chi2Best
-      pteBest = 1.- stats.chi2.cdf(chi2Best, len(self.tSZ)-1.)
-      print "best-fit pte=", pteBest
-      # pte as a function of sigma, for a Gaussian random variable
-      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteBest
-      sigma = optimize.brentq(fsigmaToPTE , 0., 50.)
-      print "pte sigma significance=", sigma, "sigmas"
-      print ""
+         # goodness of fit for best fit
+         chi2Best = fchi2([abest])+chi2Null
+         f.write("best-fit chi2="+str(chi2Best)+"\n")
+         pteBest = 1.- stats.chi2.cdf(chi2Best, len(self.tSZ)-1.)
+         f.write("best-fit pte="+str(pteBest)+"\n")
+         # pte as a function of sigma, for a Gaussian random variable
+         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteBest
+         sigma = optimize.brentq(fsigmaToPTE , 0., 50.)
+         f.write("pte sigma significance="+str(sigma)+"sigmas\n\n")
 
-      # favour of best fit over null
-      print "fiducial delta chi2=", fchi2([1.])
-      print "best-fit sqrt(delta chi2)=", np.sqrt(abs(fchi2([abest]))), "sigmas"
-      fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.))
-      pte = fsigmaToPTE( np.sqrt(abs(fchi2([abest]))) )
-      print "pte (if Gaussian)=", pte
+         # favour of best fit over null
+         f.write("fiducial delta chi2="+str(fchi2([1.]))+"\n")
+         f.write("best-fit sqrt(delta chi2)="+str(np.sqrt(abs(fchi2([abest]))))+"sigmas\n")
+         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.))
+         pte = fsigmaToPTE( np.sqrt(abs(fchi2([abest]))) )
+         f.write("pte (if Gaussian)="+str(pte)+"\n")
+
+
 
    ##################################################################################
 

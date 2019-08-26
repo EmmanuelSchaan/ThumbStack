@@ -144,6 +144,7 @@ from thumbstack import *
 
 
 def analyzeMock(iMock):
+   print "- analyzing mock", iMock
 
    # path to each GRF mock map
    pathMap = pathGRF + "mock_"+str(iMock)+"_grf_f150_daynight.fits"
