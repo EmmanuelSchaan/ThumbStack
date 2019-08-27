@@ -125,14 +125,6 @@ pact150Map = enmap.read_map(pathMap)[0]   # keep only temperature
 pact150Mask = enmap.read_map(pathMask)
 pact150Hit = enmap.read_map(pathHit)
 
-print "Set up interpolations"
-#!!!! NO! This prefiltering seems to mess up the map values, in a complicated way...
-# This pre-filtering step introduces some ringing in the maps
-
-#utils.interpol_prefilter(pact150Map, inplace=True)
-#utils.interpol_prefilter(pact150Mask, inplace=True)   # order=2 seems to reduce ringing at sharp transitions
-#utils.interpol_prefilter(pact150Hit, inplace=True)
-
 tStop = time()
 print "took", tStop-tStart, "sec"
 
@@ -159,108 +151,41 @@ name = cmassMariana.name + "_pactf150night20190311"
 tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
-#mask = tsCmassM.catalogMask(overlap=True, psMask=True)
-#tsCmassM.analyzeObject(0, test=True)
-#tsCmassM.examineCmbMaps()
-
-# Expected std dev of AP filter, function of disk radius in rad
-#fsApActual = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=fCl, lMin=1., lMax=1.e5)
-#fsApNoiseless = lambda r0: cmb1_4.fsigmaDiskRing(r0, thetaIn=None, thetaOut=None, fCl=cmb1_4.flensedTT, lMin=1., lMax=1.e5)
-#tsCmassM.examineHistograms(fsAp=[fsApActual, fsApNoiseless])
-
-#tsCmassM.measureVarFromHitCount(plot=True)
-
-#cov = tsCmassM.kszCovBootstrap(nSamples=1000, nProc=nProc)
-#print np.sqrt(np.diag(cov))
-
-'''
-tsCmassM.compareKszEstimators()
-tsCmassM.computeSnrTsz()
-tsCmassM.computeSnrKsz()
-tsCmassM.kszNullTests()
-tsCmassM.plotCovTszKsz()
-'''
-
 
 ###################################################################################
-
+'''
 name = cmassSMariana.name + "_pactf150night20190311"
 tsCmassSM = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
-#tsCmassSM.compareKszEstimators()
-#tsCmassSM.computeSnrTsz()
-#tsCmassSM.computeSnrKsz()
-#tsCmassSM.kszNullTests()
-#tsCmassSM.plotCovTszKsz()
 
 name = cmassNMariana.name + "_pactf150night20190311"
 tsCmassNM = ThumbStack(u, cmassNMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
-#tsCmassNM.compareKszEstimators()
-#tsCmassNM.computeSnrTsz()
-#tsCmassNM.computeSnrKsz()
-#tsCmassNM.kszNullTests()
-#tsCmassNM.plotCovTszKsz()
 
 name = cmassSKendrick.name + "_pactf150night20190311"
 tsCmassSK = ThumbStack(u, cmassSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
-#tsCmassSK.compareKszEstimators()
-#tsCmassSK.computeSnrTsz()
-#tsCmassSK.computeSnrKsz()
-#tsCmassSK.kszNullTests()
-#tsCmassSK.plotCovTszKsz()
 
 name = cmassNKendrick.name + "_pactf150night20190311"
 tsCmassNK = ThumbStack(u, cmassNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
-#tsCmassNK.compareKszEstimators()
-#tsCmassNK.computeSnrTsz()
-#tsCmassNK.computeSnrKsz()
-#tsCmassNK.kszNullTests()
-#tsCmassNK.plotCovTszKsz()
 
 name = cmassKendrick.name + "_pactf150night20190311"
 tsCmassK = ThumbStack(u, cmassKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
-#tsCmassK.compareKszEstimators()
-#tsCmassK.computeSnrTsz()
-#tsCmassK.computeSnrKsz()
-#tsCmassK.kszNullTests()
-#tsCmassK.plotCovTszKsz()
 
 name = lowzSKendrick.name + "_pactf150night20190311"
 tsLowzSK = ThumbStack(u, lowzSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
-#tsLowzSK.compareKszEstimators()
-#tsLowzSK.computeSnrTsz()
-#tsLowzSK.computeSnrKsz()
-#tsLowzSK.kszNullTests()
-#tsLowzSK.plotCovTszKsz()
 
 name = lowzNKendrick.name + "_pactf150night20190311"
 tsLowzNK = ThumbStack(u, lowzNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
-#tsLowzNK.compareKszEstimators()
-#tsLowzNK.computeSnrTsz()
-#tsLowzNK.computeSnrKsz()
-#tsLowzNK.kszNullTests()
-#tsLowzNK.plotCovTszKsz()
 
 name = lowzKendrick.name + "_pactf150night20190311"
 tsLowzK = ThumbStack(u, lowzKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
-#tsLowzK.compareKszEstimators()
-#tsLowzK.computeSnrTsz()
-#tsLowzK.computeSnrKsz()
-#tsLowzK.kszNullTests()
-#tsLowzK.plotCovTszKsz()
 
 name = bossKendrick.name + "_pactf150night20190311"
 tsBossK = ThumbStack(u, bossKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
-#tsBossK.compareKszEstimators()
-#tsBossK.computeSnrTsz()
-#tsBossK.computeSnrKsz()
-#tsBossK.kszNullTests()
-#tsBossK.plotCovTszKsz()
-
+'''
 
 ###################################################################################
 # Plot kSZ for the various samples
 
-
+'''
 # plot CMASS Mariana
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
@@ -418,3 +343,4 @@ ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
 path = tsBossK.pathFig+"/tsz_kendrick.pdf"
 fig.savefig(path, bbox_inches='tight')
 fig.clf()
+'''

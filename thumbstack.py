@@ -37,10 +37,8 @@ class ThumbStack(object):
       if not os.path.exists(self.pathTestFig):
          os.makedirs(self.pathTestFig)
 
-
       print "- Thumbstack: "+str(self.name)
-   
-#      self.loadMaps(nProc=self.nProc)
+      
       self.loadAPRadii()
       
       if save:
@@ -54,8 +52,13 @@ class ThumbStack(object):
       self.measureVarFromHitCount(plot=save)
 
       if save:
-         self.saveTszKsz(nSamples=self.nSamples, nProc=self.nProc)
-      self.loadTszKsz()
+         self.saveStackedProfiles()
+      self.loadStackedProfiles()
+
+      if save:
+         self.plotAllStackedProfiles()
+         self.plotAllCov()
+         self.computeAllSnr()
 
 
 
@@ -495,12 +498,12 @@ class ThumbStack(object):
          # multiply by integrated y to get y profile [sr]
          t = np.column_stack((self.Catalog.integratedY[:] * shape[iAp] for iAp in range(self.nRAp)))
          # convert from y profile to dT profile
+         Tcmb = 2.726   # K
+         h = 6.63e-34   # SI
+         kB = 1.38e-23  # SI
          def f(nu):
             """frequency dependence for tSZ temperature
             """
-            Tcmb = 2.726   # K
-            h = 6.63e-34   # SI
-            kB = 1.38e-23  # SI
             x = h*nu/(kB*Tcmb)
             return x*(np.exp(x)+1.)/(np.exp(x)-1.) -4.
          t *= 2. * f(150.e9) * Tcmb * 1.e6  # [muK * sr]
@@ -518,17 +521,22 @@ class ThumbStack(object):
       v = -self.Catalog.vR[mask] / 3.e5
       v -= np.mean(v)
       # hit count and measured total noise (CMB + detector)
-      s2Hit = filtNoiseStdDev[mask, :]**2
-      s2Full = self.fVarFromHitCount[:](s2Hit)
+      s2Hit = self.filtNoiseStdDev[mask, :]**2
+      
+      
+#      s2Full = self.fVarFromHitCount[:](s2Hit)
+      s2Full = np.column_stack((self.fVarFromHitCount[iAp](s2Hit[:, iAp]) for iAp in range(self.nRAp)))
+      
+      
+      
       # halo masses
       hasm = self.Catalog.hasM[mask]
       m = self.Catalog.Mvir[mask]
-      m[-hasm] = np.mean(m[hasm])   # for halos without a mass, use the mean mass
       
-      if iBoostrap is not None:
+      if iBootstrap is not None:
          # make sure each resample is independent,
          # and make the resampling reproducible
-         np.random.seed(iBoostrap)
+         np.random.seed(iBootstrap)
          # list of overlapping objects
          nObj = np.sum(mask)
          I = np.arange(nObj)
@@ -596,7 +604,7 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def SaveCovBootstrapStackedProfile(self, est, nSamples=1000, nProc=1)
+   def SaveCovBootstrapStackedProfile(self, est, nSamples=1000, nProc=1):
       """Estimate covariance matrix for the stacked profile from bootstrap resampling
       """
       tStart = time()
@@ -614,12 +622,12 @@ class ThumbStack(object):
       np.savetxt(self.pathOut+"/cov_"+est+"_bootstrap.txt", covStack)
       
 
-   def SaveCovVShuffleStackedProfile(self, est, nSamples=1000, nProc=1)
+   def SaveCovVShuffleStackedProfile(self, est, nSamples=1000, nProc=1):
       """Estimate covariance matrix for the stacked profile from shuffling velocities
       """
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
-         f = lambda iSample: self.stackedProfile(est, iVshuffle=iSample)
+         f = lambda iSample: self.stackedProfile(est, iVShuffle=iSample)
          result = np.array(pool.map(f, range(nSamples)))
       tStop = time()
       print "took", (tStop-tStart)/60., "min"
@@ -635,6 +643,7 @@ class ThumbStack(object):
    ##################################################################################
 
    def saveStackedProfiles(self):
+      print "- compute stacked profiles and their cov"
       data = np.zeros((self.nRAp, 3))
       data[:,0] = self.RApArcmin # [arcmin]
       
@@ -668,6 +677,7 @@ class ThumbStack(object):
 
 
    def loadStackedProfiles(self):
+      print "- load stacked profiles and their cov"
       self.stackedProfile = {}
       self.sStackedProfile = {}
       self.covBootstrap = {}
@@ -721,9 +731,9 @@ class ThumbStack(object):
       factor = (180.*60./np.pi)**2
       #
       for est in Est:
-         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[est], factor * self.sStackedProfile[est], fmt='-', label=est+"_measured")
-         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[est+"_theory_tsz"], factor * self.sStackedProfile[est], fmt='--', label=est+"_theory_tsz")
-         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[est+"_theory_ksz"], factor * self.sStackedProfile[est], fmt='.-', label=est+"_theory_ksz")
+         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[est], factor * self.sStackedProfile[est], fmt='-', label="measured")
+         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[est+"_theory_tsz"], factor * self.sStackedProfile[est], fmt='--', label="theory tsz")
+         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[r""+est+"_theory_ksz"], factor * self.sStackedProfile[est], fmt='.-', label="theory ksz")
       #
       ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
       ax.set_xlabel(r'$R$ [arcmin]')
@@ -742,11 +752,11 @@ class ThumbStack(object):
       factor = (180.*60./np.pi)**2
       #
       for est in Est:
-         ax.plot(self.RApArcmin, factor * self.sStackedProfile[est], ls='-', label=est)
+         ax.plot(self.RApArcmin, factor * self.sStackedProfile[est], ls='-', label="analytic")
          if est in self.covBootstrap:
-            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covBootstrap[est])), ls='--', label=est)
-         if est in self.covBootstrap:
-            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covVshuffle[est])), ls='.-', label=est)
+            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covBootstrap[est])), ls='--', label="bootstrap")
+         if est in self.covVShuffle:
+            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covVShuffle[est])), ls='-.', label="v shuffle")
       #
       ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
       ax.set_xlabel(r'$R$ [arcmin]')
@@ -758,6 +768,7 @@ class ThumbStack(object):
       fig.clf()
 
    def plotAllStackedProfiles(self):
+      print "- plot all stacked profiles"
       # tSZ
       Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight']
       self.plotStackedProfile(Est, name="tsz")
@@ -818,6 +829,7 @@ class ThumbStack(object):
       fig.clf()
 
    def plotAllCov(self):
+      print "- plot all covariances"
       # covariance matrices from bootstrap,
       # only for a few select estimators
       Est = ['tsz_varweight', 'ksz_varweight']
@@ -905,6 +917,7 @@ class ThumbStack(object):
 
 
    def computeAllSnr(self):
+      print "- compute all SNR and significances"
       Est = ['tsz_varweight', 'ksz_varweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
