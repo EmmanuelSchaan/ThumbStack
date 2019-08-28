@@ -114,10 +114,10 @@ bossKendrick.addCatalog(lowzNKendrick, save=False)
 # Planck + ACT
 pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/"
 #
-pathMap = pathIn + "act_planck_f150_prelim_map_mono.fits"
-pathHit = pathIn + "act_planck_f150_prelim_div_mono.fits"
-pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"
-pathPower = pathIn + "f150_power_T_masked.txt"
+pathMap = pathIn + "act_planck_f090_prelim_map_mono.fits"
+pathHit = pathIn + "act_planck_f090_prelim_div_mono.fits"
+pathMask = pathIn + "f090_mask_foot_planck_ps_car.fits"
+pathPower = pathIn + "f090_power_T_masked.txt"
 
 tStart = time()
 print "- Read CMB map, mask and hit count"
@@ -147,37 +147,37 @@ reload(thumbstack)
 from thumbstack import *
 
 
-#name = cmassMariana.name + "_pactf150night20190311"
-#tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+name = cmassMariana.name + "_pactf090night20190311"
+tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 ###################################################################################
 
-name = cmassSMariana.name + "_pactf150night20190311"
+name = cmassSMariana.name + "_pactf090night20190311"
 tsCmassSM = ThumbStack(u, cmassSMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
-name = cmassNMariana.name + "_pactf150night20190311"
+name = cmassNMariana.name + "_pactf090night20190311"
 tsCmassNM = ThumbStack(u, cmassNMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
-name = cmassSKendrick.name + "_pactf150night20190311"
+name = cmassSKendrick.name + "_pactf090night20190311"
 tsCmassSK = ThumbStack(u, cmassSKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
-name = cmassNKendrick.name + "_pactf150night20190311"
+name = cmassNKendrick.name + "_pactf090night20190311"
 tsCmassNK = ThumbStack(u, cmassNKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
-name = cmassKendrick.name + "_pactf150night20190311"
+name = cmassKendrick.name + "_pactf090night20190311"
 tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
-name = lowzSKendrick.name + "_pactf150night20190311"
+name = lowzSKendrick.name + "_pactf090night20190311"
 tsLowzSK = ThumbStack(u, lowzSKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
-name = lowzNKendrick.name + "_pactf150night20190311"
+name = lowzNKendrick.name + "_pactf090night20190311"
 tsLowzNK = ThumbStack(u, lowzNKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
-name = lowzKendrick.name + "_pactf150night20190311"
+name = lowzKendrick.name + "_pactf090night20190311"
 tsLowzK = ThumbStack(u, lowzKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
-name = bossKendrick.name + "_pactf150night20190311"
+name = bossKendrick.name + "_pactf090night20190311"
 tsBossK = ThumbStack(u, bossKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
