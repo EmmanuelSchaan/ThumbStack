@@ -147,40 +147,39 @@ reload(thumbstack)
 from thumbstack import *
 
 
-name = cmassMariana.name + "_pactf150night20190311"
-tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
-
+#name = cmassMariana.name + "_pactf150night20190311"
+#tsCmassM = ThumbStack(u, cmassMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 ###################################################################################
-'''
+
 name = cmassSMariana.name + "_pactf150night20190311"
-tsCmassSM = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassSM = ThumbStack(u, cmassSMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = cmassNMariana.name + "_pactf150night20190311"
-tsCmassNM = ThumbStack(u, cmassNMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassNM = ThumbStack(u, cmassNMariana, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = cmassSKendrick.name + "_pactf150night20190311"
-tsCmassSK = ThumbStack(u, cmassSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassSK = ThumbStack(u, cmassSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = cmassNKendrick.name + "_pactf150night20190311"
-tsCmassNK = ThumbStack(u, cmassNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassNK = ThumbStack(u, cmassNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = cmassKendrick.name + "_pactf150night20190311"
-tsCmassK = ThumbStack(u, cmassKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassK = ThumbStack(u, cmassKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = lowzSKendrick.name + "_pactf150night20190311"
-tsLowzSK = ThumbStack(u, lowzSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsLowzSK = ThumbStack(u, lowzSKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = lowzNKendrick.name + "_pactf150night20190311"
-tsLowzNK = ThumbStack(u, lowzNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsLowzNK = ThumbStack(u, lowzNKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = lowzKendrick.name + "_pactf150night20190311"
-tsLowzK = ThumbStack(u, lowzKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
+tsLowzK = ThumbStack(u, lowzKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = bossKendrick.name + "_pactf150night20190311"
-tsBossK = ThumbStack(u, bossKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=False, nProc=nProc)
-'''
+tsBossK = ThumbStack(u, bossKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
+
 
 ###################################################################################
 # Plot kSZ for the various samples

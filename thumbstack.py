@@ -496,7 +496,7 @@ class ThumbStack(object):
          sigma_cluster = 1.5  # arcmin
          shape = self.ftheoryGaussianProfile(sigma_cluster) # between 0 and 1 [dimless]
          # multiply by integrated y to get y profile [sr]
-         t = np.column_stack((self.Catalog.integratedY[:] * shape[iAp] for iAp in range(self.nRAp)))
+         t = np.column_stack([self.Catalog.integratedY[:] * shape[iAp] for iAp in range(self.nRAp)])
          # convert from y profile to dT profile
          Tcmb = 2.726   # K
          h = 6.63e-34   # SI
@@ -513,24 +513,20 @@ class ThumbStack(object):
          sigma_cluster = 1.5  # arcmin
          shape = self.ftheoryGaussianProfile(sigma_cluster) # between 0 and 1 [dimless]
          # multiply by integrated kSZ to get kSZ profile [muK * sr]
-         t = np.column_stack((self.Catalog.integratedKSZ[:] * shape[iAp] for iAp in range(self.nRAp)))   # [muK * sr]
+         t = np.column_stack([self.Catalog.integratedKSZ[:] * shape[iAp] for iAp in range(self.nRAp)])   # [muK * sr]
       t = t[mask, :]
-      t -= np.mean(t)
+      tNoMean = t - np.mean(t, axis=0)
 
       # v/c [dimless]
       v = -self.Catalog.vR[mask] / 3.e5
       v -= np.mean(v)
       # hit count and measured total noise (CMB + detector)
       s2Hit = self.filtNoiseStdDev[mask, :]**2
-      
-      
+
 #      s2Full = self.fVarFromHitCount[:](s2Hit)
-      s2Full = np.column_stack((self.fVarFromHitCount[iAp](s2Hit[:, iAp]) for iAp in range(self.nRAp)))
-      
-      
-      
+      s2Full = np.column_stack([self.fVarFromHitCount[iAp](s2Hit[:, iAp]) for iAp in range(self.nRAp)])
+
       # halo masses
-      hasm = self.Catalog.hasM[mask]
       m = self.Catalog.Mvir[mask]
       
       if iBootstrap is not None:
@@ -544,6 +540,7 @@ class ThumbStack(object):
          J = np.random.choice(I, size=nObj, replace=True)
          #
          t = t[J,:]
+         tNoMean = tNoMean[J,:]
          v = v[J]
          s2Hit = s2Hit[J,:]
          s2Full = s2Full[J,:]
@@ -578,26 +575,40 @@ class ThumbStack(object):
 
       # kSZ: uniform weighting
       elif est=='ksz_uniformweight':
-         stack = np.mean(t*v[:,np.newaxis], axis=0) / np.sum(v[:,np.newaxis]**2, axis=0)
+         stack = np.sum(tNoMean*v[:,np.newaxis], axis=0) / np.sum(v[:,np.newaxis]**2, axis=0)
          sStack = np.sum(s2Full*v[:,np.newaxis]**2, axis=0) / np.sum(v[:,np.newaxis]**2, axis=0)**2
          sStack = np.sqrt(sStack)
+         # renormalize the kSZ estimator
+         stack *= np.std(v)
+         sStack *= np.std(v)
       # kSZ: detector-noise weighted (hit count)
       elif est=='ksz_hitweight':
-         stack = np.sum(t*v[:,np.newaxis]/s2Hit, axis=0) / np.sum(v[:,np.newaxis]**2/s2Hit, axis=0)
+         stack = np.sum(tNoMean*v[:,np.newaxis]/s2Hit, axis=0) / np.sum(v[:,np.newaxis]**2/s2Hit, axis=0)
          sStack = np.sum(s2Full*v[:,np.newaxis]**2/s2Hit**2, axis=0) / np.sum(v[:,np.newaxis]**2/s2Hit, axis=0)**2
          sStack = np.sqrt(sStack)
+         # renormalize the kSZ estimator
+         stack *= np.std(v)
+         sStack *= np.std(v)
       # kSZ: full noise weighted (detector noise + CMB)
       elif est=='ksz_varweight':
-         stack = np.sum(t*v[:,np.newaxis]/s2Full, axis=0) / np.sum(v[:,np.newaxis]**2/s2Full, axis=0)
+         stack = np.sum(tNoMean*v[:,np.newaxis]/s2Full, axis=0) / np.sum(v[:,np.newaxis]**2/s2Full, axis=0)
          sStack = np.sum(s2Full*v[:,np.newaxis]**2/s2Full**2, axis=0) / np.sum(v[:,np.newaxis]**2/s2Full, axis=0)**2
          sStack = np.sqrt(sStack)
+         # renormalize the kSZ estimator
+         stack *= np.std(v)
+         sStack *= np.std(v)
       # kSZ: full noise weighted (detector noise + CMB)
       elif est=='ksz_massvarweight':
-         stack = np.sum(t*m[:,np.newaxis] * v[:,np.newaxis]/s2Full, axis=0)
+         stack = np.sum(tNoMean*m[:,np.newaxis] * v[:,np.newaxis]/s2Full, axis=0)
          stack /= np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2/s2Full, axis=0)
          sStack = np.sum(s2Full * m[:,np.newaxis]**2 * v[:,np.newaxis]**2/s2Full**2, axis=0)
          sStack /= np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2/s2Full, axis=0)**2
          sStack = np.sqrt(sStack)
+         # renormalize the kSZ estimator
+         stack *= np.mean(m)
+         sStack *= np.mean(m)
+         stack *= np.std(v)
+         sStack *= np.std(v)
 
       return stack, sStack
 
@@ -730,10 +741,15 @@ class ThumbStack(object):
       # convert from sr to arcmin^2
       factor = (180.*60./np.pi)**2
       #
-      for est in Est:
-         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[est], factor * self.sStackedProfile[est], fmt='-', label="measured")
-         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[est+"_theory_tsz"], factor * self.sStackedProfile[est], fmt='--', label="theory tsz")
-         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[r""+est+"_theory_ksz"], factor * self.sStackedProfile[est], fmt='.-', label="theory ksz")
+      ax.axhline(0., c='k', lw=1)
+      #
+      colors = ['r', 'g', 'b', 'm', 'c']
+      for iEst in range(len(Est)):
+         est = Est[iEst]
+         c = colors[iEst]
+         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[est], factor * self.sStackedProfile[est], fmt='-', c=c, label="measured")
+         ax.plot(self.RApArcmin, factor * self.stackedProfile[est+"_theory_tsz"], ls='--', c=c, label="theory tsz")
+         ax.plot(self.RApArcmin, factor * self.stackedProfile[est+"_theory_ksz"], ls='-.', c=c, label="theory ksz")
       #
       ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
       ax.set_xlabel(r'$R$ [arcmin]')
@@ -769,13 +785,18 @@ class ThumbStack(object):
 
    def plotAllStackedProfiles(self):
       print "- plot all stacked profiles"
-      # tSZ
-      Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight']
-      self.plotStackedProfile(Est, name="tsz")
-      # kSZ
-      Est = ['ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
-      self.plotStackedProfile(Est, name="ksz")
-
+#      # tSZ
+#      Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight']
+#      self.plotStackedProfile(Est, name="tsz")
+#      # kSZ
+#      Est = ['ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+#      self.plotStackedProfile(Est, name="ksz")
+      
+      # all stacked profiles
+      Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+      for iEst in range(len(Est)):
+         est = Est[iEst]
+         self.plotStackedProfile([est], name=est)
 
    ##################################################################################
    
