@@ -123,8 +123,8 @@ pathHit = pathIn + "act_planck_f150_prelim_div_mono.fits"
 pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"
 
 # read maps in common for all mocks
-pact150Mask = enmap.read_map(pathMask)
-pact150Hit = enmap.read_map(pathHit)
+pactMask = enmap.read_map(pathMask)
+pactHit = enmap.read_map(pathHit)
 
 ## measured power spectrum
 #data = np.genfromtxt(pathPower)  # l, Cl, sCl
@@ -150,11 +150,11 @@ def analyzeMock(iMock):
    pathMap = pathGRF + "mock_"+str(iMock)+"_grf_f150_daynight.fits"
 
    # Read mock map
-   pact150Map = enmap.read_map(pathMap)#[0]   # keep only temperature
+   pactMap = enmap.read_map(pathMap)#[0]   # keep only temperature
 
    # Stacking
    name = cmassKendrick.name + "_pactf150night20190311_mock"+str(iMock)
-   tsCmassK = ThumbStack(u, cmassKendrick, pact150Map, pact150Mask, pact150Hit, name=name, nameLong=None, save=True, nProc=nProc)
+   tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
    return
 
