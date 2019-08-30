@@ -182,7 +182,7 @@ class ThumbStack(object):
       # corresponding true coordinates on the big healpy map
       ipos = rotfuncs.recenter(opos[::-1], [0,0,sourcecoord[0],sourcecoord[1]])[::-1]
 
-      # extract the small square map by interpolating the big healpy map
+      # extract the small square map by interpolating the big map
       # Here, I use nearest neighbor interpolation (order=0)
       # these are now numpy arrays: the wcs info is gone
       stampMap[:,:] = self.cmbMap.at(ipos, prefilter=False, mask_nan=False, order=0)
@@ -271,7 +271,10 @@ class ThumbStack(object):
 
          # count nb of pixels where filter is strictly positive
          nbPix = len(np.where(filter>0.)[0])
-         print "- nb of pixels where filter>0: "+str(nbPix)
+         print "- nb of pixels in the cutout: "+str(filter.shape[0] * filter.shape[1])
+         print "= nb of pixels where filter=0: "+str(len(np.where(filter==0.)[0]))
+         print "+ nb of pixels where filter>0: "+str(len(np.where(filter>0.)[0]))
+         print "+ nb of pixels where filter<0: "+str(len(np.where(filter<0.)[0]))
          print "- disk area: "+str(diskArea)+" sr, ie "+str(diskArea * (180.*60./np.pi)**2)+"arcmin^2"
          print "  (from r0, expect "+str(np.pi*r0**2)+" sr, ie "+str(np.pi*r0**2 * (180.*60./np.pi)**2)+"arcmin^2)"
          

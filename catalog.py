@@ -521,3 +521,57 @@ class Catalog(object):
 
 ##################################################################################
 ##################################################################################
+
+
+   def generateMockMaps(self, carMap, sigma=None):
+      """Generate mock maps with 1 at the pixel location of each  object, 0 everywhere else.
+      If sigma [arcmin] is specified, produces also Gaussian smoothed versions,
+      normalized such that   int d^2theta profile = 1, where theta is in [rad].
+      """
+      print "- Generate mock maps"
+      # create empty maps
+      countDirac = carMap.copy()
+      countDirac[:,:] = 0.
+      velDirac = countDirac.copy()
+      
+      for iObj in range(self.nObj):
+#      for iObj in range(10):
+         if iObj%100000==0:
+            print "    -", iObj
+         # object coordinates [deg]
+         ra = self.RA[iObj]
+         dec = self.DEC[iObj]
+         # coordinates in [rad]
+         sourcecoord = np.array([dec, ra]) * np.pi/180.
+         
+         # find pixel indices (float) corresponding to ra, dec
+         iY, iX = enmap.sky2pix(countDirac.shape, countDirac.wcs, sourcecoord, safe=True, corner=False)
+         # nearest pixel
+         iY = np.int(round(iY) % countDirac.shape[0])
+         iX = np.int(round(iX) % countDirac.shape[1])
+         # fill the pixel
+         countDirac[iY, iX] = 1.
+         velDirac[iY, iX] = self.vR[iObj] / 3.e5   # v_r/c  [dimless]
+         
+         # check that I filled the right pixel
+         if countDirac.at(sourcecoord, prefilter=False, mask_nan=False, order=0)<>1:
+            print "Filled the wrong pixel for  object",iObj, ", ra, dec=", ra, dec
+
+      # save the maps
+      enmap.write(self.pathOut+"mock_count_dirac_car.fits", countDirac)
+      enmap.write(self.pathOut+"mock_vel_dirac_car.fits", velDirac)
+      
+      if sigma is not None:
+         # convolve maps with a Gaussian  profile of given sigma (not fwhm)
+         sigma *= np.pi/180./60.  # convert from arcmin to [rad]
+         countGauss = enmap.smooth_gauss(countDirac, sigma)
+         velGauss = enmap.smooth_gauss(velDirac, sigma)
+         # renormalize the maps so the profiles integrate to 1:
+         # int d^2theta profile = 1, with theta in [rad]
+         countGauss /= enmap.pixsize(countDirac.shape, countDirac.wcs)
+         velGauss /= enmap.pixsize(countDirac.shape, countDirac.wcs)
+         
+         enmap.write(self.pathOut+"mock_count_gauss_car.fits", countGauss)
+         enmap.write(self.pathOut+"mock_vel_gauss_car.fits", velGauss)
+
+
