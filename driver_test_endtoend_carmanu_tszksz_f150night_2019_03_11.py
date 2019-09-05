@@ -103,27 +103,28 @@ from thumbstack import *
 pathMap = cmassMariana.pathOut + "mock_count_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_dirac_carmanu"
-tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsCountDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_count_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_gauss_carmanu"
-tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsCountGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_vel_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
-tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_vel_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 
 
 ###################################################################################
+
 
 '''
 mask = tsCmassM.catalogMask(overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1.)
@@ -132,6 +133,7 @@ print np.where(mask==True)
 iObj = 0
 filtMap, filtMask, filtNoiseStdDev, diskArea = tsCmassM.analyzeObject(iObj, test=True)
 print filtMap / hp.pixelfunc.nside2pixarea(8192)
+'''
 
 
 
@@ -142,26 +144,31 @@ print filtMap / hp.pixelfunc.nside2pixarea(8192)
 
 
 
+#tszMeas = tsCmassM.stackedProfile['tsz_uniformweight']
+#tszTh = tsCmassM.stackedProfile['tsz_uniformweight_theory_tsz']
 
-tszMeas = tsCmassM.stackedProfile['tsz_uniformweight']
-tszTh = tsCmassM.stackedProfile['tsz_uniformweight_theory_tsz']
 
-print  tszTh / tszMeas
+#print  tszTh / tszMeas
 
 # Gaussian with sigma = 1.5'
-profile = tsCmassM.ftheoryGaussianProfile(1.5)
+profile = tsCountDirac.ftheoryGaussianProfile(1.5)
 
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 #
-ax.errorbar(tsCmassM.RApArcmin, tsCmassM.stackedProfile['tsz_uniformweight'] / hp.pixelfunc.nside2pixarea(8192), tsCmassM.sStackedProfile['tsz_uniformweight'] / hp.pixelfunc.nside2pixarea(8192), fmt='-', label=r'measured')
-ax.plot(tsCmassM.RApArcmin, profile, '--', label=r'expected')
+factor =  (180.*60./np.pi)**2
+ax.errorbar(tsCountDirac.RApArcmin, factor*tsCountDirac.stackedProfile['tsz_uniformweight'], factor*tsCountDirac.sStackedProfile['tsz_uniformweight'], fmt='--', c='r', label=r'count Dirac')
+ax.errorbar(tsCountGauss.RApArcmin, factor*tsCountGauss.stackedProfile['tsz_uniformweight'], factor*tsCountGauss.sStackedProfile['tsz_uniformweight'], fmt='-', c='r', label=r'count Gauss')
+ax.errorbar(tsVelDirac.RApArcmin, factor*tsVelDirac.stackedProfile['ksz_uniformweight'], factor*tsVelDirac.sStackedProfile['ksz_uniformweight'], fmt='--', c='b', label=r'vel Dirac')
+ax.errorbar(tsVelGauss.RApArcmin, factor*tsVelGauss.stackedProfile['ksz_uniformweight'], factor*tsVelGauss.sStackedProfile['ksz_uniformweight'], fmt='-', c='b', label=r'vel Gauss')
+#
+ax.plot(tsCountDirac.RApArcmin, profile, 'k-', label=r'expected')
 #
 ax.legend(loc=2)
 #
-fig.savefig(tsCmassM.pathFig+"/test_mean_stacked_temperature.pdf")
-fig.clf()
+fig.savefig(tsCountDirac.pathFig+"/test_mean_stacked_temperature.pdf")
+#fig.clf()
 
+plt.show()
 
 # asymptote is 1.92858407e-08
-'''

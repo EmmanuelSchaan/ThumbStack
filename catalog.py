@@ -310,7 +310,6 @@ class Catalog(object):
       # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = data[:, 23] # [sr]
-<<<<<<< HEAD
 
 
    ##################################################################################
@@ -378,8 +377,6 @@ class Catalog(object):
          self.writeCatalog()
 
 
-=======
->>>>>>> 1072e133a38f4e52aad3fe317d72f075fc7636a6
 
    ##################################################################################
    ##################################################################################
@@ -664,7 +661,7 @@ class Catalog(object):
       # and will be easily comparable to the theory curve.
       countDirac /= countDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
       velDirac /= velDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
-      velDirac *= np.std(self.vR / 3.e5)
+      velDirac /= np.std(self.vR / 3.e5)
 
       # save the maps
       enmap.write_map(self.pathOut+"mock_count_dirac_car.fits", countDirac)
