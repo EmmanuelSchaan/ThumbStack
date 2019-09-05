@@ -2,12 +2,12 @@
 .DS_Store
 .DS_Store?
 
-# python compiled files
+# files to exclude
 *.pyc
 *.pdf
 *.txt
 
-# all output files
+# directories to exclude
 output/
 input/
 figures/
