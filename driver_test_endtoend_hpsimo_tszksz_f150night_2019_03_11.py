@@ -72,8 +72,7 @@ cmassMariana.addCatalog(cmassNMariana, save=False)
 
 # directory of mocks
 pathMock = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/mock_maps_CMASS_DR12_mariana/hp_mocks_simo/"
-pathMap = pathMock + "CMASS_COUNTS_SMOOTH1.5_8192_car.fits"
-#pathMap = pathMock + "CMASS_VEL_SMOOTH1.5_8192_car.fits"
+
 
 # path to true hit count map and mask: Planck + ACT
 pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/"
@@ -84,7 +83,6 @@ pathPower = pathIn + "f150_power_T_masked.txt"
 # read maps in common for all mocks
 pactMask = enmap.read_map(pathMask)
 pactHit = enmap.read_map(pathHit)
-pactMap = enmap.read_map(pathMap)[0]   # keep only temperature
 
 # theory power spectrum
 cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
@@ -97,11 +95,31 @@ import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
-# Stacking
-name = cmassMariana.name + "_pactf150night20190311_test_endtoend_counts_hpsimo"
-#name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_hpsimo"
-tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
+# counts, Dirac
+pathMap = pathMock + "CMASS_COUNTS_normalized_8192_car.fits"
+pactMap = enmap.read_map(pathMap)   # keep only temperature
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_counts_hpsimo"
+tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+
+
+# vel, Dirac
+pathMap = pathMock + "CMASS_VEL_normalized_8192_car.fits"
+pactMap = enmap.read_map(pathMap)   # keep only temperature
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_hpsimo"
+tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+
+# counts, Gaussian
+pathMap = pathMock + "CMASS_COUNTS_normalized_smooth1.5_8192_car.fits"
+pactMap = enmap.read_map(pathMap)   # keep only temperature
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_counts_gauss_hpsimo"
+tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+
+# vel, Gaussian
+pathMap = pathMock + "CMASS_VEL_normalized_smooth1.5_8192_car.fits"
+pactMap = enmap.read_map(pathMap)   # keep only temperature
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_gauss_hpsimo"
+tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 
