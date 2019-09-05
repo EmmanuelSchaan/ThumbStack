@@ -5,6 +5,7 @@
 # python compiled files
 *.pyc
 *.pdf
+*.txt
 
 # all output files
 output/
@@ -12,3 +13,4 @@ input/
 figures/
 snippets/
 old/
+log/
