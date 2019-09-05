@@ -5,26 +5,31 @@
 
 
 # create a map full of zeros
-shape, wcs = enmap.geometry(np.array([[0.,-np.pi/2.],[2.*np.pi,np.pi/2.]]), res=0.25 * np.pi/180./60., proj='car')
+shape, wcs = enmap.geometry(np.array([[-np.pi/2., 0.],[np.pi/2., 2.*np.pi]]), res=0.25 * np.pi/180./60., proj='car')
 carMap = enmap.zeros(shape, wcs)
 
 # coordinates of point to set to 1 [radians]
 ra = -np.pi/2. +  0.0003
-dec = 0.
+dec = 2.*np.pi + 0.5
 
 # find the pixel indices
 iY, iX = enmap.sky2pix(carMap.shape, carMap.wcs, [dec, ra], safe=True, corner=False)
-print iY, iX
+# print iY, iX
 
 #  make them integers, and in the proper range
-iY = np.int(round(iY) % carMap.shape[0])
-iX = np.int(round(iX) % carMap.shape[1])
+jY = np.int(round(iY) % carMap.shape[0])
+jX = np.int(round(iX) % carMap.shape[1])
+
+print "pixel indices:"
+print "iY, jY, sizeY =", iY, jY, carMap.shape[0]
+print "iX, jX, sizeX =", iX, jX, carMap.shape[1]
 
 # set the map value to 1
-carMap[iY, iX] = 1.
+carMap[jY, jX] = 1.
 
 # check that I filled in the right pixel
-sourcecoord = np.array([dec, ra])   # convert from degrees to radians
+sourcecoord = np.array([dec, ra])
+
 # use nearest neighbor interpolation
 print carMap.at(sourcecoord, prefilter=False, mask_nan=False, order=0)
 

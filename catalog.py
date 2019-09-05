@@ -310,7 +310,96 @@ class Catalog(object):
       # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = data[:, 23] # [sr]
+<<<<<<< HEAD
 
+
+   ##################################################################################
+   ##################################################################################
+   
+   def addCatalog(self, newCat, save=False):
+      """Combines the current catalog with a new catalog newCat.
+      """
+      # number of objects
+      self.nObj += newCat.nObj
+      #
+      # sky coordinates and redshift
+      self.RA = np.concatenate((self.RA, newCat.RA)) # [deg]
+      self.DEC = np.concatenate((self.DEC, newCat.DEC))   # [deg]
+      self.Z = np.concatenate((self.Z, newCat.Z))
+      #
+      # observed cartesian coordinates
+      self.coordX = np.concatenate((self.coordX, newCat.coordX))   # [Mpc/h]
+      self.coordY = np.concatenate((self.coordY, newCat.coordY))   # [Mpc/h]
+      self.coordZ = np.concatenate((self.coordZ, newCat.coordZ))   # [Mpc/h]
+      #
+      # displacement from difference,
+      # not including the Kaiser displacement,
+      # from differences of the observed and reconstructed fields
+      self.dX = np.concatenate((self.dX, newCat.dX))  # [Mpc/h]
+      self.dY = np.concatenate((self.dY, newCat.dY))   # [Mpc/h]
+      self.dZ = np.concatenate((self.dZ, newCat.dZ))  # [Mpc/h]
+      #
+      # Kaiser-only displacement
+      # originally from differences of the observed and reconstructed fields
+      self.dXKaiser = np.concatenate((self.dXKaiser, newCat.dXKaiser))  # [Mpc/h] from cartesian catalog difference
+      self.dYKaiser = np.concatenate((self.dYKaiser, newCat.dYKaiser))   # [Mpc/h]
+      self.dZKaiser = np.concatenate((self.dZKaiser, newCat.dZKaiser))   # [Mpc/h]
+      #
+      # velocity in cartesian coordinates
+      self.vX = np.concatenate((self.vX, newCat.vX))   #[km/s]
+      self.vY = np.concatenate((self.vY, newCat.vY))   #[km/s]
+      self.vZ = np.concatenate((self.vZ, newCat.vZ))  #[km/s]
+      #
+      # velocity in spherical coordinates,
+      # from catalog of spherical displacements
+      self.vR = np.concatenate((self.vR, newCat.vR))  # [km/s]   from spherical catalo
+      self.vTheta = np.concatenate((self.vTheta, newCat.vTheta))   # [km/s]
+      self.vPhi = np.concatenate((self.vPhi, newCat.vPhi))  # [km/s]
+      #
+      # Stellar masses
+      self.Mstellar = np.concatenate((self.Mstellar, newCat.Mstellar))   # [M_sun], from Maraston et al
+      #
+      # Halo mass
+      self.hasM = np.concatenate((self.hasM, newCat.hasM))
+      self.Mvir = np.concatenate((self.Mvir, newCat.Mvir))  # [M_sun]
+      #
+      # Integrated optical depth [dimless]: int d^2theta n_e^2d sigma_T = (total nb of electrons) * sigma_T / (a chi)^2
+      self.integratedTau = np.concatenate((self.integratedTau, newCat.integratedTau))   # [dimless]
+      #
+      # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T v/c Tcmb
+      self.integratedKSZ = np.concatenate((self.integratedKSZ, newCat.integratedKSZ)) # [muK * sr]
+      #
+      # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
+      # needs to be multiplied by Tcmb * f(nu) to get muK
+      self.integratedY = np.concatenate((self.integratedY, newCat.integratedY)) # [sr]
+
+      # Write the full catalog to the output path, if needed
+      if save:
+         self.writeCatalog()
+
+
+=======
+>>>>>>> 1072e133a38f4e52aad3fe317d72f075fc7636a6
+
+   ##################################################################################
+   ##################################################################################
+   
+   def plotFootprint(self):
+      """Overlay a scatter plot of the catalog positions on top of a healpix map,
+      here the AdvACT hit count map.
+      """
+      fig=plt.figure(0)
+      #
+      # hit count map for AdvACT
+      path = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/healpix_f150_daynight_all_div_mono.fits"
+      hHitMap = hp.read_map(path)
+      hp.mollview(np.log(np.abs(hHitMap)+1.e-5), fig=0, title="", coord=None, cbar=False, unit='')
+      #
+      # scatter plot of the catalog
+      hp.projscatter(self.RA, self.DEC, alpha=0.01, lonlat=True, marker='.', c='r', rasterized=True)
+      #
+      fig.savefig(self.pathFig+"/footprint_"+self.name+".pdf", dpi=1200)
+      fig.clf()
 
    ##################################################################################
    ##################################################################################
@@ -495,7 +584,6 @@ class Catalog(object):
       x = self.integratedTau / (np.pi * Thetavir**2) # [dimless]
       myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; \tau / \left( \pi \theta_\text{vir} \right)$ [dimless]', semilogx=True, semilogy=True)
 
-
       # expected kSZ [muK*arcmin^2]
       path = self.pathFig+"/hist_ksz.pdf"
       x = self.integratedKSZ * (180.*60./np.pi)**2 # [muK*arcmin^2]
@@ -516,6 +604,8 @@ class Catalog(object):
       x = self.integratedY / (np.pi * Thetavir**2) # [dimless]
       myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{tSZ} / \left( \pi \theta_\text{vir} \right)$ [dimless]', semilogx=True, semilogy=True)
 
+
+      # displacements?
       # displacements?
 
 
@@ -533,7 +623,7 @@ class Catalog(object):
       countDirac = carMap.copy()
       countDirac[:,:] = 0.
       velDirac = countDirac.copy()
-      
+
       for iObj in range(self.nObj):
 #      for iObj in range(10):
          if iObj%100000==0:
@@ -546,32 +636,51 @@ class Catalog(object):
          
          # find pixel indices (float) corresponding to ra, dec
          iY, iX = enmap.sky2pix(countDirac.shape, countDirac.wcs, sourcecoord, safe=True, corner=False)
+
          # nearest pixel
-         iY = np.int(round(iY) % countDirac.shape[0])
-         iX = np.int(round(iX) % countDirac.shape[1])
-         # fill the pixel
-         countDirac[iY, iX] = 1.
-         velDirac[iY, iX] = self.vR[iObj] / 3.e5   # v_r/c  [dimless]
-         
-         # check that I filled the right pixel
-         if countDirac.at(sourcecoord, prefilter=False, mask_nan=False, order=0)<>1:
-            print "Filled the wrong pixel for  object",iObj, ", ra, dec=", ra, dec
+         jY = np.int(round(iY))
+         jX = np.int(round(iX))
+
+         # Check that the object is within the map boundaries
+         if jX>=0 and jX<countDirac.shape[1] and jY>=0 and jY<countDirac.shape[0]:
+             # fill the pixel
+             countDirac[jY, jX] = 1.
+             velDirac[jY, jX] = - self.vR[iObj] / 3.e5   # v_r/c  [dimless]
+             
+             # check that I filled the right pixel
+             if countDirac.at(sourcecoord, prefilter=False, mask_nan=False, order=0)<>1:
+                print "Filled the wrong pixel for  object", iObj, ", ra, dec=", ra, dec
+                print iX, jX, countDirac.shape[1]
+                print iY, jY, countDirac.shape[0]
+
+
+      # normalize the mock maps, such that:
+      # int dOmega count = 1 [muK*arcmin^2]
+      # int dOmega vel = -(v/c) * sigma(v/c) [muK*arcmin^2]
+      # the reason for the vel normalization is that the kSZ estimator correlates with v/c,
+      # then divides by sigma^2(v/c), then re-multiplies by sigma(v/c),
+      # so that the estimated kSZ has the right amplitude.
+      # This way, the estimated tSZ and kSZ should converge to 1 muK*arcmin^2,
+      # and will be easily comparable to the theory curve.
+      countDirac /= countDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+      velDirac /= velDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+      velDirac *= np.std(self.vR / 3.e5)
 
       # save the maps
-      enmap.write(self.pathOut+"mock_count_dirac_car.fits", countDirac)
-      enmap.write(self.pathOut+"mock_vel_dirac_car.fits", velDirac)
+      enmap.write_map(self.pathOut+"mock_count_dirac_car.fits", countDirac)
+      enmap.write_map(self.pathOut+"mock_vel_dirac_car.fits", velDirac)
       
       if sigma is not None:
          # convolve maps with a Gaussian  profile of given sigma (not fwhm)
          sigma *= np.pi/180./60.  # convert from arcmin to [rad]
          countGauss = enmap.smooth_gauss(countDirac, sigma)
          velGauss = enmap.smooth_gauss(velDirac, sigma)
-         # renormalize the maps so the profiles integrate to 1:
-         # int d^2theta profile = 1, with theta in [rad]
-         countGauss /= enmap.pixsize(countDirac.shape, countDirac.wcs)
-         velGauss /= enmap.pixsize(countDirac.shape, countDirac.wcs)
-         
-         enmap.write(self.pathOut+"mock_count_gauss_car.fits", countGauss)
-         enmap.write(self.pathOut+"mock_vel_gauss_car.fits", velGauss)
 
+#         # renormalize the maps so the profiles integrate to 1:
+#         # int d^2theta profile = 1, with theta in [rad]
+#         countGauss /= countDirac.pixsize()
+#         velGauss /=  countDirac.pixsize()
+         
+         enmap.write_map(self.pathOut+"mock_count_gauss_car.fits", countGauss)
+         enmap.write_map(self.pathOut+"mock_vel_gauss_car.fits", velGauss)
 

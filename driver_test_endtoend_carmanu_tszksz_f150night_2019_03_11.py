@@ -93,27 +93,31 @@ cmassMariana.generateMockMaps(pactHit, sigma=1.5)
 
 ###################################################################################
 ###################################################################################
-# read the mock maps
-
-pathMap = cmassMariana.pathOut + "mock_count_dirac_car.fits"
-#pathMap = cmassMariana.pathOut + "mock_vel_dirac_car.fits"
-#pathMap = cmassMariana.pathOut + "mock_count_gauss_car.fits"
-#pathMap = cmassMariana.pathOut + "mock_vel_gauss_car.fits"
-
-#pactMap = enmap.read_map(pathMap)[0]   # keep only temperature
-pactMap = enmap.read_map(pathMap)
-
-
-###################################################################################
-###################################################################################
 
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
-# Stacking
-name = cmassMariana.name + "_pactf150night20190311_test_endtoend_counts_carmanu"
-#name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel"
+
+
+pathMap = cmassMariana.pathOut + "mock_count_dirac_car.fits"
+pactMap = enmap.read_map(pathMap)
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_dirac_carmanu"
+tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+
+pathMap = cmassMariana.pathOut + "mock_count_gauss_car.fits"
+pactMap = enmap.read_map(pathMap)
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_gauss_carmanu"
+tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+
+pathMap = cmassMariana.pathOut + "mock_vel_dirac_car.fits"
+pactMap = enmap.read_map(pathMap)
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
+tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+
+pathMap = cmassMariana.pathOut + "mock_vel_gauss_car.fits"
+pactMap = enmap.read_map(pathMap)
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
 tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
