@@ -47,22 +47,18 @@ massConversion = MassConversionKravtsov14()
 # Mariana
 
 # CMASS
-cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False)
-#cmassSMariana.plotHistograms()
-#cmassSMariana.plotFootprint()
-#cmassMariana.printProperties()
-#
-cmassNMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False)
-#cmassNMariana.plotHistograms()
-#cmassNMariana.plotFootprint()
-#cmassMariana.printProperties()
-#
+#cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False)
+#cmassNMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False)
 # combined catalog
-cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
-cmassMariana.addCatalog(cmassNMariana, save=False)
-#cmassMariana.plotHistograms()
-#cmassMariana.plotFootprint()
-#cmassMariana.printProperties()
+#cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
+#cmassMariana.addCatalog(cmassNMariana, save=True)
+cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False)
+
+# Shuffle velocities to kill the 2-halo term
+#cmassMarianaVShuffle = cmassMariana.copy(name="cmass_mariana_vshuffle", nameLong="CMASS M Vshuffle")
+#np.random.shuffle(cmassMarianaVShuffle.vR)
+#cmassMarianaVShuffle.writeCatalog()
+cmassMarianaVShuffle = Catalog(u, massConversion, name="cmass_mariana_vshuffle", nameLong="CMASS M Vshuffle", save=False)
 
 
 ###################################################################################
@@ -85,10 +81,18 @@ cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Fa
 
 ###################################################################################
 ###################################################################################
-# Generate mock maps for CMASS Mariana
+# Generate mock maps
 
-# Gaussian profiles with sigma=1.5'
-cmassMariana.generateMockMaps(pactHit, sigma=1.5)
+# Point sources and Gaussian profiles with sigma=1.5'
+#cmassMariana.generateMockMaps(pactHit, sigma=1.5)
+
+# Same for the catalog with shuffled velocities
+#cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
+
+
+###################################################################################
+###################################################################################
+
 
 
 ###################################################################################
@@ -113,12 +117,23 @@ tsCountGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name
 pathMap = cmassMariana.pathOut + "mock_vel_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
-tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_vel_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+
+# Same on mocks with shuffled velocities
+pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_dirac_car.fits"
+pactMap = enmap.read_map(pathMap)
+name = cmassMarianaVShuffle.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
+tsVelDiracVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+
+pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_gauss_car.fits"
+pactMap = enmap.read_map(pathMap)
+name = cmassMarianaVShuffle.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
+tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
 
@@ -161,6 +176,8 @@ ax.errorbar(tsCountDirac.RApArcmin, factor*tsCountDirac.stackedProfile['tsz_unif
 ax.errorbar(tsCountGauss.RApArcmin, factor*tsCountGauss.stackedProfile['tsz_uniformweight'], factor*tsCountGauss.sStackedProfile['tsz_uniformweight'], fmt='-', c='r', label=r'count Gauss')
 ax.errorbar(tsVelDirac.RApArcmin, factor*tsVelDirac.stackedProfile['ksz_uniformweight'], factor*tsVelDirac.sStackedProfile['ksz_uniformweight'], fmt='--', c='b', label=r'vel Dirac')
 ax.errorbar(tsVelGauss.RApArcmin, factor*tsVelGauss.stackedProfile['ksz_uniformweight'], factor*tsVelGauss.sStackedProfile['ksz_uniformweight'], fmt='-', c='b', label=r'vel Gauss')
+ax.errorbar(tsVelDiracVShuffle.RApArcmin, factor*tsVelDiracVShuffle.stackedProfile['ksz_uniformweight'], factor*tsVelDiracVShuffle.sStackedProfile['ksz_uniformweight'], fmt='--', c='g', label=r'vel Dirac v-shuffle')
+ax.errorbar(tsVelGaussVShuffle.RApArcmin, factor*tsVelGaussVShuffle.stackedProfile['ksz_uniformweight'], factor*tsVelGaussVShuffle.sStackedProfile['ksz_uniformweight'], fmt='-', c='g', label=r'vel Gauss v-shuffle')
 #
 ax.plot(tsCountDirac.RApArcmin, profile, 'k-', label=r'expected')
 #

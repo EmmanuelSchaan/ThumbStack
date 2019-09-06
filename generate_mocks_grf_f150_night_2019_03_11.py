@@ -27,7 +27,7 @@ import rotfuncs
 #########################################################################
 
 nProc = 10  # 32 cores on cori, but would run out of memory. 10 works. 15 runs out of memory.
-nMocks = 1000
+nMocks = 2
 
 pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/"
 pathOut = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
@@ -68,27 +68,45 @@ hitWcs = hitMap.wcs
 
 #########################################################################
 # Create the mocks
-'''
+
+## Generate healpix map, then convert to CAR
+#def genGRF(iMock):
+   ## set the random seed
+   #np.random.seed(iMock)
+   ## Generate GRF healpix map
+   #hpGrfMap = hp.synfast(Cl, nSide, lmax=None, mmax=None, alm=False, pol=False, pixwin=False, fwhm=0.0, sigma=None, new=False, verbose=False)
+   ## save healpix map
+   #hp.write_map(pathOut+"hp_mock_"+str(iMock)+"_grf_f150_daynight.fits", hpGrfMap, overwrite=True)
+   ## Convert to pixell CAR map
+   #grfMap = reproject.enmap_from_healpix(hpGrfMap, hitShape, hitWcs, rot=None)
+   ## save CAR map
+   #enmap.write_map(pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits", grfMap)
+
+
+# generate directly a CAR map
 def genGRF(iMock):
    # set the random seed
    np.random.seed(iMock)
-   # Generate GRF healpix map
-   hpGrfMap = hp.synfast(Cl, nSide, lmax=None, mmax=None, alm=False, pol=False, pixwin=False, fwhm=0.0, sigma=None, new=False, verbose=False)
-   # save healpix map
-   hp.write_map(pathOut+"hp_mock_"+str(iMock)+"_grf_f150_daynight.fits", hpGrfMap, overwrite=True)
-   # Convert to pixell CAR map
-   grfMap = reproject.enmap_from_healpix(hpGrfMap, hitShape, hitWcs, rot=None)
+   # Set up the cov argument
+   #cov = np.column_stack((L, Cl))
+   cov = Cl.copy()
+   #cov = np.zeros((1,1,len(Cl)))
+   #cov[0,0,:] = Cl.copy()
+   # generate the CAR map
+   #grfMap = enmap.rand_map(hitMap.shape, hitMap.wcs, cov[None,None], scalar=True, pixel_units=False)
+   grfMap = enmap.rand_map(hitMap.shape, hitMap.wcs, cov[None,None])
    # save CAR map
    enmap.write_map(pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits", grfMap)
 
 
 print "Generating mocks"
 tStart = time()
-with sharedmem.MapReduce(np=nProc) as pool:
-   np.array(pool.map(genGRF, range(nMocks)))
+#with sharedmem.MapReduce(np=nProc) as pool:
+#   np.array(pool.map(genGRF, range(nMocks)))
+np.array(map(genGRF, range(nMocks)))
 tStop = time()
 print "Took", (tStop-tStart)/60., "min"
-'''
+
 
 #########################################################################
 # Check that the power spectra match the input
@@ -174,19 +192,28 @@ def powerSpectrum(hMap, mask=None, theory=[], fsCl=None, nBins=51, lRange=None, 
 
 
 
+#def measurePower(iMock):
+   #print "- measuring power for mock", iMock
+   ## read the map
+   #hpGrfMap = hp.read_map(pathOut+"hp_mock_"+str(iMock)+"_grf_f150_daynight.fits")
+   ## measure its power spectrum
+   #lCen, Cl, sCl = powerSpectrum(hpGrfMap, nBins=101, lRange=None)
+   #return lCen, Cl, sCl
+
 def measurePower(iMock):
    print "- measuring power for mock", iMock
    # read the map
-   hpGrfMap = hp.read_map(pathOut+"hp_mock_"+str(iMock)+"_grf_f150_daynight.fits")
+   grfMap = enmap.read_map(pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits")
+   hpGrfMap = enmap.to_healpix(grfMap)
    # measure its power spectrum
    lCen, Cl, sCl = powerSpectrum(hpGrfMap, nBins=101, lRange=None)
    return lCen, Cl, sCl
 
-
 print "Checking power spectra"
 tStart = time()
-with sharedmem.MapReduce(np=nProc) as pool:
-   result = np.array(pool.map(measurePower, range(nMocks)))
+#with sharedmem.MapReduce(np=nProc) as pool:
+#   result = np.array(pool.map(measurePower, range(nMocks)))
+result = np.array(map(measurePower, range(nMocks)))
 tStop = time()
 print "Took", (tStop-tStart)/60., "min"
 
@@ -199,7 +226,7 @@ sClMocks = np.std(result[:,2,:], axis=0) / np.sqrt(nMocks)
 # save to file
 data = np.zeros((len(lCen), 3))
 data[:,0] = lCen
-data[:1] = ClMocks
+data[:,1] = ClMocks
 data[:,2] = sClMocks
 np.savetxt(pathOut + "mean_cl.txt", data)
 
@@ -215,6 +242,7 @@ ax.plot(L, L*(L+1.)/(2.*np.pi) * Cl, 'k', label=r'Input')
 for iMock in range(nMocks):
    ax.plot(lCen, factor * result[iMock,1,:], 'g', alpha=0.2)
 #
+ax.legend(loc=2)
 ax.set_ylim((1.e2, 1.e5))
 ax.set_xscale('log', nonposx='clip')
 ax.set_yscale('log', nonposy='clip')
@@ -222,5 +250,6 @@ ax.set_xlabel(r'$\ell$')
 ax.set_ylabel(r'$\ell(\ell+1) C_\ell / (2\pi)$')
 #
 fig.savefig(pathFig+"power_"+str(nMocks)+"mocks_grf_f150_daynight.pdf", bbox_inches='tight')
-fig.clf()
+#fig.clf()
 
+plt.show()
