@@ -621,6 +621,9 @@ class Catalog(object):
       countDirac[:,:] = 0.
       velDirac = countDirac.copy()
 
+      # get map of exact pixel sizes
+      pixSizeMap = countDirac.pixsizemap()
+
       for iObj in range(self.nObj):
 #      for iObj in range(10):
          if iObj%100000==0:
@@ -643,12 +646,17 @@ class Catalog(object):
              # fill the pixel
              countDirac[jY, jX] = 1.
              velDirac[jY, jX] = - self.vR[iObj] / 3.e5   # v_r/c  [dimless]
-             
+
              # check that I filled the right pixel
              if countDirac.at(sourcecoord, prefilter=False, mask_nan=False, order=0)<>1:
                 print "Filled the wrong pixel for  object", iObj, ", ra, dec=", ra, dec
                 print iX, jX, countDirac.shape[1]
                 print iY, jY, countDirac.shape[0]
+
+             # normalize to integrate to 1 over angles in [muK*arcmin^2]
+             countDirac[jY, jX] /= pixSizeMap[jY, jX] * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+             velDirac[jY, jX] /= pixSizeMap[jY, jX] * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+             
 
 
       # normalize the mock maps, such that:
@@ -659,8 +667,8 @@ class Catalog(object):
       # so that the estimated kSZ has the right amplitude.
       # This way, the estimated tSZ and kSZ should converge to 1 muK*arcmin^2,
       # and will be easily comparable to the theory curve.
-      countDirac /= countDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
-      velDirac /= velDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+#      countDirac /= countDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+#      velDirac /= velDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
       velDirac /= np.std(self.vR / 3.e5)
 
       # save the maps
