@@ -55,7 +55,7 @@ class ThumbStack(object):
          self.saveStackedProfiles()
       self.loadStackedProfiles()
 
-      if save:
+      if False:
          self.plotAllStackedProfiles()
          self.plotAllCov()
          self.computeAllSnr()
@@ -185,10 +185,16 @@ class ThumbStack(object):
       # extract the small square map by interpolating the big map
       # Here, I use nearest neighbor interpolation (order=0)
       # these are now numpy arrays: the wcs info is gone
-      stampMap[:,:] = self.cmbMap.at(ipos, prefilter=False, mask_nan=False, order=0)
-      stampMask[:,:] = self.cmbMask.at(ipos, prefilter=False, mask_nan=False, order=0)
-      stampHit[:,:] = self.cmbHit.at(ipos, prefilter=False, mask_nan=False, order=0)
+#      stampMap[:,:] = self.cmbMap.at(ipos, prefilter=False, mask_nan=False, order=0)
+#      stampMask[:,:] = self.cmbMask.at(ipos, prefilter=False, mask_nan=False, order=0)
+#      stampHit[:,:] = self.cmbHit.at(ipos, prefilter=False, mask_nan=False, order=0)
       
+      # use bilinear interpolation
+      stampMap[:,:] = self.cmbMap.at(ipos, prefilter=True, mask_nan=False, order=1)
+      stampMask[:,:] = self.cmbMask.at(ipos, prefilter=True, mask_nan=False, order=1)
+      stampHit[:,:] = self.cmbHit.at(ipos, prefilter=True, mask_nan=False, order=1)
+
+
       # re-threshold the mask map, to keep 0 and 1 only
       stampMask[:,:] = 1.*(stampMask[:,:]>0.5)
 

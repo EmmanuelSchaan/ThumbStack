@@ -1,5 +1,18 @@
-import numpy as np, time
+import numpy as np
+from time import time
 import matplotlib.pyplot as plt
+
+import universe
+reload(universe)
+from universe import *
+
+import mass_conversion
+reload(mass_conversion)
+from mass_conversion import *
+
+import catalog
+reload(catalog)
+from catalog import *
 
 import flat_map
 reload(flat_map)
@@ -14,11 +27,6 @@ from pixell import enmap, utils, powspec, enplot, reproject
 
 import healpy as hp
 
-# copy rotfuncs.py somewhere on your python path,
-# so you can import it
-import rotfuncs
-
-
 # for cori
 #plt.switch_backend('Agg')
 
@@ -27,7 +35,7 @@ import rotfuncs
 #########################################################################
 
 nProc = 10  # 32 cores on cori, but would run out of memory. 10 works. 15 runs out of memory.
-nMocks = 2
+nMocks = 100 
 
 pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/"
 pathOut = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
@@ -69,44 +77,44 @@ hitWcs = hitMap.wcs
 #########################################################################
 # Create the mocks
 
-## Generate healpix map, then convert to CAR
-#def genGRF(iMock):
-   ## set the random seed
-   #np.random.seed(iMock)
-   ## Generate GRF healpix map
-   #hpGrfMap = hp.synfast(Cl, nSide, lmax=None, mmax=None, alm=False, pol=False, pixwin=False, fwhm=0.0, sigma=None, new=False, verbose=False)
-   ## save healpix map
-   #hp.write_map(pathOut+"hp_mock_"+str(iMock)+"_grf_f150_daynight.fits", hpGrfMap, overwrite=True)
-   ## Convert to pixell CAR map
-   #grfMap = reproject.enmap_from_healpix(hpGrfMap, hitShape, hitWcs, rot=None)
-   ## save CAR map
-   #enmap.write_map(pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits", grfMap)
-
-
-# generate directly a CAR map
+# Generate healpix map, then convert to CAR
 def genGRF(iMock):
    # set the random seed
    np.random.seed(iMock)
-   # Set up the cov argument
-   #cov = np.column_stack((L, Cl))
-   cov = Cl.copy()
-   #cov = np.zeros((1,1,len(Cl)))
-   #cov[0,0,:] = Cl.copy()
-   # generate the CAR map
-   #grfMap = enmap.rand_map(hitMap.shape, hitMap.wcs, cov[None,None], scalar=True, pixel_units=False)
-   grfMap = enmap.rand_map(hitMap.shape, hitMap.wcs, cov[None,None])
+   # Generate GRF healpix map
+   hpGrfMap = hp.synfast(Cl, nSide, lmax=None, mmax=None, alm=False, pol=False, pixwin=False, fwhm=0.0, sigma=None, new=False, verbose=False)
+   # save healpix map
+   hp.write_map(pathOut+"hp_mock_"+str(iMock)+"_grf_f150_daynight.fits", hpGrfMap, overwrite=True)
+   # Convert to pixell CAR map
+   grfMap = reproject.enmap_from_healpix(hpGrfMap, hitShape, hitWcs, rot=None)
    # save CAR map
    enmap.write_map(pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits", grfMap)
 
 
+## generate directly a CAR map
+#def genGRF(iMock):
+   ## set the random seed
+   #np.random.seed(iMock)
+   ## Set up the cov argument
+   ##cov = np.column_stack((L, Cl))
+   #cov = Cl.copy()
+   ##cov = np.zeros((1,1,len(Cl)))
+   ##cov[0,0,:] = Cl.copy()
+   ## generate the CAR map
+   ##grfMap = enmap.rand_map(hitMap.shape, hitMap.wcs, cov[None,None], scalar=True, pixel_units=False)
+   #grfMap = enmap.rand_map(hitMap.shape, hitMap.wcs, cov[None,None])
+   ## save CAR map
+   #enmap.write_map(pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits", grfMap)
+
+'''
 print "Generating mocks"
 tStart = time()
-#with sharedmem.MapReduce(np=nProc) as pool:
-#   np.array(pool.map(genGRF, range(nMocks)))
-np.array(map(genGRF, range(nMocks)))
+with sharedmem.MapReduce(np=nProc) as pool:
+   np.array(pool.map(genGRF, range(nMocks)))
+#np.array(map(genGRF, range(nMocks)))
 tStop = time()
 print "Took", (tStop-tStart)/60., "min"
-
+'''
 
 #########################################################################
 # Check that the power spectra match the input
@@ -192,31 +200,31 @@ def powerSpectrum(hMap, mask=None, theory=[], fsCl=None, nBins=51, lRange=None, 
 
 
 
-#def measurePower(iMock):
-   #print "- measuring power for mock", iMock
-   ## read the map
-   #hpGrfMap = hp.read_map(pathOut+"hp_mock_"+str(iMock)+"_grf_f150_daynight.fits")
-   ## measure its power spectrum
-   #lCen, Cl, sCl = powerSpectrum(hpGrfMap, nBins=101, lRange=None)
-   #return lCen, Cl, sCl
-
 def measurePower(iMock):
    print "- measuring power for mock", iMock
    # read the map
-   grfMap = enmap.read_map(pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits")
-   hpGrfMap = enmap.to_healpix(grfMap)
+   hpGrfMap = hp.read_map(pathOut+"hp_mock_"+str(iMock)+"_grf_f150_daynight.fits")
    # measure its power spectrum
    lCen, Cl, sCl = powerSpectrum(hpGrfMap, nBins=101, lRange=None)
    return lCen, Cl, sCl
 
+#def measurePower(iMock):
+   #print "- measuring power for mock", iMock
+   ## read the map
+   #grfMap = enmap.read_map(pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits")
+   #hpGrfMap = enmap.to_healpix(grfMap)
+   ## measure its power spectrum
+   #lCen, Cl, sCl = powerSpectrum(hpGrfMap, nBins=101, lRange=None)
+   #return lCen, Cl, sCl
+
+'''
 print "Checking power spectra"
 tStart = time()
-#with sharedmem.MapReduce(np=nProc) as pool:
-#   result = np.array(pool.map(measurePower, range(nMocks)))
-result = np.array(map(measurePower, range(nMocks)))
+with sharedmem.MapReduce(np=nProc) as pool:
+   result = np.array(pool.map(measurePower, range(nMocks)))
+#result = np.array(map(measurePower, range(nMocks)))
 tStop = time()
 print "Took", (tStop-tStart)/60., "min"
-
 
 # get mean power from mocks
 lCen = result[0,0,:]
@@ -229,6 +237,14 @@ data[:,0] = lCen
 data[:,1] = ClMocks
 data[:,2] = sClMocks
 np.savetxt(pathOut + "mean_cl.txt", data)
+'''
+
+'''
+# read mean power spectrum from file
+data = np.genfromtxt(pathOut+"mean_cl.txt")
+lCen = data[:,0]
+ClMocks = data[:,1]
+sClMocks = data[:,2]
 
 # plot power spectrum
 fig=plt.figure(0)
@@ -239,8 +255,8 @@ ax.errorbar(lCen, factor * ClMocks, yerr=factor * sClMocks, fmt='.', label=r'Moc
 ax.plot(lCen, lCen*(lCen+1.)/(2.*np.pi) * ClStitched, 'k--', label=r'Input')
 ax.plot(L, L*(L+1.)/(2.*np.pi) * Cl, 'k', label=r'Input')
 #
-for iMock in range(nMocks):
-   ax.plot(lCen, factor * result[iMock,1,:], 'g', alpha=0.2)
+#for iMock in range(nMocks):
+#   ax.plot(lCen, factor * result[iMock,1,:], 'g', alpha=0.2)
 #
 ax.legend(loc=2)
 ax.set_ylim((1.e2, 1.e5))
@@ -253,3 +269,78 @@ fig.savefig(pathFig+"power_"+str(nMocks)+"mocks_grf_f150_daynight.pdf", bbox_inc
 #fig.clf()
 
 plt.show()
+'''
+
+
+
+##################################################################################
+##################################################################################
+##################################################################################
+# do the stacking on the mock maps
+
+nProc = 32 # 1 haswell node on cori
+
+# cosmological parameters
+u = UnivMariana()
+
+# M*-Mh relation
+massConversion = MassConversionKravtsov14()
+#massConversion.plot()
+
+###################################################################################
+# Galaxy catalogs
+
+###################################################################################
+# Mariana
+
+# CMASS
+#cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False)
+#cmassNMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False)
+# combined catalog
+#cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
+#cmassMariana.addCatalog(cmassNMariana, save=True)
+cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False)
+
+
+###################################################################################
+###################################################################################
+# Read CMB mask and hit count
+
+# path to true hit count map and mask: Planck + ACT
+pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/"
+pathHit = pathIn + "act_planck_f150_prelim_div_mono.fits"
+pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"
+pathPower = pathIn + "f150_power_T_masked.txt"
+
+# read maps in common for all mocks
+pactMask = enmap.read_map(pathMask)
+pactHit = enmap.read_map(pathHit)
+
+# theory power spectrum
+cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
+
+
+###################################################################################
+###################################################################################
+
+import thumbstack
+reload(thumbstack)
+from thumbstack import *
+
+
+def doStacking(iMock):
+   pathMap = pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits"
+   pactMap = enmap.read_map(pathMap)
+   name = cmassMariana.name + "_mockgrf"+str(iMock)+"_pactf150night20190311"
+   ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+
+print "Stacking on each mock map"
+tStart = time()
+with sharedmem.MapReduce(np=nProc) as pool:
+   result = np.array(pool.map(doStacking, range(nMocks)))
+#result = np.array(map(doStacking, range(nMocks)))
+tStop = time()
+print "Took", (tStop-tStart)/60., "min"
+
+print "All finished!"
+

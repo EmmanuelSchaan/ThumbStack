@@ -87,7 +87,7 @@ cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Fa
 #cmassMariana.generateMockMaps(pactHit, sigma=1.5)
 
 # Same for the catalog with shuffled velocities
-#cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
+cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
 
 
 ###################################################################################
@@ -128,7 +128,7 @@ tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, 
 pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffle.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
-tsVelDiracVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsVelDiracVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
@@ -141,29 +141,6 @@ tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pact
 ###################################################################################
 
 
-'''
-mask = tsCmassM.catalogMask(overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1.)
-print np.where(mask==True)
-
-iObj = 0
-filtMap, filtMask, filtNoiseStdDev, diskArea = tsCmassM.analyzeObject(iObj, test=True)
-print filtMap / hp.pixelfunc.nside2pixarea(8192)
-'''
-
-
-
-
-
-
-
-
-
-
-#tszMeas = tsCmassM.stackedProfile['tsz_uniformweight']
-#tszTh = tsCmassM.stackedProfile['tsz_uniformweight_theory_tsz']
-
-
-#print  tszTh / tszMeas
 
 # Gaussian with sigma = 1.5'
 profile = tsCountDirac.ftheoryGaussianProfile(1.5)
