@@ -162,6 +162,13 @@ class ThumbStack(object):
       Does it for the map, the mask and the hit count.
       """
 
+      # Make sure the number of pixels is (2*n+1),
+      # so that the object is exactly in the middle of the central pixel
+      nx = np.floor((dxDeg * 60. / resArcmin - 1.) / 2.) + 1.
+      dxDeg = (2. * nx + 1.) * resArcmin / 60.
+      ny = np.floor((dyDeg * 60. / resArcmin - 1.) / 2.) + 1.
+      dyDeg = (2. * ny + 1.) * resArcmin / 60.
+
       # define geometry of small square maps to be extracted
       # here dxDeg * dyDeg, with 0.25arcmin pixel
       # the center of the small square map will be specified later
@@ -361,6 +368,13 @@ class ThumbStack(object):
             
             # perform the filtering
             filtMap[iRAp], filtMask[iRAp], filtNoiseStdDev[iRAp], diskArea[iRAp] = self.diskRingFilter(opos, stampMap, stampMask, stampHit, r0, r1, test=test)
+
+#      if test:
+#         print " plot the measured profile"
+#         fig=plt.figure(0)
+#         ax=fig.add_subplot(111)
+#         #
+#         ax.plot(self.r, filtMap)
 
       return filtMap, filtMask, filtNoiseStdDev, diskArea
 
