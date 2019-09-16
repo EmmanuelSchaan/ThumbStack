@@ -54,6 +54,11 @@ massConversion = MassConversionKravtsov14()
 #cmassMariana.addCatalog(cmassNMariana, save=True)
 cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False)
 
+# keep only the first few objects, to speed things up
+#I = range(10000)
+#cmassMariana = cmassMariana.extractCatalog(I, name="mini_cmass_mariana", nameLong="mini CMASS M")
+cmassMariana = Catalog(u, massConversion, name="mini_cmass_mariana", nameLong="mini CMASS M", save=False) 
+
 # Shuffle velocities to kill the 2-halo term
 #cmassMarianaVShuffle = cmassMariana.copy(name="cmass_mariana_vshuffle", nameLong="CMASS M Vshuffle")
 #np.random.shuffle(cmassMarianaVShuffle.vR)
@@ -87,7 +92,7 @@ cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Fa
 #cmassMariana.generateMockMaps(pactHit, sigma=1.5)
 
 # Same for the catalog with shuffled velocities
-cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
+#cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
 
 
 ###################################################################################

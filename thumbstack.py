@@ -96,6 +96,9 @@ class ThumbStack(object):
    
    
    def saveOverlapFlag(self, thresh=1.e-5, nProc=1):
+      '''1 for objects that overlap with the hit map,
+      0 for objects that don't.
+      '''
       print "Create overlap flag"
       # find if a given object overlaps with the CMB hit map
       def foverlap(iObj):
