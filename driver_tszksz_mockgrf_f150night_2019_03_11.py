@@ -44,67 +44,40 @@ massConversion = MassConversionKravtsov14()
 
 ###################################################################################
 # Mariana
-
+'''
 # CMASS
 cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False)
-#cmassSMariana.plotHistograms()
-#cmassSMariana.plotFootprint()
-#cmassMariana.printProperties()
-#
 cmassNMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False)
-#cmassNMariana.plotHistograms()
-#cmassNMariana.plotFootprint()
-#cmassMariana.printProperties()
-#
 # combined catalog
-cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
-cmassMariana.addCatalog(cmassNMariana, save=False)
-#cmassMariana.plotHistograms()
-#cmassMariana.plotFootprint()
-#cmassMariana.printProperties()
-
+#cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
+#cmassMariana.addCatalog(cmassNMariana, save=True)
+cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False)
+'''
 
 ###################################################################################
 # Kendrick
 
 # CMASS
 cmassSKendrick = Catalog(u, massConversion, name="cmass_s_kendrick", nameLong="CMASS S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_S_kendrick.txt", save=False)
-#cmassSKendrick.plotHistograms()
-#cmassSKendrick.plotFootprint()
-#
 cmassNKendrick = Catalog(u, massConversion, name="cmass_n_kendrick", nameLong="CMASS N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_N_kendrick.txt", save=False)
-#cmassNKendrick.plotHistograms()
-#cmassNKendrick.plotFootprint()
-#
 # combined catalog
-cmassKendrick = cmassSKendrick.copy(name="cmass_kendrick", nameLong="CMASS K")
-cmassKendrick.addCatalog(cmassNKendrick, save=False)
-#cmassKendrick.plotHistograms()
-#cmassKendrick.plotFootprint()
-
+#cmassKendrick = cmassSKendrick.copy(name="cmass_kendrick", nameLong="CMASS K")
+#cmassKendrick.addCatalog(cmassNKendrick, save=True)
+cmassKendrick = Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False)
+'''
 # LOWZ
 lowzSKendrick = Catalog(u, massConversion, name="lowz_s_kendrick", nameLong="LOWZ S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_S_kendrick.txt", save=False)
-#lowzSKendrick.plotHistograms()
-#lowzSKendrick.plotFootprint()
-#
 lowzNKendrick = Catalog(u, massConversion, name="lowz_n_kendrick", nameLong="LOWZ N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_N_kendrick.txt", save=False)
-#lowzNKendrick.plotHistograms()
-#lowzNKendrick.plotFootprint()
-#
 # combined catalog
-lowzKendrick = lowzSKendrick.copy(name="lowz_kendrick", nameLong="LOWZ K")
-lowzKendrick.addCatalog(lowzNKendrick, save=False)
-#lowzKendrick.plotHistograms()
-#lowzKendrick.plotFootprint()
+#lowzKendrick = lowzSKendrick.copy(name="lowz_kendrick", nameLong="LOWZ K")
+#lowzKendrick.addCatalog(lowzNKendrick, save=True)
+lowzKendrick = Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False)
 
 # BOSS = CMASS + LOWZ
-bossKendrick = cmassSKendrick.copy(name="boss_kendrick", nameLong="BOSS K")
-bossKendrick.addCatalog(cmassNKendrick, save=False)
-bossKendrick.addCatalog(lowzSKendrick, save=False)
-bossKendrick.addCatalog(lowzNKendrick, save=False)
-#bossKendrick.plotHistograms()
-#bossKendrick.plotFootprint()
-
+#bossKendrick = cmassKendrick.copy(name="boss_kendrick", nameLong="BOSS K")
+#bossKendrick.addCatalog(lowzKendrick, save=True)
+bossKendrick = Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False)
+'''
 
 
 ###################################################################################
@@ -153,8 +126,8 @@ def analyzeMock(iMock):
    pactMap = enmap.read_map(pathMap)#[0]   # keep only temperature
 
    # Stacking
-   name = cmassKendrick.name + "_pactf150night20190311_mock"+str(iMock)
-   tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+   name = cmassSKendrick.name + "_pactf150night20190311_mock"+str(iMock)
+   tsCmassSK = ThumbStack(u, cmassSKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
    return
 
