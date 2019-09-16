@@ -60,6 +60,26 @@ class Catalog(object):
       return newCat
 
 
+   def extractCatalog(self, I, name="test", nameLong=None):
+      """create and return a new catalog object,
+      keeping only the objects with indices in I
+      """
+      # new catalog path
+      newPathOut = "./output/catalog/"+name
+      if not os.path.exists(newPathOut):
+         os.makedirs(newPathOut)
+      newPathOutCatalog = newPathOut + "/catalog.txt"
+      # read the current catalog
+      data = np.genfromtxt(self.pathOutCatalog)
+      # keep only objects with indices in I
+      data = data[I,:]
+      # save it to new catalog path
+      np.savetxt(newPathOutCatalog, data)
+      # Then copy the catalog properties
+      newCat = Catalog(self.U, self.MassConversion, name=name, nameLong=nameLong, pathInCatalog=self.pathInCatalog, save=False)
+      return newCat
+
+
    ##################################################################################
    ##################################################################################
 
