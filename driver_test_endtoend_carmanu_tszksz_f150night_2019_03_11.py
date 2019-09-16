@@ -54,16 +54,27 @@ massConversion = MassConversionKravtsov14()
 #cmassMariana.addCatalog(cmassNMariana, save=True)
 cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False)
 
-# keep only the first few objects, to speed things up
-#I = range(10000)
-#cmassMariana = cmassMariana.extractCatalog(I, name="mini_cmass_mariana", nameLong="mini CMASS M")
-cmassMariana = Catalog(u, massConversion, name="mini_cmass_mariana", nameLong="mini CMASS M", save=False) 
 
 # Shuffle velocities to kill the 2-halo term
 #cmassMarianaVShuffle = cmassMariana.copy(name="cmass_mariana_vshuffle", nameLong="CMASS M Vshuffle")
 #np.random.shuffle(cmassMarianaVShuffle.vR)
 #cmassMarianaVShuffle.writeCatalog()
 cmassMarianaVShuffle = Catalog(u, massConversion, name="cmass_mariana_vshuffle", nameLong="CMASS M Vshuffle", save=False)
+
+
+
+###################################################################################
+
+# keep only the first few objects, to speed things up
+#I = range(10000)
+#cmassMariana = cmassMariana.extractCatalog(I, name="mini_cmass_mariana", nameLong="mini CMASS M")
+#cmassMariana = Catalog(u, massConversion, name="mini_cmass_mariana", nameLong="mini CMASS M", save=False) 
+
+# Shuffle velocities to kill the 2-halo term
+#cmassMarianaVShuffle = cmassMariana.copy(name="mini_cmass_mariana_vshuffle", nameLong="mini CMASS M Vshuffle")
+#np.random.shuffle(cmassMarianaVShuffle.vR)
+#cmassMarianaVShuffle.writeCatalog()
+#cmassMarianaVShuffle = Catalog(u, massConversion, name="mini_cmass_mariana_vshuffle", nameLong="mini CMASS M Vshuffle", save=False)
 
 
 ###################################################################################
@@ -112,22 +123,22 @@ from thumbstack import *
 pathMap = cmassMariana.pathOut + "mock_count_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_dirac_carmanu"
-tsCountDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCountDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_count_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_gauss_carmanu"
-tsCountGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCountGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_vel_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
-tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_vel_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 # Same on mocks with shuffled velocities
 pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_dirac_car.fits"
@@ -138,7 +149,7 @@ tsVelDiracVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pact
 pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffle.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 
@@ -163,7 +174,7 @@ ax.errorbar(tsVelGaussVShuffle.RApArcmin, factor*tsVelGaussVShuffle.stackedProfi
 #
 ax.plot(tsCountDirac.RApArcmin, profile, 'k-', label=r'expected')
 #
-ax.legend(loc=2)
+ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
 #
 fig.savefig(tsCountDirac.pathFig+"/test_mean_stacked_temperature.pdf")
 #fig.clf()

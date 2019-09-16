@@ -154,7 +154,7 @@ def analyzeMock(iMock):
 
    # Stacking
    name = cmassKendrick.name + "_pactf150night20190311_mock"+str(iMock)
-   tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=1)
+   tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
    return
 
@@ -164,8 +164,8 @@ def analyzeMock(iMock):
 
 # set of mocks
 nMocks = 1000
-#IMocks = range(nMocks)
-IMocks = [0]
+IMocks = range(100)
+#IMocks = [0]
 
 # run analysis serially
 tStart = time()

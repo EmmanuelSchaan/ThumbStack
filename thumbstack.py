@@ -186,16 +186,22 @@ class ThumbStack(object):
       ipos = rotfuncs.recenter(opos[::-1], [0,0,sourcecoord[0],sourcecoord[1]])[::-1]
 
       # extract the small square map by interpolating the big map
-      # Here, I use nearest neighbor interpolation (order=0)
       # these are now numpy arrays: the wcs info is gone
+
+#      # Here, I use nearest neighbor interpolation (order=0)
 #      stampMap[:,:] = self.cmbMap.at(ipos, prefilter=False, mask_nan=False, order=0)
 #      stampMask[:,:] = self.cmbMask.at(ipos, prefilter=False, mask_nan=False, order=0)
 #      stampHit[:,:] = self.cmbHit.at(ipos, prefilter=False, mask_nan=False, order=0)
       
-      # use bilinear interpolation
+      # Here, I use bilinear interpolation
       stampMap[:,:] = self.cmbMap.at(ipos, prefilter=True, mask_nan=False, order=1)
       stampMask[:,:] = self.cmbMask.at(ipos, prefilter=True, mask_nan=False, order=1)
       stampHit[:,:] = self.cmbHit.at(ipos, prefilter=True, mask_nan=False, order=1)
+
+#      # Here, I use bicubic spline interpolation
+#      stampMap[:,:] = self.cmbMap.at(ipos, prefilter=True, mask_nan=False, order=3)
+#      stampMask[:,:] = self.cmbMask.at(ipos, prefilter=True, mask_nan=False, order=3)
+#      stampHit[:,:] = self.cmbHit.at(ipos, prefilter=True, mask_nan=False, order=3)
 
 
       # re-threshold the mask map, to keep 0 and 1 only
