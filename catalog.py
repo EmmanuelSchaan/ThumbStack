@@ -644,6 +644,9 @@ class Catalog(object):
       # get map of exact pixel sizes
       pixSizeMap = countDirac.pixsizemap()
 
+      # get map of ra and dec, just to check
+      posmap = countDirac.posmap()
+
       for iObj in range(self.nObj):
 #      for iObj in range(10):
          if iObj%100000==0:
@@ -657,21 +660,27 @@ class Catalog(object):
          # find pixel indices (float) corresponding to ra, dec
          iY, iX = enmap.sky2pix(countDirac.shape, countDirac.wcs, sourcecoord, safe=True, corner=False)
 
-         # nearest pixel
-         jY = np.int(round(iY))
-         jX = np.int(round(iX))
-
          # Check that the object is within the map boundaries
-         if jX>=0 and jX<countDirac.shape[1] and jY>=0 and jY<countDirac.shape[0]:
+         # before rounding the indices
+         if iX>=0 and iX<=(countDirac.shape[1]-1) and iY>=0 and iY<=(countDirac.shape[0]-1):
+             # nearest pixel
+             # watch out for difference round VS np.round!
+             jY = np.int(round(iY))
+             jX = np.int(round(iX))
+
              # fill the pixel
              countDirac[jY, jX] = 1.
              velDirac[jY, jX] = - self.vR[iObj] / 3.e5   # v_r/c  [dimless]
 
              # check that I filled the right pixel
              if countDirac.at(sourcecoord, prefilter=False, mask_nan=False, order=0)<>1:
-                print "Filled the wrong pixel for  object", iObj, ", ra, dec=", ra, dec
-                print iX, jX, countDirac.shape[1]
-                print iY, jY, countDirac.shape[0]
+                print "Filled the wrong pixel for  object", iObj
+                print "wanted ra, dec=", ra, dec # [deg]
+                print "chosen closest ra, dec=", posmap[::-1, jY, jX] * 180./np.pi  # [deg]
+                print "difference in arcmin=", (posmap[::-1, jY, jX] * 180./np.pi - np.array([ra, dec]))*60.  # residual in [arcmin]
+                print "ra index=", iX, jX, np.int(np.round(iX)), countDirac.shape[1]
+                print "dec index=", iY, jY, np.int(np.round(iY)), countDirac.shape[0]
+                
 
              # normalize to integrate to 1 over angles in [muK*arcmin^2]
              countDirac[jY, jX] /= pixSizeMap[jY, jX] * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
