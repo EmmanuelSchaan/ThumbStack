@@ -241,6 +241,7 @@ class ThumbStack(object):
 
    ##################################################################################
 
+
    def diskRingFilter(self, opos, stampMap, stampMask, stampHit, r0, r1, test=False):
       """Apply an AP filter (disk minus ring) to a stamp map:
       AP = int d^2theta * Filter * map.
@@ -316,6 +317,9 @@ class ThumbStack(object):
          enplot.write(self.pathTestFig+"/stampfilter_r0"+floatExpForm(r0)+"_r1"+floatExpForm(r1), plots)
 
       return filtMap, filtMask, filtNoiseStdDev, diskArea
+
+
+
 
 
    ##################################################################################
@@ -445,6 +449,20 @@ class ThumbStack(object):
       #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       return mask
 
+
+   ##################################################################################
+
+
+   def measureVarFromHitCount(self, plot=False):
+      """Returns a list of functions, one for each AP filter radius,
+      where the function takes filtNoiseStdDev**2 \propto [(map var) * sr^2] as input and returns the
+      actual measured filter variance [(map unit)^2 * sr^2].
+      The functions are expected to be linear if the detector noise is the main source of noise,
+      and if the hit counts indeed reflect the detector noise.
+      To be used for noise weighting in the stacking.
+      """
+      print "- interpolate the relation hit count - noise"
+      # keep only objects that overlap, and mask point sources
 
    ##################################################################################
 
@@ -909,6 +927,94 @@ class ThumbStack(object):
       return (1. - np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2))**2
 
 
+   def ftheoryGaussianProfilePixelated(self, sigma_cluster=1.5, dxDeg=0.3, dyDeg= 0.3, resArcmin=0.25, proj='cea', test=False):
+         """Alpha_ksz signal, between 0 and 1.
+         Assumes that the projected cluster profile is a 2d Gaussian,
+         with sigma_cluster in arcmin
+         Assumes equal area disk-ring filter.
+         This version is not analytical, but instead generates a mock cutout map
+         with a Gaussian profile, and runs the AP filters on it.
+         This takes into account the discreteness of the edges of the AP filters
+         due to the pixelation of the map
+         """
+
+         ###########################################
+         # generate pixellized cluster profile map
+
+         # Make sure the number of pixels is (2*n+1),
+         # so that the object is exactly in the middle of the central pixel
+         nx = np.floor((dxDeg * 60. / resArcmin - 1.) / 2.) + 1.
+         dxDeg = (2. * nx + 1.) * resArcmin / 60.
+         ny = np.floor((dyDeg * 60. / resArcmin - 1.) / 2.) + 1.
+         dyDeg = (2. * ny + 1.) * resArcmin / 60.
+
+         # generate null map
+         shape, wcs = enmap.geometry(np.array([[-0.5*dxDeg,-0.5*dyDeg],[0.5*dxDeg,0.5*dyDeg]])*utils.degree, res=resArcmin*utils.arcmin, proj=proj)
+         stampMap = enmap.zeros(shape, wcs)
+         #
+         opos = stampMap.posmap()
+
+         # fill the central pixel
+         ra = 0.
+         dec = 0.
+         # coordinates in [rad]
+         sourcecoord = np.array([dec, ra]) * np.pi/180.
+
+         # find pixel indices (float) corresponding to ra, dec
+         iY, iX = enmap.sky2pix(shape, wcs, sourcecoord, safe=True, corner=False)
+
+         # nearest pixel
+         jY = np.int(round(iY))
+         jX = np.int(round(iX))
+
+         # fill in the central pixel
+         # and normalize to integrate to 1 over angles in [muK*sr]
+         pixSizeMap = stampMap.pixsizemap()
+         stampMap[jY, jX] = 1. / pixSizeMap[jY, jX] # divide by pixel area in sr
+
+         # convolve map with a Gaussian  profile of given sigma (not fwhm)
+         stampMap = enmap.smooth_gauss(stampMap, sigma_cluster * np.pi/180./60.) # convert from arcmin to [rad]
+
+
+         ###########################################
+         # perform the AP filtering
+
+         # create arrays of filter values for the given object
+         filtMap = np.zeros(self.nRAp)
+     
+         # loop over the radii for the AP filter
+         for iRAp in range(self.nRAp):
+            # Disk radius in rad
+            r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
+            # choose an equal area AP filter
+            r1 = r0 * np.sqrt(2.)
+            
+            # perform the filtering
+            filtMap[iRAp],_,_,_ = self.diskRingFilter(opos, stampMap, stampMap, stampMap, r0, r1, test=False)
+         
+         
+         if test:
+            # compare to the non-pixelated theory profile
+            nonPixelated = self.ftheoryGaussianProfile(sigma_cluster)
+            
+            fig=plt.figure(0)
+            ax=fig.add_subplot(111)
+            #
+            ax.plot(self.RApArcmin, nonPixelated, 'k-', label=r'Analytical')
+            ax.plot(self.RApArcmin, filtMap, 'b--', label=r'Pixelated')
+            #
+            ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
+            
+            plt.show()
+         
+         
+         return filtMap
+
+
+
+   ##################################################################################
+
+
    def computeSnrStack(self, est):
       """Compute null rejection, SNR (=detection significance)
       for the requested estimator.
@@ -1008,20 +1114,6 @@ class ThumbStack(object):
 
 
 
-
-
-
-
-   ##################################################################################
-   ##################################################################################
-   ##################################################################################
-
-#   def examineHistograms(self, fsAp=[]):
-#      """fsAp is an optional list of functions of rAp in radians, which return the expected std def of the AP filter
-#      """
-#
-##      self.catalogMask(overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1.)
-##      path = self.pathFig+"/hist_x.pdf"
 ##      myHistogram(DEC[mask], nBins=71, lim=(-90., 90.), path=path, nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False)
 #
 #      # first, keep all objects that overlap, even the masked ones
