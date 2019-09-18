@@ -927,7 +927,7 @@ class ThumbStack(object):
       return (1. - np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2))**2
 
 
-   def ftheoryGaussianProfilePixelated(self, sigma_cluster=1.5, dxDeg=0.3, dyDeg= 0.3, resArcmin=0.25, proj='cea', test=False):
+   def ftheoryGaussianProfilePixelated(self, sigma_cluster=1.5, dxDeg=0.3, dyDeg= 0.3, resArcmin=0.25, proj='cea', pixwin=0, test=False):
          """Alpha_ksz signal, between 0 and 1.
          Assumes that the projected cluster profile is a 2d Gaussian,
          with sigma_cluster in arcmin
@@ -974,6 +974,10 @@ class ThumbStack(object):
 
          # convolve map with a Gaussian  profile of given sigma (not fwhm)
          stampMap = enmap.smooth_gauss(stampMap, sigma_cluster * np.pi/180./60.) # convert from arcmin to [rad]
+
+         # apply the pixel window function if desired
+         if pixwin<>0:
+            stampMap = enmap.apply_window(stampMap, pow=pixwin)
 
 
          ###########################################

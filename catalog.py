@@ -700,6 +700,12 @@ class Catalog(object):
 #      velDirac /= velDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
       velDirac /= np.std(self.vR / 3.e5)
 
+#      # undo one power of the window function,
+#      # to undo the fact that I placed the galaxies at the center of the nearest pixel,
+#      # as opposed to their exact position within the pixel
+#      countDirac = enmap.apply_window(countDirac, pow=-1)
+#      velDirac = enmap.apply_window(velDirac, pow=-1)
+
       # save the maps
       enmap.write_map(self.pathOut+"mock_count_dirac_car.fits", countDirac)
       enmap.write_map(self.pathOut+"mock_vel_dirac_car.fits", velDirac)
@@ -710,10 +716,12 @@ class Catalog(object):
          countGauss = enmap.smooth_gauss(countDirac, sigma)
          velGauss = enmap.smooth_gauss(velDirac, sigma)
 
-#         # renormalize the maps so the profiles integrate to 1:
-#         # int d^2theta profile = 1, with theta in [rad]
-#         countGauss /= countDirac.pixsize()
-#         velGauss /=  countDirac.pixsize()
+         # undo one power of the window function,
+         # to undo the fact that I placed the galaxies at the center of the nearest pixel,
+         # as opposed to their exact position within the pixel
+         # individual profiles will look weird, but the stack should then be correct
+         countGauss = enmap.apply_window(countGauss, pow=-1)
+         velGauss = enmap.apply_window(velGauss, pow=-1)
          
          enmap.write_map(self.pathOut+"mock_count_gauss_car.fits", countGauss)
          enmap.write_map(self.pathOut+"mock_vel_gauss_car.fits", velGauss)
