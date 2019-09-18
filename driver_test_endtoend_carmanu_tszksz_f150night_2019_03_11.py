@@ -161,6 +161,7 @@ tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pact
 # Gaussian with sigma = 1.5'
 profile = tsCountDirac.ftheoryGaussianProfile(1.61) # 1.5
 profilePix = tsCountDirac.ftheoryGaussianProfilePixelated(1.61) # 1.5
+profilePixPixwin = tsCountDirac.ftheoryGaussianProfilePixelated(1.5, pixwin=True) # 1.5
 
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
@@ -175,6 +176,7 @@ ax.errorbar(tsVelGaussVShuffle.RApArcmin, factor*tsVelGaussVShuffle.stackedProfi
 #
 ax.plot(tsCountDirac.RApArcmin, profile, 'k-', label=r'expected')
 ax.plot(tsCountDirac.RApArcmin, profilePix, 'k--', label=r'expected, pixelated')
+ax.plot(tsCountDirac.RApArcmin, profilePixPixwin, 'y-', label=r'expected, pixelated, pixwin')
 #
 ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
 #
