@@ -99,7 +99,7 @@ def floatExpForm(input):
 ##################################################################################
 
 
-def myHistogram(X, nBins=71, lim=None, S2Theory=[], path='./test.pdf', nameLatex=r'$x$', semilogx=False, semilogy=False, doGauss=False):
+def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=False, nameLatex=r'$x$', semilogx=False, semilogy=False, doGauss=False):
    """Generic histogram plotter.
    Flattens the input array X first thing.
    """
@@ -156,13 +156,16 @@ def myHistogram(X, nBins=71, lim=None, S2Theory=[], path='./test.pdf', nameLatex
    ax.set_ylim((0.5*np.min(histX[histX>0]), 2.*np.max(histX)))
    ax.set_xlabel(nameLatex)
    ax.set_ylabel(r'number of objects')
-   fig.savefig(path, bbox_inches='tight')
-   fig.clf()
-#      plt.show()
+   if path is not None:
+      fig.savefig(path, bbox_inches='tight')
+   if plot:
+      plt.show()
+   else:
+      fig.clf()
 
 
 
-def my2dHistogram(X, Y, nBins=(71, 71), limx=None, limy=None, limc=None, fTheory=[], path='./test.pdf', nameLatexX=r'$x$', nameLatexY=r'$y$', logx=False, logy=False, logColor=False, cmap=plt.cm.jet):
+def my2dHistogram(X, Y, nBins=(71, 71), limx=None, limy=None, limc=None, fTheory=[], path=None, plot=False, nameLatexX=r'$x$', nameLatexY=r'$y$', logx=False, logy=False, logColor=False, cmap=plt.cm.jet):
    """Generic 2d histogram plotter.
    """
    # limits for bins and colors
@@ -210,7 +213,10 @@ def my2dHistogram(X, Y, nBins=(71, 71), limx=None, limy=None, limc=None, fTheory
    ax.set_ylim((limy[0], limy[1]))
    ax.set_xlabel(nameLatexX)
    ax.set_ylabel(nameLatexY)
-   fig.savefig(path, bbox_inches='tight')
-   fig.clf()
-#   plt.show()
+   if path is not None:
+      fig.savefig(path, bbox_inches='tight')
+   if plot:
+      plt.show()
+   else:
+      fig.clf()
 

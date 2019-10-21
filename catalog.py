@@ -630,10 +630,17 @@ class Catalog(object):
 ##################################################################################
 
 
-   def generateMockMaps(self, carMap, sigma=None):
+   def generateMockMaps(self, carMap, sigma=None, depixwin=True):
       """Generate mock maps with 1 at the pixel location of each  object, 0 everywhere else.
       If sigma [arcmin] is specified, produces also Gaussian smoothed versions,
       normalized such that   int d^2theta profile = 1, where theta is in [rad].
+      If depixwin==True, the Gaussian profile map is deconvolved with one power
+      of the pixel window function. This messes up the individual profile, 
+      but ensures that the stacked profile is correct, by correcting the fact that 
+      the galaxy profiles were placed at the center of the nearest pixel, 
+      as opposed to the exact position within the pixel.
+      This operation is not done on the Dirac maps, since the slight miscentering
+      has no observable impact there.
       """
       print "- Generate mock maps"
       # create empty maps
@@ -703,8 +710,9 @@ class Catalog(object):
 #      # undo one power of the window function,
 #      # to undo the fact that I placed the galaxies at the center of the nearest pixel,
 #      # as opposed to their exact position within the pixel
-#      countDirac = enmap.apply_window(countDirac, pow=-1)
-#      velDirac = enmap.apply_window(velDirac, pow=-1)
+#      if depixwin:
+#         countDirac = enmap.apply_window(countDirac, pow=-1)
+#         velDirac = enmap.apply_window(velDirac, pow=-1)
 
       # save the maps
       enmap.write_map(self.pathOut+"mock_count_dirac_car.fits", countDirac)
@@ -720,8 +728,9 @@ class Catalog(object):
          # to undo the fact that I placed the galaxies at the center of the nearest pixel,
          # as opposed to their exact position within the pixel
          # individual profiles will look weird, but the stack should then be correct
-         countGauss = enmap.apply_window(countGauss, pow=-1)
-         velGauss = enmap.apply_window(velGauss, pow=-1)
+         if depixwin:
+            countGauss = enmap.apply_window(countGauss, pow=-1)
+            velGauss = enmap.apply_window(velGauss, pow=-1)
          
          enmap.write_map(self.pathOut+"mock_count_gauss_car.fits", countGauss)
          enmap.write_map(self.pathOut+"mock_vel_gauss_car.fits", velGauss)

@@ -100,7 +100,7 @@ cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Fa
 # Generate mock maps
 
 # Point sources and Gaussian profiles with sigma=1.5'
-cmassMariana.generateMockMaps(pactHit, sigma=1.5)
+#cmassMariana.generateMockMaps(pactHit, sigma=1.5)
 
 # Same for the catalog with shuffled velocities
 #cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
@@ -159,9 +159,9 @@ tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pact
 
 
 # Gaussian with sigma = 1.5'
-profile = tsCountDirac.ftheoryGaussianProfile(1.61) # 1.5
-profilePix = tsCountDirac.ftheoryGaussianProfilePixelated(1.61) # 1.5
-profilePixPixwin = tsCountDirac.ftheoryGaussianProfilePixelated(1.5, pixwin=True) # 1.5
+profile = tsCountDirac.ftheoryGaussianProfile(1.5) # 1.61
+profilePix = tsCountDirac.ftheoryGaussianProfilePixelated(1.5) # 1.61
+#profilePixPixwin = tsCountDirac.ftheoryGaussianProfilePixelated(1.5, pixwin=True) # 1.5
 
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
@@ -176,7 +176,7 @@ ax.errorbar(tsVelGaussVShuffle.RApArcmin, factor*tsVelGaussVShuffle.stackedProfi
 #
 ax.plot(tsCountDirac.RApArcmin, profile, 'k-', label=r'expected')
 ax.plot(tsCountDirac.RApArcmin, profilePix, 'k--', label=r'expected, pixelated')
-ax.plot(tsCountDirac.RApArcmin, profilePixPixwin, 'y-', label=r'expected, pixelated, pixwin')
+#ax.plot(tsCountDirac.RApArcmin, profilePixPixwin, 'y-', label=r'expected, pixelated, pixwin')
 #
 ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
 #
