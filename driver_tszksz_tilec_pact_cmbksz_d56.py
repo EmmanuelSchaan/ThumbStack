@@ -186,7 +186,7 @@ tsBossK = ThumbStack(u, bossKendrick, pactMap, pactMask, pactHit, name=name, nam
 
 ###################################################################################
 # Plot kSZ for the various samples
-
+'''
 
 # plot CMASS Mariana
 fig=plt.figure(0)
@@ -345,4 +345,4 @@ ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
 path = tsBossK.pathFig+"/tsz_kendrick.pdf"
 fig.savefig(path, bbox_inches='tight')
 fig.clf()
-
+'''

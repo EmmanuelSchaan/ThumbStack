@@ -286,7 +286,13 @@ class ThumbStack(object):
       filtMask = np.sum((radius<=r1) * (1-stampMask))   # [dimensionless]
       
       # quantify noise std dev in the filter
-      filtNoiseStdDev = np.sqrt(np.sum((pixArea * filter)**2 / stampHit)) # to get the std devs [sr / sqrt(hit unit)]
+      #!!! hardcoding a small number to avoid dividing by zero. Ugly.
+      filtNoiseStdDev = np.sqrt(np.sum((pixArea * filter)**2 / (1.e-16 + stampHit))) # to get the std devs [sr / sqrt(hit unit)]
+      
+      #print "filtNoiseStdDev = ", filtNoiseStdDev
+      if np.isnan(filtNoiseStdDev):
+         print "filtNoiseStdDev is nan"
+         print stampHit
 
 
       if test:
@@ -452,21 +458,6 @@ class ThumbStack(object):
 
    ##################################################################################
 
-
-   def measureVarFromHitCount(self, plot=False):
-      """Returns a list of functions, one for each AP filter radius,
-      where the function takes filtNoiseStdDev**2 \propto [(map var) * sr^2] as input and returns the
-      actual measured filter variance [(map unit)^2 * sr^2].
-      The functions are expected to be linear if the detector noise is the main source of noise,
-      and if the hit counts indeed reflect the detector noise.
-      To be used for noise weighting in the stacking.
-      """
-      print "- interpolate the relation hit count - noise"
-      # keep only objects that overlap, and mask point sources
-
-   ##################################################################################
-
-
    def measureVarFromHitCount(self, plot=False):
       """Returns a list of functions, one for each AP filter radius,
       where the function takes filtNoiseStdDev**2 \propto [(map var) * sr^2] as input and returns the
@@ -485,41 +476,54 @@ class ThumbStack(object):
          y = self.filtMap[mask, iRAp].copy()
          y = (y - np.mean(y))**2
 
-         # define bins of hit count values
-         nBins = 21
-         BinsX = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
+         print "values in x"
+         print np.mean(x), np.std(x), np.max(x), np.min(x)
+         print "values in y"
+         print np.mean(y), np.std(y), np.max(y), np.min(y)
+
          
-         # compute histograms
-         binCenters, binEdges, binIndices = stats.binned_statistic(x, x, statistic='mean', bins=BinsX)
-         binCounts, binEdges, binIndices = stats.binned_statistic(x, x, statistic='count', bins=BinsX)
-         binnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.mean, bins=BinsX)
-         sBinnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.std, bins=BinsX)
-         sBinnedVar /= np.sqrt(binCounts)
-         
-         # interpolate, to use as noise weighting
-         self.fVarFromHitCount.append( interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) )
-         
-         if plot:
-            # plot
-            fig=plt.figure(0)
-            ax=fig.add_subplot(111)
-            #
-            # measured
-            ax.errorbar(binCenters, binnedVar*(180.*60./np.pi)**2, yerr=sBinnedVar*(180.*60./np.pi)**2, fmt='.', label=r'measured')
-            #
-            # interpolated
-            newX = np.logspace(np.log10(np.min(x)/2.), np.log10(np.max(x)*2.), 10.*nBins, 10.)
-            newY = np.array(map(self.fVarFromHitCount[iRAp], newX))
-            ax.plot(newX, newY*(180.*60./np.pi)**2, label=r'interpolated')
-            #
-            ax.set_xscale('log', nonposx='clip')
-            ax.set_yscale('log', nonposy='clip')
-            ax.set_xlabel(r'Det. noise var. from combined hit [arbitrary]')
-            ax.set_ylabel(r'Measured var. [$\mu$K.arcmin$^2$]')
-            #
-            path = self.pathFig+"/binned_noise_vs_hit"+str(iRAp)+".pdf"
-            fig.savefig(path, bbox_inches='tight')
-            fig.clf()
+         # Check whether the hit count actually varies appreciably,
+         # otherwise use uniform weighting
+         if np.std(x) < 0.001 * np.mean(x):
+            print "Using uniform weighting: hit count does not vary much."
+            self.fVarFromHitCount.append(lambda x: np.mean(y)*np.ones_like(x))
+         else:
+            print "Using hit count weighting: hit count varies much."
+            # define bins of hit count values
+            nBins = 21
+            BinsX = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
+            
+            # compute histograms
+            binCenters, binEdges, binIndices = stats.binned_statistic(x, x, statistic='mean', bins=BinsX)
+            binCounts, binEdges, binIndices = stats.binned_statistic(x, x, statistic='count', bins=BinsX)
+            binnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.mean, bins=BinsX)
+            sBinnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.std, bins=BinsX)
+            sBinnedVar /= np.sqrt(binCounts)
+            
+            # interpolate, to use as noise weighting
+            self.fVarFromHitCount.append( interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) )
+            
+            if plot:
+               # plot
+               fig=plt.figure(0)
+               ax=fig.add_subplot(111)
+               #
+               # measured
+               ax.errorbar(binCenters, binnedVar*(180.*60./np.pi)**2, yerr=sBinnedVar*(180.*60./np.pi)**2, fmt='.', label=r'measured')
+               #
+               # interpolated
+               newX = np.logspace(np.log10(np.min(x)/2.), np.log10(np.max(x)*2.), 10.*nBins, 10.)
+               newY = np.array(map(self.fVarFromHitCount[iRAp], newX))
+               ax.plot(newX, newY*(180.*60./np.pi)**2, label=r'interpolated')
+               #
+               ax.set_xscale('log', nonposx='clip')
+               ax.set_yscale('log', nonposy='clip')
+               ax.set_xlabel(r'Det. noise var. from combined hit [arbitrary]')
+               ax.set_ylabel(r'Measured var. [$\mu$K.arcmin$^2$]')
+               #
+               path = self.pathFig+"/binned_noise_vs_hit"+str(iRAp)+".pdf"
+               fig.savefig(path, bbox_inches='tight')
+               fig.clf()
 
       return
 
@@ -572,9 +576,11 @@ class ThumbStack(object):
       v -= np.mean(v)
       # hit count and measured total noise (CMB + detector)
       s2Hit = self.filtNoiseStdDev[mask, :]**2
+      #print "Shape of s2Hit = ", s2Hit.shape
 
 #      s2Full = self.fVarFromHitCount[:](s2Hit)
       s2Full = np.column_stack([self.fVarFromHitCount[iAp](s2Hit[:, iAp]) for iAp in range(self.nRAp)])
+      #print "Shape of s2Full = ", s2Full.shape
 
       # halo masses
       m = self.Catalog.Mvir[mask]
@@ -671,7 +677,8 @@ class ThumbStack(object):
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
          f = lambda iSample: self.stackedProfile(est, iBootstrap=iSample)
-         result = np.array(pool.map(f, range(nSamples)))
+         #result = np.array(pool.map(f, range(nSamples)))
+         result = np.array(map(f, range(nSamples)))
       tStop = time()
       print "took", (tStop-tStart)/60., "min"
       # unpack results
