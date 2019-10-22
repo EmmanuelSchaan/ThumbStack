@@ -468,6 +468,20 @@ class ThumbStack(object):
       """
       print "- interpolate the relation hit count - noise"
       # keep only objects that overlap, and mask point sources
+
+   ##################################################################################
+
+
+   def measureVarFromHitCount(self, plot=False):
+      """Returns a list of functions, one for each AP filter radius,
+      where the function takes filtNoiseStdDev**2 \propto [(map var) * sr^2] as input and returns the
+      actual measured filter variance [(map unit)^2 * sr^2].
+      The functions are expected to be linear if the detector noise is the main source of noise,
+      and if the hit counts indeed reflect the detector noise.
+      To be used for noise weighting in the stacking.
+      """
+      print "- interpolate the relation hit count - noise"
+      # keep only objects that overlap, and mask point sources
       mask = self.catalogMask(overlap=True, psMask=True)
    
       self.fVarFromHitCount = []
