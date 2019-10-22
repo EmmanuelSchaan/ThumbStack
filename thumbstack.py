@@ -458,19 +458,6 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def measureVarFromHitCount(self, plot=False):
-      """Returns a list of functions, one for each AP filter radius,
-      where the function takes filtNoiseStdDev**2 \propto [(map var) * sr^2] as input and returns the
-      actual measured filter variance [(map unit)^2 * sr^2].
-      The functions are expected to be linear if the detector noise is the main source of noise,
-      and if the hit counts indeed reflect the detector noise.
-      To be used for noise weighting in the stacking.
-      """
-      print "- interpolate the relation hit count - noise"
-      # keep only objects that overlap, and mask point sources
-
-   ##################################################################################
-
 
    def measureVarFromHitCount(self, plot=False):
       """Returns a list of functions, one for each AP filter radius,
@@ -490,10 +477,10 @@ class ThumbStack(object):
          y = self.filtMap[mask, iRAp].copy()
          y = (y - np.mean(y))**2
 
-         print "values in x"
-         print np.mean(x), np.std(x), np.max(x), np.min(x)
-         print "values in y"
-         print np.mean(y), np.std(y), np.max(y), np.min(y)
+#         print "values in x"
+#         print np.mean(x), np.std(x), np.max(x), np.min(x)
+#         print "values in y"
+#         print np.mean(y), np.std(y), np.max(y), np.min(y)
 
          
          # Check whether the hit count actually varies appreciably,
@@ -691,8 +678,8 @@ class ThumbStack(object):
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
          f = lambda iSample: self.stackedProfile(est, iBootstrap=iSample)
-         #result = np.array(pool.map(f, range(nSamples)))
-         result = np.array(map(f, range(nSamples)))
+         result = np.array(pool.map(f, range(nSamples)))
+         #result = np.array(map(f, range(nSamples)))
       tStop = time()
       print "took", (tStop-tStart)/60., "min"
       # unpack results
