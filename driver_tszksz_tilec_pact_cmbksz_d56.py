@@ -118,7 +118,7 @@ cmbName = "tilecpactcmbkszd56"
 pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_deep56/" + "tilec_single_tile_deep56_cmb_map_v1.0.0_rc_joint.fits"
 
 pathIn = "./output/cmb_map/tilec_pact_cmbksz_d56/"
-pathHit = pathIn + "mask_foot_car.fits"
+#pathHit = pathIn + "mask_foot_car.fits"
 pathMask = pathIn + "mask_foot_planck_ps_car.fits"
 pathPower = pathIn + "power_T_masked.txt"
 
@@ -126,7 +126,7 @@ tStart = time()
 print "- Read CMB map, mask and hit count"
 pactMap = enmap.read_map(pathMap)   # keep only temperature
 pactMask = enmap.read_map(pathMask)
-pactHit = enmap.read_map(pathHit)
+#pactHit = enmap.read_map(pathHit)
 
 tStop = time()
 print "took", tStop-tStart, "sec"
@@ -151,37 +151,19 @@ from thumbstack import *
 
 
 name = cmassMariana.name + "_" + cmbName 
-tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, cmbHit=None, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 ###################################################################################
 
-#name = cmassSMariana.name + "_" + cmbName 
-#tsCmassSM = ThumbStack(u, cmassSMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
-
-#name = cmassNMariana.name + "_" + cmbName 
-#tsCmassNM = ThumbStack(u, cmassNMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
-
-#name = cmassSKendrick.name + "_" + cmbName
-#tsCmassSK = ThumbStack(u, cmassSKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
-
-#name = cmassNKendrick.name + "_" + cmbName
-#tsCmassNK = ThumbStack(u, cmassNKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
-
 name = cmassKendrick.name + "_" + cmbName
-tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
-
-#name = lowzSKendrick.name + "_" + cmbName
-#tsLowzSK = ThumbStack(u, lowzSKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
-
-#name = lowzNKendrick.name + "_" + cmbName
-#tsLowzNK = ThumbStack(u, lowzNKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 name = lowzKendrick.name + "_" + cmbName
-tsLowzK = ThumbStack(u, lowzKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsLowzK = ThumbStack(u, lowzKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 name = bossKendrick.name + "_" + cmbName
-tsBossK = ThumbStack(u, bossKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsBossK = ThumbStack(u, bossKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
 ###################################################################################

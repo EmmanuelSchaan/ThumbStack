@@ -6,7 +6,7 @@ from headers import *
 class ThumbStack(object):
 
 #   def __init__(self, U, Catalog, pathMap="", pathMask="", pathHit="", name="test", nameLong=None, save=False, nProc=1):
-   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit, name="test", nameLong=None, save=False, nProc=1):
+   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit=None, name="test", nameLong=None, save=False, nProc=1):
       
       self.nProc = nProc
       self.U = U
@@ -55,7 +55,7 @@ class ThumbStack(object):
          self.saveStackedProfiles()
       self.loadStackedProfiles()
 
-      if False:
+      if save:
          self.plotAllStackedProfiles()
          self.plotAllCov()
          self.computeAllSnr()
@@ -95,7 +95,8 @@ class ThumbStack(object):
    
    
    
-   def saveOverlapFlag(self, thresh=1.e-5, nProc=1):
+   #def saveOverlapFlag(self, thresh=1.e-5, nProc=1):
+   def saveOverlapFlag(self, thresh=0.95, nProc=1):
       '''1 for objects that overlap with the hit map,
       0 for objects that don't.
       '''
@@ -108,7 +109,8 @@ class ThumbStack(object):
             print "-", iObj
          ra = self.Catalog.RA[iObj]
          dec = self.Catalog.DEC[iObj]
-         hit = self.sky2map(ra, dec, self.cmbHit)
+         #hit = self.sky2map(ra, dec, self.cmbHit)
+         hit = self.sky2map(ra, dec, self.cmbMask)
          return np.float(hit>thresh)
       
 #      overlapFlag = np.array(map(foverlap, range(self.Catalog.nObj)))
@@ -203,7 +205,8 @@ class ThumbStack(object):
       # Here, I use bilinear interpolation
       stampMap[:,:] = self.cmbMap.at(ipos, prefilter=True, mask_nan=False, order=1)
       stampMask[:,:] = self.cmbMask.at(ipos, prefilter=True, mask_nan=False, order=1)
-      stampHit[:,:] = self.cmbHit.at(ipos, prefilter=True, mask_nan=False, order=1)
+      if self.cmbHit is not None:
+         stampHit[:,:] = self.cmbHit.at(ipos, prefilter=True, mask_nan=False, order=1)
 
 #      # Here, I use bicubic spline interpolation
 #      stampMap[:,:] = self.cmbMap.at(ipos, prefilter=True, mask_nan=False, order=3)
@@ -286,8 +289,10 @@ class ThumbStack(object):
       filtMask = np.sum((radius<=r1) * (1-stampMask))   # [dimensionless]
       
       # quantify noise std dev in the filter
-      #!!! hardcoding a small number to avoid dividing by zero. Ugly.
-      filtNoiseStdDev = np.sqrt(np.sum((pixArea * filter)**2 / (1.e-16 + stampHit))) # to get the std devs [sr / sqrt(hit unit)]
+      if self.cmbHit is not None:
+         filtNoiseStdDev = np.sqrt(np.sum((pixArea * filter)**2 / (1.e-16 + stampHit))) # to get the std devs [sr / sqrt(hit unit)]
+      else:
+         filtNoiseStdDev = 0.
       
       #print "filtNoiseStdDev = ", filtNoiseStdDev
       if np.isnan(filtNoiseStdDev):
@@ -393,10 +398,10 @@ class ThumbStack(object):
    def saveFiltering(self, nProc=1):
       
       # initialize arrays
-      self.filtMap = np.zeros((self.Catalog.nObj, self.nRAp))
+      self.filtmap = np.zeros((self.Catalog.nObj, self.nRAp))
       self.filtMask = np.zeros((self.Catalog.nObj, self.nRAp))
-      self.filtNoiseStdDev = np.zeros((self.Catalog.nObj, self.nRAp))
       self.diskArea = np.zeros((self.Catalog.nObj, self.nRAp))
+      self.filtNoiseStdDev = np.zeros((self.Catalog.nObj, self.nRAp))
 
       # loop over all objects in catalog
 #      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
@@ -467,29 +472,19 @@ class ThumbStack(object):
       and if the hit counts indeed reflect the detector noise.
       To be used for noise weighting in the stacking.
       """
-      print "- interpolate the relation hit count - noise"
       # keep only objects that overlap, and mask point sources
       mask = self.catalogMask(overlap=True, psMask=True)
-   
-      self.fVarFromHitCount = []
-      for iRAp in range(self.nRAp):
-         x = self.filtNoiseStdDev[mask, iRAp]**2
-         y = self.filtMap[mask, iRAp].copy()
-         y = (y - np.mean(y))**2
+      # This array contains the true variances for each object and aperture 
+      self.filtVarTrue = np.zeros((self.Catalog.nObj, self.nRAp))
 
-#         print "values in x"
-#         print np.mean(x), np.std(x), np.max(x), np.min(x)
-#         print "values in y"
-#         print np.mean(y), np.std(y), np.max(y), np.min(y)
+      if self.cmbHit is not None:
+         print("Interpolate variance=f(hit count) for each aperture")
+         self.fVarFromHitCount = np.empty(self.nRAp, dtype='object')
+         for iRAp in range(self.nRAp):
+            x = self.filtNoiseStdDev[mask, iRAp]**2
+            y = self.filtMap[mask, iRAp].copy()
+            y = (y - np.mean(y))**2
 
-         
-         # Check whether the hit count actually varies appreciably,
-         # otherwise use uniform weighting
-         if np.std(x) < 0.001 * np.mean(x):
-            print "Using uniform weighting: hit count does not vary much."
-            self.fVarFromHitCount.append(lambda x: np.mean(y)*np.ones_like(x))
-         else:
-            print "Using hit count weighting: hit count varies much."
             # define bins of hit count values
             nBins = 21
             BinsX = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
@@ -502,7 +497,11 @@ class ThumbStack(object):
             sBinnedVar /= np.sqrt(binCounts)
             
             # interpolate, to use as noise weighting
-            self.fVarFromHitCount.append( interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) )
+            #self.fVarFromHitCount.append( interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) )
+            self.fVarFromHitCount[iRAp] = interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) 
+
+            # evaluate the variance for each object
+            self.filtVarTrue[mask,iRAp] = self.fVarFromHitCount[iRAp](s2Hit[mask, iRAp])
             
             if plot:
                # plot
@@ -525,6 +524,19 @@ class ThumbStack(object):
                path = self.pathFig+"/binned_noise_vs_hit"+str(iRAp)+".pdf"
                fig.savefig(path, bbox_inches='tight')
                fig.clf()
+
+
+      else:
+         print("Measure var for each aperture (no hit count)")
+         self.meanVarAperture = np.zeros(self.nRAp)
+         self.meanVarAperture = np.var(self.filtMap[mask, :], axis=0)
+         for iRAp in range(self.nRAp):
+            #y = self.filtMap[mask, iRAp].copy()
+            #y = (y - np.mean(y))**2
+            #self.meanVarAperture.append(np.mean(y))
+            #self.fVarFromHitCount[iRAp] = lambda x:  self.meanVarAperture[iRAp] * np.ones_like(x)
+            self.filtVarTrue[mask,iRAp] = self.meanVarAperture[iRAp] * np.ones(np.sum(mask))
+
 
       return
 
@@ -575,14 +587,23 @@ class ThumbStack(object):
       # v/c [dimless]
       v = -self.Catalog.vR[mask] / 3.e5
       v -= np.mean(v)
-      # hit count and measured total noise (CMB + detector)
+
+
+      #true filter variance for each object and aperture,
+      # valid whether or not a hit count map is available
+      s2Full = self.filtVarTrue[mask, :]
+
+      # Variance from hit count (if available)
       s2Hit = self.filtNoiseStdDev[mask, :]**2
       #print "Shape of s2Hit = ", s2Hit.shape
+#
+##      s2Full = self.fVarFromHitCount[:](s2Hit)
+#      s2Full = np.column_stack([self.fVarFromHitCount[iAp](s2Hit[:, iAp]) for iAp in range(self.nRAp)])
+#      #print "Shape of s2Full = ", s2Full.shape
+      
 
-#      s2Full = self.fVarFromHitCount[:](s2Hit)
-      s2Full = np.column_stack([self.fVarFromHitCount[iAp](s2Hit[:, iAp]) for iAp in range(self.nRAp)])
-      #print "Shape of s2Full = ", s2Full.shape
 
+      
       # halo masses
       m = self.Catalog.Mvir[mask]
       
@@ -717,7 +738,10 @@ class ThumbStack(object):
       data[:,0] = self.RApArcmin # [arcmin]
       
       # all stacked profiles
-      Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+      if self.cmbHit is not None:
+         Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+      else:
+         Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
          # measured stacked profile
@@ -732,14 +756,20 @@ class ThumbStack(object):
 
       # covariance matrices from bootstrap,
       # only for a few select estimators
-      Est = ['tsz_varweight', 'ksz_varweight']
+      if self.cmbHit is not None:
+         Est = ['tsz_varweight', 'ksz_varweight']
+      else:
+         Est = ['tsz_uniformweight', 'ksz_uniformweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
          self.SaveCovBootstrapStackedProfile(est, nSamples=1000, nProc=self.nProc)
 
       # covariance matrices from shuffling velocities,
       # for ksz only
-      Est = ['ksz_varweight']
+      if self.cmbHit is not None:
+         Est = ['ksz_varweight']
+      else:
+         Est = ['ksz_uniformweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
          self.SaveCovVShuffleStackedProfile(est, nSamples=1000, nProc=self.nProc)
@@ -753,7 +783,10 @@ class ThumbStack(object):
       self.covVShuffle = {}
       
       # all stacked profiles
-      Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+      if self.cmbHit is not None:
+         Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+      else:
+         Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
          # measured stacked profile
@@ -771,14 +804,20 @@ class ThumbStack(object):
 
       # covariance matrices from bootstrap,
       # only for a few select estimators
-      Est = ['tsz_varweight', 'ksz_varweight']
+      if self.cmbHit is not None:
+         Est = ['tsz_varweight', 'ksz_varweight']
+      else:
+         Est = ['tsz_uniformweight', 'ksz_uniformweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
          self.covBootstrap[est] = np.genfromtxt(self.pathOut+"/cov_"+est+"_bootstrap.txt")
       
       # covariance matrices from shuffling velocities,
       # for ksz only
-      Est = ['ksz_varweight']
+      if self.cmbHit is not None:
+         Est = ['ksz_varweight']
+      else:
+         Est = ['ksz_uniformweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
          self.covVShuffle[est] = np.genfromtxt(self.pathOut+"/cov_"+est+"_vshuffle.txt")
@@ -851,7 +890,10 @@ class ThumbStack(object):
 #      self.plotStackedProfile(Est, name="ksz")
       
       # all stacked profiles
-      Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+      if self.cmbHit is not None:
+         Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+      else:
+         Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
          self.plotStackedProfile([est], name=est)
@@ -911,14 +953,20 @@ class ThumbStack(object):
       print "- plot all covariances"
       # covariance matrices from bootstrap,
       # only for a few select estimators
-      Est = ['tsz_varweight', 'ksz_varweight']
+      if self.cmbHit is not None:
+         Est = ['tsz_varweight', 'ksz_varweight']
+      else:
+         Est = ['tsz_uniformweight', 'ksz_uniformweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
          self.plotCov(self.covBootstrap[est], est+"_bootstrap")
       
       # covariance matrices from shuffling velocities,
       # for ksz only
-      Est = ['ksz_varweight']
+      if self.cmbHit is not None:
+         Est = ['ksz_varweight']
+      else:
+         Est = ['ksz_uniformweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
          self.plotCov(self.covVShuffle[est], est+"_vshuffle")
@@ -1089,7 +1137,10 @@ class ThumbStack(object):
 
    def computeAllSnr(self):
       print "- compute all SNR and significances"
-      Est = ['tsz_varweight', 'ksz_varweight']
+      if self.cmbHit is not None:
+         Est = ['tsz_varweight', 'ksz_varweight']
+      else:
+         Est = ['tsz_uniformweight', 'ksz_uniformweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
          self.computeSnrStack(est)
