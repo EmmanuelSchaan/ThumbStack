@@ -21,7 +21,7 @@ class ThumbStack(object):
       self.cmbHit = cmbHit
       
       # number of samples for bootstraps, shuffles
-      self.nSamples = 1000
+      self.nSamples = 100
       
       # Output path
       self.pathOut = "./output/thumbstack/"+self.name
@@ -55,7 +55,7 @@ class ThumbStack(object):
          self.saveStackedProfiles()
       self.loadStackedProfiles()
 
-      if save:
+      if False:
          self.plotAllStackedProfiles()
          self.plotAllCov()
          self.computeAllSnr()
@@ -501,7 +501,8 @@ class ThumbStack(object):
             self.fVarFromHitCount[iRAp] = interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) 
 
             # evaluate the variance for each object
-            self.filtVarTrue[mask,iRAp] = self.fVarFromHitCount[iRAp](s2Hit[mask, iRAp])
+            #self.filtVarTrue[mask,iRAp] = self.fVarFromHitCount[iRAp](s2Hit[mask, iRAp])
+            self.filtVarTrue[mask,iRAp] = self.fVarFromHitCount[iRAp](x)
             
             if plot:
                # plot
@@ -693,7 +694,7 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def SaveCovBootstrapStackedProfile(self, est, nSamples=1000, nProc=1):
+   def SaveCovBootstrapStackedProfile(self, est, nSamples=100, nProc=1):
       """Estimate covariance matrix for the stacked profile from bootstrap resampling
       """
       tStart = time()
@@ -712,7 +713,7 @@ class ThumbStack(object):
       np.savetxt(self.pathOut+"/cov_"+est+"_bootstrap.txt", covStack)
       
 
-   def SaveCovVShuffleStackedProfile(self, est, nSamples=1000, nProc=1):
+   def SaveCovVShuffleStackedProfile(self, est, nSamples=100, nProc=1):
       """Estimate covariance matrix for the stacked profile from shuffling velocities
       """
       tStart = time()
@@ -762,7 +763,7 @@ class ThumbStack(object):
          Est = ['tsz_uniformweight', 'ksz_uniformweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
-         self.SaveCovBootstrapStackedProfile(est, nSamples=1000, nProc=self.nProc)
+         self.SaveCovBootstrapStackedProfile(est, nSamples=100, nProc=self.nProc)
 
       # covariance matrices from shuffling velocities,
       # for ksz only
@@ -772,7 +773,7 @@ class ThumbStack(object):
          Est = ['ksz_uniformweight']
       for iEst in range(len(Est)):
          est = Est[iEst]
-         self.SaveCovVShuffleStackedProfile(est, nSamples=1000, nProc=self.nProc)
+         self.SaveCovVShuffleStackedProfile(est, nSamples=100, nProc=self.nProc)
 
 
    def loadStackedProfiles(self):

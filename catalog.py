@@ -630,7 +630,7 @@ class Catalog(object):
 ##################################################################################
 
 
-   def generateMockMaps(self, carMap, sigma=None, depixwin=True):
+   def generateMockMaps(self, carMap, sigma=None, depixwin=False):
       """Generate mock maps with 1 at the pixel location of each  object, 0 everywhere else.
       If sigma [arcmin] is specified, produces also Gaussian smoothed versions,
       normalized such that   int d^2theta profile = 1, where theta is in [rad].
@@ -641,6 +641,7 @@ class Catalog(object):
       as opposed to the exact position within the pixel.
       This operation is not done on the Dirac maps, since the slight miscentering
       has no observable impact there.
+      Assumes that carMAp has shape [nX, nY], ie it is not a T,Q,U map, just a T map.
       """
       print "- Generate mock maps"
       # create empty maps
@@ -666,6 +667,8 @@ class Catalog(object):
          
          # find pixel indices (float) corresponding to ra, dec
          iY, iX = enmap.sky2pix(countDirac.shape, countDirac.wcs, sourcecoord, safe=True, corner=False)
+         #print 'ra, dec =', ra, dec, iY, iX
+         #print countDirac.shape
 
          # Check that the object is within the map boundaries
          # before rounding the indices

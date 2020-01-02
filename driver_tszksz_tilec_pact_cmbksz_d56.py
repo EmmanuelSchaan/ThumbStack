@@ -157,13 +157,13 @@ tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, cmbHit=None, name=name
 ###################################################################################
 
 name = cmassKendrick.name + "_" + cmbName
-tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, cmbHit=None, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = lowzKendrick.name + "_" + cmbName
-tsLowzK = ThumbStack(u, lowzKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsLowzK = ThumbStack(u, lowzKendrick, pactMap, pactMask, cmbHit=None, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = bossKendrick.name + "_" + cmbName
-tsBossK = ThumbStack(u, bossKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsBossK = ThumbStack(u, bossKendrick, pactMap, pactMask, cmbHit=None, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 ###################################################################################
