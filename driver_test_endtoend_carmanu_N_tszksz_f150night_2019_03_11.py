@@ -1,4 +1,4 @@
-# Last full run for VelDiraacVShuffle and VelGaussVShuffle: 2020/01/01
+# run on 2020/01/02.
 
 import universe
 reload(universe)
@@ -48,35 +48,14 @@ massConversion = MassConversionKravtsov14()
 ###################################################################################
 # Mariana
 
-# CMASS
-#cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False)
-#cmassNMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False)
-# combined catalog
-#cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
-#cmassMariana.addCatalog(cmassNMariana, save=True)
-cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False)
-
+# CMASS N
+cmassMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False)
 
 # Shuffle velocities to kill the 2-halo term
-#cmassMarianaVShuffle = cmassMariana.copy(name="cmass_mariana_vshuffle", nameLong="CMASS M Vshuffle")
+#cmassMarianaVShuffle = cmassMariana.copy(name="cmass_n_mariana_vshuffle", nameLong="CMASS N M Vshuffle")
 #np.random.shuffle(cmassMarianaVShuffle.vR)
 #cmassMarianaVShuffle.writeCatalog()
-cmassMarianaVShuffle = Catalog(u, massConversion, name="cmass_mariana_vshuffle", nameLong="CMASS M Vshuffle", save=False)
-
-
-
-###################################################################################
-
-# keep only the first few objects, to speed things up
-#I = range(10000)
-#cmassMariana = cmassMariana.extractCatalog(I, name="mini_cmass_mariana", nameLong="mini CMASS M")
-#cmassMariana = Catalog(u, massConversion, name="mini_cmass_mariana", nameLong="mini CMASS M", save=False) 
-
-# Shuffle velocities to kill the 2-halo term
-#cmassMarianaVShuffle = cmassMariana.copy(name="mini_cmass_mariana_vshuffle", nameLong="mini CMASS M Vshuffle")
-#np.random.shuffle(cmassMarianaVShuffle.vR)
-#cmassMarianaVShuffle.writeCatalog()
-#cmassMarianaVShuffle = Catalog(u, massConversion, name="mini_cmass_mariana_vshuffle", nameLong="mini CMASS M Vshuffle", save=False)
+cmassMarianaVShuffle = Catalog(u, massConversion, name="cmass_n_mariana_vshuffle", nameLong="CMASS N M Vshuffle", save=False)
 
 
 ###################################################################################
@@ -111,37 +90,9 @@ cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Fa
 ###################################################################################
 ###################################################################################
 
-
-
-###################################################################################
-###################################################################################
-
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
-
-
-###################################################################################
-
-#pathMap = cmassMariana.pathOut + "mock_count_dirac_car.fits"
-#pactMap = enmap.read_map(pathMap)
-#name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_dirac_carmanu"
-#tsCountDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
-#
-#pathMap = cmassMariana.pathOut + "mock_count_gauss_car.fits"
-#pactMap = enmap.read_map(pathMap)
-#name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_gauss_carmanu"
-#tsCountGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
-#
-#pathMap = cmassMariana.pathOut + "mock_vel_dirac_car.fits"
-#pactMap = enmap.read_map(pathMap)
-#name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
-#tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
-#
-#pathMap = cmassMariana.pathOut + "mock_vel_gauss_car.fits"
-#pactMap = enmap.read_map(pathMap)
-#name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-#tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
 ###################################################################################
