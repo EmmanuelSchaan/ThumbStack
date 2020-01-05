@@ -901,7 +901,7 @@ class ThumbStack(object):
 
    ##################################################################################
    
-   def plotCov(self, cov, name=""):
+   def plotCov(self, cov, name="", show=False):
       # Covariance matrix
       fig=plt.figure(0)
       ax=fig.add_subplot(111)
@@ -948,7 +948,10 @@ class ThumbStack(object):
       #
       path = self.pathFig+"/cor_"+name+".pdf"
       fig.savefig(path, bbox_inches='tight')
-      fig.clf()
+      if show:
+         plt.show()
+      else:
+         fig.clf()
 
    def plotAllCov(self):
       print "- plot all covariances"

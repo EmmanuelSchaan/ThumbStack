@@ -50,9 +50,9 @@ massConversion = MassConversionKravtsov14()
 cmassMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False)
 
 # Shuffle velocities to kill the 2-halo term
-cmassMarianaVShuffle = cmassMariana.copy(name="cmass_s_mariana_vshuffle", nameLong="CMASS S M Vshuffle")
-np.random.shuffle(cmassMarianaVShuffle.vR)
-cmassMarianaVShuffle.writeCatalog()
+#cmassMarianaVShuffle = cmassMariana.copy(name="cmass_s_mariana_vshuffle", nameLong="CMASS S M Vshuffle")
+#np.random.shuffle(cmassMarianaVShuffle.vR)
+#cmassMarianaVShuffle.writeCatalog()
 cmassMarianaVShuffle = Catalog(u, massConversion, name="cmass_s_mariana_vshuffle", nameLong="CMASS S M Vshuffle", save=False)
 
 
@@ -79,10 +79,10 @@ cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Fa
 # Generate mock maps
 
 # Point sources and Gaussian profiles with sigma=1.5'
-cmassMariana.generateMockMaps(pactHit, sigma=1.5)
+#cmassMariana.generateMockMaps(pactHit, sigma=1.5)
 
 # Same for the catalog with shuffled velocities
-cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
+#cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
 
 
 ###################################################################################
@@ -99,12 +99,12 @@ from thumbstack import *
 pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffle.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
-tsVelDiracVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsVelDiracVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffle.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
 

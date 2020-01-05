@@ -82,7 +82,7 @@ boxMask = enmap.ones(shape, wcs=wcs)
 
 
 # create mock map with point sources and Gaussian profiles with sigma=1.5'
-cmassMarianaVShuffleSmall.generateMockMaps(boxMask, sigma=1.5)
+#cmassMarianaVShuffleSmall.generateMockMaps(boxMask, sigma=1.5)
 
 # check that the mock map has non-zero pixels
 #pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_count_dirac_car.fits"
@@ -111,12 +111,12 @@ from thumbstack import *
 pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_vel_dirac_car.fits"
 boxMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffleSmall.name + "_test_endtoend_vel_dirac_carmanu"
-tsVelDiracVShuffleSmall = ThumbStack(u, cmassMarianaVShuffleSmall, boxMap, boxMask, cmbHit=None, name=name, nameLong=None, save=True, nProc=nProc)
+tsVelDiracVShuffleSmall = ThumbStack(u, cmassMarianaVShuffleSmall, boxMap, boxMask, cmbHit=None, name=name, nameLong=None, save=False, nProc=nProc)
 
 pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_vel_gauss_car.fits"
 boxMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffleSmall.name + "_test_endtoend_vel_gauss_carmanu"
-tsVelGaussVShuffleSmall = ThumbStack(u, cmassMarianaVShuffleSmall, boxMap, boxMask, cmbHit=None, name=name, nameLong=None, save=True, nProc=nProc)
+tsVelGaussVShuffleSmall = ThumbStack(u, cmassMarianaVShuffleSmall, boxMap, boxMask, cmbHit=None, name=name, nameLong=None, save=False, nProc=nProc)
 
 
 

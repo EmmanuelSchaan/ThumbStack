@@ -79,6 +79,7 @@ hitWcs = hitMap.wcs
 
 # Generate healpix map, then convert to CAR
 def genGRF(iMock):
+   print("- generating mock "+str(iMock))
    # set the random seed
    np.random.seed(iMock)
    # Generate GRF healpix map
@@ -322,25 +323,69 @@ cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Fa
 
 ###################################################################################
 ###################################################################################
+# Do the stacking on all the mock GRF CMB maps
 
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
+# recompute or not the stacked profiles
+save = False
+
 
 def doStacking(iMock):
+   print("Stacking on mock "+str(iMock))
    pathMap = pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits"
    pactMap = enmap.read_map(pathMap)
    name = cmassMariana.name + "_mockgrf"+str(iMock)+"_pactf150night20190311"
-   ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+   ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
+
+   # output the various stacked profiles (tSZ, kSZ, etc.) from this mock GRF CMB map
+   return ts.stackedProfile
 
 print "Stacking on each mock map"
 tStart = time()
-with sharedmem.MapReduce(np=nProc) as pool:
-   result = np.array(pool.map(doStacking, range(nMocks)))
-#result = np.array(map(doStacking, range(nMocks)))
+#with sharedmem.MapReduce(np=nProc) as pool:
+   #result = np.array(pool.map(doStacking, range(nMocks)))  
+   # for debugging purposes
+   #result = np.array(pool.map(doStacking, range(3)))
+
+result = np.array(map(doStacking, range(0, nMocks)))
+
 tStop = time()
 print "Took", (tStop-tStart)/60., "min"
 
 print "All finished!"
 
+
+###################################################################################
+# Estimate the covariances from the mocks
+
+# Load one thumbstack object to access the plotting routines
+iMock = 0
+pathMap = pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits"
+pactMap = enmap.read_map(pathMap)
+name = cmassMariana.name + "_mockgrf"+str(iMock)+"_pactf150night20190311"
+ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
+
+# for debugging only!
+#nMocks = 10
+Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+
+covStackedProfile = {}
+for iEst in range(len(Est)):
+#for iEst in range(1):
+   est = Est[iEst]
+   nRAp = len(result[0][est])
+   # shape (nMocks, nRAp)
+   profiles = np.array([[result[i][est][j] for i in range(nMocks)] for j in range(nRAp)])
+   # estimate cov
+   covStackedProfile[est] = np.cov(profiles, rowvar=False)
+   # save it to file
+   np.savetxt(pathOut+"/cov_"+est+"_"+str(nMocks)+"mocks.txt", covStackedProfile['est'])
+
+   # plot it
+   ts.plotCov(covStackedProfile[est], name=est+"_"+str(nMocks)+"mocks.pdf")
+
+###################################################################################
+###################################################################################

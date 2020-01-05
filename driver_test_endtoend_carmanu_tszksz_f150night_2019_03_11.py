@@ -123,25 +123,25 @@ from thumbstack import *
 
 ###################################################################################
 
-#pathMap = cmassMariana.pathOut + "mock_count_dirac_car.fits"
-#pactMap = enmap.read_map(pathMap)
-#name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_dirac_carmanu"
-#tsCountDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
-#
-#pathMap = cmassMariana.pathOut + "mock_count_gauss_car.fits"
-#pactMap = enmap.read_map(pathMap)
-#name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_gauss_carmanu"
-#tsCountGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
-#
-#pathMap = cmassMariana.pathOut + "mock_vel_dirac_car.fits"
-#pactMap = enmap.read_map(pathMap)
-#name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
-#tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
-#
-#pathMap = cmassMariana.pathOut + "mock_vel_gauss_car.fits"
-#pactMap = enmap.read_map(pathMap)
-#name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-#tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+pathMap = cmassMariana.pathOut + "mock_count_dirac_car.fits"
+pactMap = enmap.read_map(pathMap)
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_dirac_carmanu"
+tsCountDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+
+pathMap = cmassMariana.pathOut + "mock_count_gauss_car.fits"
+pactMap = enmap.read_map(pathMap)
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_gauss_carmanu"
+tsCountGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+
+pathMap = cmassMariana.pathOut + "mock_vel_dirac_car.fits"
+pactMap = enmap.read_map(pathMap)
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
+tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+
+pathMap = cmassMariana.pathOut + "mock_vel_gauss_car.fits"
+pactMap = enmap.read_map(pathMap)
+name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
+tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
 
 
 ###################################################################################
