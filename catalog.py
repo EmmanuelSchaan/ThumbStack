@@ -630,7 +630,7 @@ class Catalog(object):
 ##################################################################################
 
 
-   def generateMockMaps(self, carMap, sigma=None, depixwin=False):
+   def generateMockMaps(self, carMap, sigma=None, depixwin=False, test=False):
       """Generate mock maps with 1 at the pixel location of each  object, 0 everywhere else.
       If sigma [arcmin] is specified, produces also Gaussian smoothed versions,
       normalized such that   int d^2theta profile = 1, where theta is in [rad].
@@ -644,6 +644,7 @@ class Catalog(object):
       Assumes that carMAp has shape [nX, nY], ie it is not a T,Q,U map, just a T map.
       """
       print "- Generate mock maps"
+      tStart = time()
       # create empty maps
       countDirac = carMap.copy()
       countDirac[:,:] = 0.
@@ -667,8 +668,9 @@ class Catalog(object):
          
          # find pixel indices (float) corresponding to ra, dec
          iY, iX = enmap.sky2pix(countDirac.shape, countDirac.wcs, sourcecoord, safe=True, corner=False)
-         #print 'ra, dec =', ra, dec, iY, iX
-         #print countDirac.shape
+         if False:
+            print 'ra, dec =', ra, dec, iY, iX
+            print countDirac.shape
 
          # Check that the object is within the map boundaries
          # before rounding the indices
@@ -677,6 +679,9 @@ class Catalog(object):
              # watch out for difference round VS np.round!
              jY = np.int(round(iY))
              jX = np.int(round(iX))
+             
+             if test:
+               print("Object "+str(iObj)+" overlaps")
 
              # fill the pixel
              countDirac[jY, jX] = 1.
@@ -738,3 +743,5 @@ class Catalog(object):
          enmap.write_map(self.pathOut+"mock_count_gauss_car.fits", countGauss)
          enmap.write_map(self.pathOut+"mock_vel_gauss_car.fits", velGauss)
 
+      tStop = time()
+      print("Took "+str((tStart-tStop)/60.)+" min")

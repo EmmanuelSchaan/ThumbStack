@@ -152,14 +152,16 @@ class FlatMap(object):
    ###############################################################################
    # plots
 
-   def plot(self, data=None, save=False, path=None, cmap='viridis'):
+   def plot(self, data=None, save=False, path=None, cmap='viridis', vMin=None, vMax=None, figSize=None):
       if data is None:
          data = self.data.copy()
       sigma = np.std(data.flatten())
-      vmin = np.min(data.flatten())
-      vmax = np.max(data.flatten())
+      if vMin is None:
+         vMin = np.min(data.flatten())
+      if vMax is None:
+         vMax = np.max(data.flatten())
 
-      fig=plt.figure(0)
+      fig=plt.figure(0, figsize=figSize)
       ax=fig.add_subplot(111)
       #
       # pcolor wants x and y to be edges of cell,
@@ -173,8 +175,8 @@ class FlatMap(object):
       # choose color map: jet, summer, winter, Reds, gist_gray, YlOrRd, bwr, seismic
       cp.set_cmap(cmap)
       #cp.set_clim(0.,255.)
-      cp.set_clim(-3.*sigma, 3.*sigma)
-      #cp.set_clim(vmin, vmax)
+      #cp.set_clim(-3.*sigma, 3.*sigma)
+      cp.set_clim(vMin, vMax)
       fig.colorbar(cp)
       #
       plt.axis('scaled')

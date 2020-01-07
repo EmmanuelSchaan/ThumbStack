@@ -910,7 +910,7 @@ class ThumbStack(object):
       # ie one more element, and offset by half a cell
       dR = (self.rApMaxArcmin - self.rApMinArcmin) / self.nRAp
       RApEdgesArcmin = np.linspace(self.rApMinArcmin-0.5*dR, self.rApMaxArcmin+0.5*dR, self.nRAp+1)
-      #
+      # Covariance  matrix
       X, Y = np.meshgrid(RApEdgesArcmin, RApEdgesArcmin, indexing='ij')
       cp=ax.pcolormesh(X, Y, cov, cmap='YlOrRd')
       #
@@ -923,10 +923,14 @@ class ThumbStack(object):
       #
       path = self.pathFig+"/cov_"+name+".pdf"
       fig.savefig(path, bbox_inches='tight')
-      fig.clf()
+      if show:
+         plt.show()
+      else:
+         fig.clf()
+      
 
       # Correlation coefficient
-      fig=plt.figure(0)
+      fig=plt.figure(1)
       ax=fig.add_subplot(111)
       #
       # pcolor wants x and y to be edges of cell,
@@ -952,6 +956,7 @@ class ThumbStack(object):
          plt.show()
       else:
          fig.clf()
+
 
    def plotAllCov(self):
       print "- plot all covariances"
