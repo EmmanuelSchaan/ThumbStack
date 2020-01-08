@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH -J gengrf
 #SBATCH -N 1
-#SBATCH -q debug #regular
+#SBATCH -q regular
 #SBATCH -L SCRATCH   #Job requires $SCRATCH file system
 #SBATCH -C haswell   #Use haswell/knl nodes
-#SBATCH -t 00:29:00  #47:59:59  #30:00:00  # hh:mm:ss
+#SBATCH -t 23:59:59  #47:59:59  #30:00:00  # hh:mm:ss
 #SBATCH --mail-type=begin
 #SBATCH --mail-type=end
 #SBATCH --mail-user=eschaan@lbl.gov
@@ -20,10 +20,10 @@ source ~/python_profile.sh
 #python generate_mocks_grf_f150_daynight_2018_08_10.py
 
 # New CMB maps
-python generate_mocks_grf_f150_night_2019_03_11.py 101 2
+#python generate_mocks_grf_f150_night_2019_03_11.py 101 2
 
 
 #python generate_mocks_grf_f150_night_2019_03_11.py 100 100
 #python generate_mocks_grf_f150_night_2019_03_11.py 200 100
-#python generate_mocks_grf_f150_night_2019_03_11.py 300 100
+python generate_mocks_grf_f150_night_2019_03_11.py 300 100
 

@@ -668,7 +668,7 @@ class Catalog(object):
          
          # find pixel indices (float) corresponding to ra, dec
          iY, iX = enmap.sky2pix(countDirac.shape, countDirac.wcs, sourcecoord, safe=True, corner=False)
-         if False:
+         if test:
             print 'ra, dec =', ra, dec, iY, iX
             print countDirac.shape
 

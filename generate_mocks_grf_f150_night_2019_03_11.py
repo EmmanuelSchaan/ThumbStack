@@ -37,13 +37,13 @@ plt.switch_backend('Agg')
 
 # First mock to generate
 if sys.argv[1] is not None:
-   iMock0 = sys.argv[1]
+   iMock0 = np.int(sys.argv[1])
 else:
    iMock0 = 0
 
 # Number of mocks to generate
 if sys.argv[2] is not None:
-   nMocks = sys.argv[2]
+   nMocks = np.int(sys.argv[2])
 else:
    nMocks = 100
 
@@ -258,7 +258,7 @@ np.savetxt(pathOut + "mean_cl_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt", 
 
 
 # read mean power spectrum from file
-data = np.genfromtxt(pathOut + "mean_cl_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt"
+data = np.genfromtxt(pathOut + "mean_cl_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
 lCen = data[:,0]
 ClMocks = data[:,1]
 sClMocks = data[:,2]
@@ -388,7 +388,7 @@ for iEst in range(len(Est)):
    est = Est[iEst]
    nRAp = len(result[0][est])
    # shape (nRAp, nMocks)
-   profiles = np.array([[result[i][est][j] for i in range(iMock0, iMock0+nMocks)] for j in range(nRAp)])
+   profiles = np.array([[result[i][est][j] for i in range(nMocks)] for j in range(nRAp)])
    
    # estimate and save the mean
    meanStackedProfile[est] = np.mean(profiles, axis=-1)

@@ -91,10 +91,10 @@ boxMask = enmap.read_map(pathMask)[0]
 #print("Final dimensions "+str(boxMask.shape))
 
 # Downgrade the map resolution for testing purposes
-print("Downgrade map resolution")
-print("Initial dimensions "+str(boxMask.shape))
-boxMask = boxMask.downgrade(2)
-print("Final dimensions "+str(boxMask.shape))
+#print("Downgrade map resolution")
+#print("Initial dimensions "+str(boxMask.shape))
+#boxMask = boxMask.downgrade(2)
+#print("Final dimensions "+str(boxMask.shape))
 
 
 ## Generate empty square map, then make a mock map
