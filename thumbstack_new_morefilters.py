@@ -21,13 +21,13 @@ class ThumbStack(object):
       self.cmbHit = cmbHit
 
       # aperture photometry filters to implement
-      if filters=='diskring':
+      if filterTypes=='diskring':
          self.filterTypes = np.array(['diskring']) 
-      elif filters=='disk':
+      elif filterTypes=='disk':
          self.filterTypes = np.array(['disk'])
-      elif filters=='ring':
+      elif filterTypes=='ring':
          self.filterTypes = np.array(['ring'])
-      elif filters=='all':
+      elif filterTypes=='all':
          self.filterTypes = np.array(['diskring', 'disk', 'ring'])
       
       # number of samples for bootstraps, shuffles
@@ -255,7 +255,7 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def aperturePhotometryfilter(self, opos, stampMap, stampMask, stampHit, r0, r1, filterType='diskring',  test=False):
+   def aperturePhotometryFilter(self, opos, stampMap, stampMask, stampHit, r0, r1, filterType='diskring',  test=False):
       """Apply an AP filter (disk minus ring) to a stamp map:
       AP = int d^2theta * Filter * map.
       Unit is [map unit * sr]
@@ -409,8 +409,9 @@ class ThumbStack(object):
 
    def saveFiltering(self, nProc=1):
       
-      for iFilterType in range(len(self.Filters)):
-         filterType = self.FilterTypes[iFilterType]
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+         print("Evaluate "+filterType+" filter on all objects")
 
          # initialize arrays
          self.filtmap = np.zeros((self.Catalog.nObj, self.nRAp))
@@ -440,8 +441,8 @@ class ThumbStack(object):
       self.filtNoiseStdDev = {}
       self.filtArea = {}
 
-      for iFilterType in range(len(self.FilterTypes)):
-         filterType = self.FilterTypes[iFilterType]
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
          self.filtMap[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmap.txt")
          self.filtMask[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmask.txt")
          self.filtNoiseStdDev[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt")
@@ -498,10 +499,10 @@ class ThumbStack(object):
 
       if self.cmbHit is not None:
          print("Interpolate variance=f(hit count) for each aperture")
-         self.fVarFromHitCount = np.empty(self.nRAp, dtype='object')
+         fVarFromHitCount = np.empty(self.nRAp, dtype='object')
          for iRAp in range(self.nRAp):
-            x = self.filtNoiseStdDev[mask, iRAp]**2
-            y = self.filtMap[mask, iRAp].copy()
+            x = self.filtNoiseStdDev[filterType][mask, iRAp]**2
+            y = self.filtMap[filterType][mask, iRAp].copy()
             y = (y - np.mean(y))**2
 
             # define bins of hit count values
@@ -544,7 +545,7 @@ class ThumbStack(object):
 
       else:
          print("Measure var for each aperture (no hit count)")
-         meanVarAperture = np.var(self.filtMap[mask, :], axis=0)
+         meanVarAperture = np.var(self.filtMap[filterType][mask, :], axis=0)
          for iRAp in range(self.nRAp):
             filtVarTrue[mask,iRAp] = meanVarAperture[iRAp] * np.ones(np.sum(mask))
 
@@ -553,8 +554,9 @@ class ThumbStack(object):
 
    def measureAllVarFromHitCount(self, plot=False):
       self.filtVarTrue = {}
-      for iFilterType in range(len(self.FilterTypes)):
-         filterType = self.FilterTypes[iFilterType]
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+         print("For "+filterType+" filter:")
          self.filtVarTrue[filterType] = self.measureVarFromHitCount(filterType, plot=plot)
 
 
@@ -1005,11 +1007,11 @@ class ThumbStack(object):
       Assumes equal area disk-ring filter
       """
       if filterType=='diskring':
-         result (1. - np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2))**2
+         result = (1. - np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2))**2
       elif filterType=='disk':
-         result 1. - np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2)
+         result = 1. - np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2)
       elif filterType=='ring':
-         result np.exp(-0.5*self.RApArcmin[:-1]**2/sigma_cluster**2) - np.exp(-0.5*self.RApArcmin[1:]**2/sigma_cluster**2)
+         result = np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2) - np.exp(-0.5*(self.RApArcmin*np.sqrt(2.))**2/sigma_cluster**2)
       return result
 
    def ftheoryGaussianProfilePixelated(self, sigma_cluster=1.5, filterType='diskring', dxDeg=0.3, dyDeg= 0.3, resArcmin=0.25, proj='cea', pixwin=0, test=False):
@@ -1079,7 +1081,7 @@ class ThumbStack(object):
          r1 = r0 * np.sqrt(2.)
          
          # perform the filtering
-         filtMap[iRAp],_,_,_ = self.aperturePhotometryfilter(opos, stampMap, stampMap, stampMap, r0, r1, filterType=filterType, test=False)
+         filtMap[iRAp],_,_,_ = self.aperturePhotometryFilter(opos, stampMap, stampMap, stampMap, r0, r1, filterType=filterType, test=False)
       
       
       if test:
@@ -1166,8 +1168,8 @@ class ThumbStack(object):
 
    def computeAllSnr(self):
       print "- compute all SNR and significances"
-      for iFilterType in range(len(self.Filters)):
-         filterType = self.FilterTypes[iFilterType]
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
          if self.cmbHit is not None:
             Est = ['tsz_varweight', 'ksz_varweight']
          else:
