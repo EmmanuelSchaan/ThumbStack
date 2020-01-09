@@ -85,7 +85,7 @@ class ThumbStack(object):
       self.RApMpch = np.linspace(self.rApMinMpch, self.rApMaxMpch, self.nRAp)
       
       # Aperture radii in arcmin
-      self.rApMinArcmin = 0.1   #1.  # 1.
+      self.rApMinArcmin = 0.5   #1.  # 1.
       self.rApMaxArcmin = 6.  #6.  # 4.
       self.RApArcmin = np.linspace(self.rApMinArcmin, self.rApMaxArcmin, self.nRAp)
 
@@ -268,7 +268,7 @@ class ThumbStack(object):
       Output:
       filtMap: [map unit * sr]
       filtMask: [mask unit * sr]
-      filtHitNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
+      filtNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
       diskArea: [sr]
       """
       # coordinates of the square map in radians
@@ -309,14 +309,14 @@ class ThumbStack(object):
       filtMap = np.sum(pixArea * filterW * stampMap)   # [map unit * sr]
       # quantify noise std dev in the filter
       if self.cmbHit is not None:
-         filtHitNoiseStdDev = np.sqrt(np.sum((pixArea * filterW)**2 / (1.e-16 + stampHit))) # to get the std devs [sr / sqrt(hit unit)]
+         filtNoiseStdDev = np.sqrt(np.sum((pixArea * filterW)**2 / (1.e-16 + stampHit))) # to get the std devs [sr / sqrt(hit unit)]
       else:
-         filtHitNoiseStdDev = 0.
+         filtNoiseStdDev = 0.
       
 
-      #print "filtHitNoiseStdDev = ", filtHitNoiseStdDev
-      if np.isnan(filtHitNoiseStdDev):
-         print "filtHitNoiseStdDev is nan"
+      #print "filtNoiseStdDev = ", filtNoiseStdDev
+      if np.isnan(filtNoiseStdDev):
+         print "filtNoiseStdDev is nan"
          print stampHit
 
       if test:
@@ -335,14 +335,14 @@ class ThumbStack(object):
          print "  (should be disk area in sr: "+str(diskArea)+")"
          print "- filter on map: "+str(filtMap)
          print "- filter on mask: "+str(filtMask)
-         print "- filter on inverse hit: "+str(filtHitNoiseStdDev)
+         print "- filter on inverse hit: "+str(filtNoiseStdDev)
          print "- plot the filter"
          filterMap = stampMap.copy()
          filterMap[:,:] = filterW.copy()
          plots=enplot.plot(filterMap,grid=True)
          enplot.write(self.pathTestFig+"/stampfilter_r0"+floatExpForm(r0)+"_r1"+floatExpForm(r1), plots)
 
-      return filtMap, filtMask, filtHitNoiseStdDev, diskArea
+      return filtMap, filtMask, filtNoiseStdDev, diskArea
 
 
 
@@ -356,7 +356,7 @@ class ThumbStack(object):
       Returns:
       filtMap: [map unit * sr]
       filtMask: [mask unit * sr]
-      filtHitNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
+      filtNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
       diskArea: [sr]
       '''
       
@@ -366,7 +366,7 @@ class ThumbStack(object):
       # create arrays of filter values for the given object
       filtMap = np.zeros(self.nRAp)
       filtMask = np.zeros(self.nRAp)
-      filtHitNoiseStdDev = np.zeros(self.nRAp)
+      filtNoiseStdDev = np.zeros(self.nRAp)
       diskArea = np.zeros(self.nRAp)
       
       # only do the analysis if the object overlaps with the CMB map
@@ -396,7 +396,7 @@ class ThumbStack(object):
             r1 = r0 * np.sqrt(2.)
             
             # perform the filtering
-            filtMap[iRAp], filtMask[iRAp], filtHitNoiseStdDev[iRAp], diskArea[iRAp] = self.aperturePhotometryFilter(opos, stampMap, stampMask, stampHit, r0, r1, filterType=filterType, test=test)
+            filtMap[iRAp], filtMask[iRAp], filtNoiseStdDev[iRAp], diskArea[iRAp] = self.aperturePhotometryFilter(opos, stampMap, stampMask, stampHit, r0, r1, filterType=filterType, test=test)
 
       if test:
          print " plot the measured profile"
@@ -405,7 +405,7 @@ class ThumbStack(object):
          #
          ax.plot(self.r, filtMap)
 
-      return filtMap, filtMask, filtHitNoiseStdDev, diskArea
+      return filtMap, filtMask, filtNoiseStdDev, diskArea
 
 
 
@@ -419,7 +419,7 @@ class ThumbStack(object):
          self.filtmap = np.zeros((self.Catalog.nObj, self.nRAp))
          self.filtMask = np.zeros((self.Catalog.nObj, self.nRAp))
          self.diskArea = np.zeros((self.Catalog.nObj, self.nRAp))
-         self.filtHitNoiseStdDev = np.zeros((self.Catalog.nObj, self.nRAp))
+         self.filtNoiseStdDev = np.zeros((self.Catalog.nObj, self.nRAp))
 
          # loop over all objects in catalog
    #      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
@@ -440,14 +440,14 @@ class ThumbStack(object):
    def loadFiltering(self):
       self.filtMap = {}
       self.filtMask = {}
-      self.filtHitNoiseStdDev = {}
+      self.filtNoiseStdDev = {}
       self.filtArea = {}
 
       for iFilterType in range(len(self.filterTypes)):
          filterType = self.filterTypes[iFilterType]
          self.filtMap[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmap.txt")
          self.filtMask[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmask.txt")
-         self.filtHitNoiseStdDev[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt")
+         self.filtNoiseStdDev[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt")
          self.filtArea[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtarea.txt")
 
 
@@ -488,7 +488,7 @@ class ThumbStack(object):
 
    def measureVarFromHitCount(self, filterType,  plot=False):
       """Returns a list of functions, one for each AP filter radius,
-      where the function takes filtHitNoiseStdDev**2 \propto [(map var) * sr^2] as input and returns the
+      where the function takes filtNoiseStdDev**2 \propto [(map var) * sr^2] as input and returns the
       actual measured filter variance [(map unit)^2 * sr^2].
       The functions are expected to be linear if the detector noise is the main source of noise,
       and if the hit counts indeed reflect the detector noise.
@@ -503,7 +503,7 @@ class ThumbStack(object):
          print("Interpolate variance=f(hit count) for each aperture")
          fVarFromHitCount = np.empty(self.nRAp, dtype='object')
          for iRAp in range(self.nRAp):
-            x = self.filtHitNoiseStdDev[filterType][mask, iRAp]**2
+            x = self.filtNoiseStdDev[filterType][mask, iRAp]**2
             y = self.filtMap[filterType][mask, iRAp].copy()
             y = (y - np.mean(y))**2
 
@@ -614,7 +614,7 @@ class ThumbStack(object):
       s2Full = self.filtVarTrue[filterType][mask, :]
 
       # Variance from hit count (if available)
-      s2Hit = self.filtHitNoiseStdDev[filterType][mask, :]**2
+      s2Hit = self.filtNoiseStdDev[filterType][mask, :]**2
       #print "Shape of s2Hit = ", s2Hit.shape
 
       
@@ -1252,14 +1252,14 @@ class ThumbStack(object):
 #
 #      # Histograms of noise std dev, from hit counts
 #      for iRAp in range(self.nRAp):
-#         x = self.filtHitNoiseStdDev[mask, iRAp]
+#         x = self.filtNoiseStdDev[mask, iRAp]
 #         path = self.pathFig+"/hist_noisestddevhit"+str(iRAp)+".pdf"
 #         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'Std dev value [arbitrary]', semilogy=True)
 #
 #
 #      # tSZ / dust
 #      for iRAp in range(self.nRAp):
-#         weights = 1. / self.filtHitNoiseStdDev[mask, iRAp]**2   # need inverse variance, not std dev
+#         weights = 1. / self.filtNoiseStdDev[mask, iRAp]**2   # need inverse variance, not std dev
 #         weights /= np.mean(weights)   # to keep the size and units of the weighted AP outputs
 #         x = self.filtMap[mask, iRAp] * weights
 #         print "- mean tSZ= "+str(np.mean(x))+"; std on mean= "+str(np.std(x)/np.sqrt(len(x)))+"; SNR= "+str(np.mean(x)/np.std(x)*np.sqrt(len(x)))
