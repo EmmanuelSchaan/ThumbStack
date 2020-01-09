@@ -109,7 +109,7 @@ boxMask = enmap.ones(shape, wcs=wcs)
 
 
 # create mock map with point sources and Gaussian profiles with sigma=1.5'
-cmassMarianaVShuffleSmall.generateMockMaps(boxMask, sigma=1.5, test=False)
+#cmassMarianaVShuffleSmall.generateMockMaps(boxMask, sigma=1.5, test=False)
 
 # check that the mock map has non-zero pixels
 #pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_count_dirac_car.fits"
@@ -158,7 +158,7 @@ tsVelGaussVShuffleSmall = ThumbStack(u, cmassMarianaVShuffleSmall, boxMap, boxMa
 filterType = 'diskring'
 
 # Gaussian with sigma = 1.5'
-s1 = 0.58   # 0.6
+s1 = 0.25   # 0.6
 s2 = 1.5 # 1.5
 s3 = 1.61   # 1.61
 profile1 = tsVelDiracVShuffleSmall.ftheoryGaussianProfile(sigma_cluster=s1, filterType=filterType) # 0.6

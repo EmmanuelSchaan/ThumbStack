@@ -349,9 +349,10 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def analyzeObject(self, iObj, test=False):
-      '''Analysis to be done for each object: extract cutout map once,
-      then apply all aperture photometry filters requested on it.
+
+
+   def analyzeObject(self, iObj, filterType='diskring', test=False):
+      '''Analysis to be done for each object.
       Returns:
       filtMap: [map unit * sr]
       filtMask: [mask unit * sr]
@@ -362,19 +363,11 @@ class ThumbStack(object):
       if iObj%1000==0:
          print "- analyze object", iObj
       
-      
       # create arrays of filter values for the given object
-      filtMap = {}
-      filtMask = {}
-      filtHitNoiseStdDev = {} 
-      filtArea = {}
-      for iFilterType in range(len(self.filterTypes)):
-         filterType = self.filterTypes[iFilterType]
-         # create arrays of filter values for the given object
-         filtMap[filterType] = np.zeros(self.nRAp)
-         filtMask[filterType] = np.zeros(self.nRAp)
-         filtHitNoiseStdDev[filterType] = np.zeros(self.nRAp)
-         filtArea[filterType] = np.zeros(self.nRAp)
+      filtMap = np.zeros(self.nRAp)
+      filtMask = np.zeros(self.nRAp)
+      filtHitNoiseStdDev = np.zeros(self.nRAp)
+      diskArea = np.zeros(self.nRAp)
       
       # only do the analysis if the object overlaps with the CMB map
       if self.overlapFlag[iObj]:
@@ -390,65 +383,58 @@ class ThumbStack(object):
          # extract postage stamp around it
          opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=dDeg, dyDeg=dDeg, resArcmin=0.25, proj='cea', test=test)
          
-         for iFilterType in range(len(self.filterTypes)):
-            filterType = self.filterTypes[iFilterType]
+         # loop over the radii for the AP filter
+         for iRAp in range(self.nRAp):
+#            # disk radius in comoving Mpc/h
+#            rApMpch = self.RApMpch[iRAp]
+#            # convert to radians at the given redshift
+#            r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
 
-            # loop over the radii for the AP filter
-            for iRAp in range(self.nRAp):
-               ## disk radius in comoving Mpc/h
-               #rApMpch = self.RApMpch[iRAp]
-               ## convert to radians at the given redshift
-               #r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
-
-               # Disk radius in rad
-               r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
-               # choose an equal area AP filter
-               r1 = r0 * np.sqrt(2.)
-               
-               # perform the filtering
-               filtMap[filterType][iRAp], filtMask[filterType][iRAp], filtHitNoiseStdDev[filterType][iRAp], filtArea[filterType][iRAp] = self.aperturePhotometryFilter(opos, stampMap, stampMask, stampHit, r0, r1, filterType=filterType, test=test)
+            # Disk radius in rad
+            r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
+            # choose an equal area AP filter
+            r1 = r0 * np.sqrt(2.)
+            
+            # perform the filtering
+            filtMap[iRAp], filtMask[iRAp], filtHitNoiseStdDev[iRAp], diskArea[iRAp] = self.aperturePhotometryFilter(opos, stampMap, stampMask, stampHit, r0, r1, filterType=filterType, test=test)
 
       if test:
          print " plot the measured profile"
          fig=plt.figure(0)
          ax=fig.add_subplot(111)
          #
-         for iFilterType in range(len(self.filterTypes)):
-            filterType = self.filterTypes[iFilterType]
-            ax.plot(self.RApArcmin, filtMap[filterType])
-         #
-         plt.show()
+         ax.plot(self.r, filtMap)
 
-      return filtMap, filtMask, filtHitNoiseStdDev, filtArea
+      return filtMap, filtMask, filtHitNoiseStdDev, diskArea
 
 
 
    def saveFiltering(self, nProc=1):
       
-      print("Evaluate all filters on all objects")
-      # loop over all objects in catalog
-#      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
-      tStart = time()
-      with sharedmem.MapReduce(np=nProc) as pool:
-         f = lambda iObj: self.analyzeObject(iObj, test=False)
-         result = np.array(pool.map(f, range(self.Catalog.nObj)))
-      tStop = time()
-      print "took", (tStop-tStart)/60., "min"
-
-
-      # unpack and save to file
       for iFilterType in range(len(self.filterTypes)):
          filterType = self.filterTypes[iFilterType]
+         print("Evaluate "+filterType+" filter on all objects")
 
-         filtMap = np.array([result[iObj,0][filterType][:] for iObj in range(self.Catalog.nObj)])
-         filtMask = np.array([result[iObj,1][filterType][:] for iObj in range(self.Catalog.nObj)])
-         filtHitNoiseStdDev = np.array([result[iObj,2][filterType][:] for iObj in range(self.Catalog.nObj)])
-         filtArea = np.array([result[iObj,3][filterType][:] for iObj in range(self.Catalog.nObj)])
+         # initialize arrays
+         self.filtmap = np.zeros((self.Catalog.nObj, self.nRAp))
+         self.filtMask = np.zeros((self.Catalog.nObj, self.nRAp))
+         self.diskArea = np.zeros((self.Catalog.nObj, self.nRAp))
+         self.filtHitNoiseStdDev = np.zeros((self.Catalog.nObj, self.nRAp))
+
+         # loop over all objects in catalog
+   #      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
+         tStart = time()
+         with sharedmem.MapReduce(np=nProc) as pool:
+            f = lambda iObj: self.analyzeObject(iObj, filterType=filterType, test=False)
+            result = np.array(pool.map(f, range(self.Catalog.nObj)))
+         tStop = time()
+         print "took", (tStop-tStart)/60., "min"
          
-         np.savetxt(self.pathOut+"/"+filterType+"_filtmap.txt", filtMap)
-         np.savetxt(self.pathOut+"/"+filterType+"_filtmask.txt", filtMask)
-         np.savetxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt", filtHitNoiseStdDev)
-         np.savetxt(self.pathOut+"/"+filterType+"_filtarea.txt", filtArea)
+         # unpack and save to file
+         np.savetxt(self.pathOut+"/"+filterType+"_filtmap.txt", result[:,0,:])
+         np.savetxt(self.pathOut+"/"+filterType+"_filtmask.txt", result[:,1,:])
+         np.savetxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt", result[:,2,:])
+         np.savetxt(self.pathOut+"/"+filterType+"_filtarea.txt", result[:,3,:])
 
 
    def loadFiltering(self):
@@ -463,111 +449,6 @@ class ThumbStack(object):
          self.filtMask[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmask.txt")
          self.filtHitNoiseStdDev[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt")
          self.filtArea[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtarea.txt")
-
-
-   ##################################################################################
-
-#!!! This version is slower: re-extracts the cutout maps for each filter type
-# but it is more easily readable
-
-#   def analyzeObject(self, iObj, filterType='diskring', test=False):
-#      '''Analysis to be done for each object.
-#      Returns:
-#      filtMap: [map unit * sr]
-#      filtMask: [mask unit * sr]
-#      filtHitNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
-#      diskArea: [sr]
-#      '''
-#      
-#      if iObj%1000==0:
-#         print "- analyze object", iObj
-#      
-#      # create arrays of filter values for the given object
-#      filtMap = np.zeros(self.nRAp)
-#      filtMask = np.zeros(self.nRAp)
-#      filtHitNoiseStdDev = np.zeros(self.nRAp)
-#      diskArea = np.zeros(self.nRAp)
-#      
-#      # only do the analysis if the object overlaps with the CMB map
-#      if self.overlapFlag[iObj]:
-#         # Object coordinates
-#         ra = self.Catalog.RA[iObj]   # in deg
-#         dec = self.Catalog.DEC[iObj] # in deg
-#         z = self.Catalog.Z[iObj]
-#         
-#         # choose postage stamp size to fit the largest ring
-#         dArcmin = np.ceil(2. * self.rApMaxArcmin * np.sqrt(2.))
-#         dDeg = dArcmin / 60.
-#         
-#         # extract postage stamp around it
-#         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=dDeg, dyDeg=dDeg, resArcmin=0.25, proj='cea', test=test)
-#         
-#         # loop over the radii for the AP filter
-#         for iRAp in range(self.nRAp):
-##            # disk radius in comoving Mpc/h
-##            rApMpch = self.RApMpch[iRAp]
-##            # convert to radians at the given redshift
-##            r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
-#
-#            # Disk radius in rad
-#            r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
-#            # choose an equal area AP filter
-#            r1 = r0 * np.sqrt(2.)
-#            
-#            # perform the filtering
-#            filtMap[iRAp], filtMask[iRAp], filtHitNoiseStdDev[iRAp], diskArea[iRAp] = self.aperturePhotometryFilter(opos, stampMap, stampMask, stampHit, r0, r1, filterType=filterType, test=test)
-#
-#      if test:
-#         print " plot the measured profile"
-#         fig=plt.figure(0)
-#         ax=fig.add_subplot(111)
-#         #
-#         ax.plot(self.r, filtMap)
-#
-#      return filtMap, filtMask, filtHitNoiseStdDev, diskArea
-#
-#
-#
-#   def saveFiltering(self, nProc=1):
-#      
-#      for iFilterType in range(len(self.filterTypes)):
-#         filterType = self.filterTypes[iFilterType]
-#         print("Evaluate "+filterType+" filter on all objects")
-#
-#         # initialize arrays
-#         self.filtmap = np.zeros((self.Catalog.nObj, self.nRAp))
-#         self.filtMask = np.zeros((self.Catalog.nObj, self.nRAp))
-#         self.diskArea = np.zeros((self.Catalog.nObj, self.nRAp))
-#         self.filtHitNoiseStdDev = np.zeros((self.Catalog.nObj, self.nRAp))
-#
-#         # loop over all objects in catalog
-#   #      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
-#         tStart = time()
-#         with sharedmem.MapReduce(np=nProc) as pool:
-#            f = lambda iObj: self.analyzeObject(iObj, filterType=filterType, test=False)
-#            result = np.array(pool.map(f, range(self.Catalog.nObj)))
-#         tStop = time()
-#         print "took", (tStop-tStart)/60., "min"
-#         
-#         # unpack and save to file
-#         np.savetxt(self.pathOut+"/"+filterType+"_filtmap.txt", result[:,0,:])
-#         np.savetxt(self.pathOut+"/"+filterType+"_filtmask.txt", result[:,1,:])
-#         np.savetxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt", result[:,2,:])
-#         np.savetxt(self.pathOut+"/"+filterType+"_filtarea.txt", result[:,3,:])
-#
-#
-#   def loadFiltering(self):
-#      self.filtMap = {}
-#      self.filtMask = {}
-#      self.filtHitNoiseStdDev = {}
-#      self.filtArea = {}
-#
-#      for iFilterType in range(len(self.filterTypes)):
-#         filterType = self.filterTypes[iFilterType]
-#         self.filtMap[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmap.txt")
-#         self.filtMask[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmask.txt")
-#         self.filtHitNoiseStdDev[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt")
-#         self.filtArea[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtarea.txt")
 
 
    ##################################################################################

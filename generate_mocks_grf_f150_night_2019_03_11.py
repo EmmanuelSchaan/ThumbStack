@@ -123,7 +123,7 @@ def genGRF(iMock):
    ## save CAR map
    #enmap.write_map(pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits", grfMap)
 
-
+'''
 print "Generating mocks"
 tStart = time()
 with sharedmem.MapReduce(np=nProc) as pool:
@@ -131,7 +131,7 @@ with sharedmem.MapReduce(np=nProc) as pool:
 #np.array(map(genGRF, range(nMocks)))
 tStop = time()
 print "Took", (tStop-tStart)/60., "min"
-
+'''
 
 #########################################################################
 # Check that the power spectra match the input
@@ -234,7 +234,7 @@ def measurePower(iMock):
    #lCen, Cl, sCl = powerSpectrum(hpGrfMap, nBins=101, lRange=None)
    #return lCen, Cl, sCl
 
-
+'''
 print "Checking power spectra"
 tStart = time()
 with sharedmem.MapReduce(np=nProc) as pool:
@@ -254,9 +254,9 @@ data[:,0] = lCen
 data[:,1] = ClMocks
 data[:,2] = sClMocks
 np.savetxt(pathOut + "mean_cl_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt", data)
+'''
 
-
-
+'''
 # read mean power spectrum from file
 data = np.genfromtxt(pathOut + "mean_cl_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
 lCen = data[:,0]
@@ -286,7 +286,7 @@ fig.savefig(pathFig+"power_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+"_grf_f150_
 fig.clf()
 
 #plt.show()
-
+'''
 
 
 
@@ -361,7 +361,8 @@ def doStacking(iMock):
 
 print "Stacking on each mock map"
 tStart = time()
-result = np.array(map(doStacking, range(iMock0, iMock0+nMocks)))
+#result = np.array(map(doStacking, range(iMock0, iMock0+nMocks)))
+result = np.array(map(doStacking, [199, 298, 299, 398, 399]))
 tStop = time()
 print "Finished all stacking: took", (tStop-tStart)/60., "min"
 
