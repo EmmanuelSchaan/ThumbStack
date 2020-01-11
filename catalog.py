@@ -630,7 +630,69 @@ class Catalog(object):
 ##################################################################################
 
 
-   def generateMockMaps(self, carMap, sigma=None, depixwin=False, test=False):
+#   def generateMockMaps(self, carMap, sigma=None, depixwin=False, test=False):
+#      print "- Generate mock maps"
+#      # map of pixel areas
+#      pixSizeMap = carMap.pixsizemap()
+#      # input for the counts
+#      srcsCount = np.zeros((self.nObj, 3))
+#      srcsCount[:,0] = self.DEC.copy() * np.pi/180.   # [rad]
+#      srcsCount[:,1] = self.RA.copy() * np.pi/180. # [rad]
+#      srcsCount[:,2] = 1.
+#      # input for the LOS velocity
+#      srcsVel = srcsCount.copy()
+#      srcsVel[:,2] = - self.vR / 3.e5 
+#
+#      import pointsrcs
+#
+#      # Dirac profiles
+#      countDirac = pointsrcs.sim_srcs(carMap.shape, carMap.wcs, srcsCount, 1.e-5*np.pi/(180.*60.))
+#      print(np.sum(np.abs(countDirac)))
+#      velDirac = pointsrcs.sim_srcs(carMap.shape, carMap.wcs, srcsVel, 1.e-5*np.pi/(180.*60.))
+#      # normalize to integrate to 1 over angles in [muK*arcmin^2]
+#      countDirac /= pixSizeMap * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+#      velDirac /= pixSizeMap * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+#      # normalize the mock maps, such that:
+#      # int dOmega count = 1 [muK*arcmin^2]
+#      # int dOmega vel = -(v/c) * sigma(v/c) [muK*arcmin^2]
+#      # the reason for the vel normalization is that the kSZ estimator correlates with v/c,
+#      # then divides by sigma^2(v/c), then re-multiplies by sigma(v/c),
+#      # so that the estimated kSZ has the right amplitude.
+#      # This way, the estimated tSZ and kSZ should converge to 1 muK*arcmin^2,
+#      # and will be easily comparable to the theory curve.
+#      velDirac /= np.std(self.vR / 3.e5)
+#      # save the maps
+#      enmap.write_map(self.pathOut+"mock_count_dirac_car.fits", countDirac)
+#      enmap.write_map(self.pathOut+"mock_vel_dirac_car.fits", velDirac)
+#      
+#      if sigma is not None:
+#         countGauss = pointsrcs.sim_srcs(carMap.shape, carMap.wcs, srcsCount, sigma*np.pi/(180.*60.))
+#         print(np.sum(np.abs(countGauss)))
+#         velGauss = pointsrcs.sim_srcs(carMap.shape, carMap.wcs, srcsVel, sigma*np.pi/(180.*60.))
+#         # normalize to integrate to 1 over angles in [muK*arcmin^2]
+#         countGauss /= pixSizeMap * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+#         velGauss /= pixSizeMap * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+#         # The amplitude given to the Gaussian was the peak amplitude:
+#         # convert from peak amplitude to Gaussian normalization
+#         countGauss /= 2. * np.pi * (sigma * np.pi / (180. * 60.))**2
+#         velGauss /= 2. * np.pi * (sigma * np.pi / (180. * 60.))**2
+#         # normalize the mock maps, such that:
+#         # int dOmega count = 1 [muK*arcmin^2]
+#         # int dOmega vel = -(v/c) * sigma(v/c) [muK*arcmin^2]
+#         # the reason for the vel normalization is that the kSZ estimator correlates with v/c,
+#         # then divides by sigma^2(v/c), then re-multiplies by sigma(v/c),
+#         # so that the estimated kSZ has the right amplitude.
+#         # This way, the estimated tSZ and kSZ should converge to 1 muK*arcmin^2,
+#         # and will be easily comparable to the theory curve.
+#         velGauss /= np.std(self.vR / 3.e5)
+#         # save the maps
+#         enmap.write_map(self.pathOut+"mock_count_gauss_car.fits", countGauss)
+#         enmap.write_map(self.pathOut+"mock_vel_gauss_car.fits", velGauss)
+
+
+
+
+   def generateMockMaps(self, carMap, sigma=None, test=False):
       """Generate mock maps with 1 at the pixel location of each  object, 0 everywhere else.
       If sigma [arcmin] is specified, produces also Gaussian smoothed versions,
       normalized such that   int d^2theta profile = 1, where theta is in [rad].
@@ -641,7 +703,7 @@ class Catalog(object):
       as opposed to the exact position within the pixel.
       This operation is not done on the Dirac maps, since the slight miscentering
       has no observable impact there.
-      Assumes that carMAp has shape [nX, nY], ie it is not a T,Q,U map, just a T map.
+      Assumes that carMap has shape [nX, nY], ie it is not a T,Q,U map, just a T map.
       """
       print "- Generate mock maps"
       tStart = time()
@@ -649,10 +711,8 @@ class Catalog(object):
       countDirac = carMap.copy()
       countDirac[:,:] = 0.
       velDirac = countDirac.copy()
-
       # get map of exact pixel sizes
       pixSizeMap = countDirac.pixsizemap()
-
       # get map of ra and dec, just to check
       posmap = countDirac.posmap()
 
@@ -665,13 +725,11 @@ class Catalog(object):
          dec = self.DEC[iObj]
          # coordinates in [rad]
          sourcecoord = np.array([dec, ra]) * np.pi/180.
-         
          # find pixel indices (float) corresponding to ra, dec
          iY, iX = enmap.sky2pix(countDirac.shape, countDirac.wcs, sourcecoord, safe=True, corner=False)
          if test:
             print 'ra, dec =', ra, dec, iY, iX
             print countDirac.shape
-
          # Check that the object is within the map boundaries
          # before rounding the indices
          if iX>=0 and iX<=(countDirac.shape[1]-1) and iY>=0 and iY<=(countDirac.shape[0]-1):
@@ -679,14 +737,11 @@ class Catalog(object):
              # watch out for difference round VS np.round!
              jY = np.int(round(iY))
              jX = np.int(round(iX))
-             
              if test:
                print("Object "+str(iObj)+" overlaps")
-
              # fill the pixel
              countDirac[jY, jX] = 1.
              velDirac[jY, jX] = - self.vR[iObj] / 3.e5   # v_r/c  [dimless]
-
              # check that I filled the right pixel
              if countDirac.at(sourcecoord, prefilter=False, mask_nan=False, order=0)<>1:
                 print "Filled the wrong pixel for  object", iObj
@@ -695,14 +750,11 @@ class Catalog(object):
                 print "difference in arcmin=", (posmap[::-1, jY, jX] * 180./np.pi - np.array([ra, dec]))*60.  # residual in [arcmin]
                 print "ra index=", iX, jX, np.int(np.round(iX)), countDirac.shape[1]
                 print "dec index=", iY, jY, np.int(np.round(iY)), countDirac.shape[0]
-                
 
              # normalize to integrate to 1 over angles in [muK*arcmin^2]
              countDirac[jY, jX] /= pixSizeMap[jY, jX] * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
              velDirac[jY, jX] /= pixSizeMap[jY, jX] * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
              
-
-
       # normalize the mock maps, such that:
       # int dOmega count = 1 [muK*arcmin^2]
       # int dOmega vel = -(v/c) * sigma(v/c) [muK*arcmin^2]
@@ -715,33 +767,171 @@ class Catalog(object):
 #      velDirac /= velDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
       velDirac /= np.std(self.vR / 3.e5)
 
-#      # undo one power of the window function,
-#      # to undo the fact that I placed the galaxies at the center of the nearest pixel,
-#      # as opposed to their exact position within the pixel
-#      if depixwin:
-#         countDirac = enmap.apply_window(countDirac, pow=-1)
-#         velDirac = enmap.apply_window(velDirac, pow=-1)
-
       # save the maps
       enmap.write_map(self.pathOut+"mock_count_dirac_car.fits", countDirac)
       enmap.write_map(self.pathOut+"mock_vel_dirac_car.fits", velDirac)
       
-      if sigma is not None:
-         # convolve maps with a Gaussian  profile of given sigma (not fwhm)
-         sigma *= np.pi/180./60.  # convert from arcmin to [rad]
-         countGauss = enmap.smooth_gauss(countDirac, sigma)
-         velGauss = enmap.smooth_gauss(velDirac, sigma)
 
-         # undo one power of the window function,
-         # to undo the fact that I placed the galaxies at the center of the nearest pixel,
-         # as opposed to their exact position within the pixel
-         # individual profiles will look weird, but the stack should then be correct
-         if depixwin:
-            countGauss = enmap.apply_window(countGauss, pow=-1)
-            velGauss = enmap.apply_window(velGauss, pow=-1)
-         
+      # For the Gaussian profiles, use pixell.pointsrcs.sim_srcs,
+      # which places the object at the exact position, rather than the center
+      # of the closest pixel.
+      if sigma is not None:
+
+
+         # input for the counts
+         srcsCount = np.zeros((self.nObj, 3))
+         srcsCount[:,0] = self.DEC.copy() * np.pi/180.   # [rad]
+         srcsCount[:,1] = self.RA.copy() * np.pi/180. # [rad]
+         srcsCount[:,2] = 1.
+         # input for the LOS velocity
+         srcsVel = srcsCount.copy()
+         srcsVel[:,2] = - self.vR / 3.e5 
+
+         import pointsrcs
+
+         countGauss = pointsrcs.sim_srcs(carMap.shape, carMap.wcs, srcsCount, sigma*np.pi/(180.*60.))
+         velGauss = pointsrcs.sim_srcs(carMap.shape, carMap.wcs, srcsVel, sigma*np.pi/(180.*60.))
+#         # normalize to integrate to 1 over angles in [muK*arcmin^2]
+#         countGauss /= pixSizeMap * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+#         velGauss /= pixSizeMap * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+         # The amplitude given to the Gaussian was the peak amplitude:
+         # convert from peak amplitude to Gaussian normalization
+         countGauss /= 2. * np.pi * sigma**2 # (sigma * np.pi / (180. * 60.))**2
+         velGauss /= 2. * np.pi * sigma**2   #(sigma * np.pi / (180. * 60.))**2
+         # normalize the mock maps, such that:
+         # int dOmega count = 1 [muK*arcmin^2]
+         # int dOmega vel = -(v/c) * sigma(v/c) [muK*arcmin^2]
+         # the reason for the vel normalization is that the kSZ estimator correlates with v/c,
+         # then divides by sigma^2(v/c), then re-multiplies by sigma(v/c),
+         # so that the estimated kSZ has the right amplitude.
+         # This way, the estimated tSZ and kSZ should converge to 1 muK*arcmin^2,
+         # and will be easily comparable to the theory curve.
+         velGauss /= np.std(self.vR / 3.e5)
+         # save the maps
          enmap.write_map(self.pathOut+"mock_count_gauss_car.fits", countGauss)
          enmap.write_map(self.pathOut+"mock_vel_gauss_car.fits", velGauss)
 
       tStop = time()
-      print("Took "+str((tStart-tStop)/60.)+" min")
+      print("Took "+str((tStop-tStart)/60.)+" min")
+
+
+
+
+
+
+
+#   def generateMockMaps(self, carMap, sigma=None, depixwin=False, test=False):
+#      """Generate mock maps with 1 at the pixel location of each  object, 0 everywhere else.
+#      If sigma [arcmin] is specified, produces also Gaussian smoothed versions,
+#      normalized such that   int d^2theta profile = 1, where theta is in [rad].
+#      If depixwin==True, the Gaussian profile map is deconvolved with one power
+#      of the pixel window function. This messes up the individual profile, 
+#      but ensures that the stacked profile is correct, by correcting the fact that 
+#      the galaxy profiles were placed at the center of the nearest pixel, 
+#      as opposed to the exact position within the pixel.
+#      This operation is not done on the Dirac maps, since the slight miscentering
+#      has no observable impact there.
+#      Assumes that carMAp has shape [nX, nY], ie it is not a T,Q,U map, just a T map.
+#      """
+#      print "- Generate mock maps"
+#      tStart = time()
+#      # create empty maps
+#      countDirac = carMap.copy()
+#      countDirac[:,:] = 0.
+#      velDirac = countDirac.copy()
+#
+#      # get map of exact pixel sizes
+#      pixSizeMap = countDirac.pixsizemap()
+#
+#      # get map of ra and dec, just to check
+#      posmap = countDirac.posmap()
+#
+#      for iObj in range(self.nObj):
+##      for iObj in range(10):
+#         if iObj%100000==0:
+#            print "    -", iObj
+#         # object coordinates [deg]
+#         ra = self.RA[iObj]
+#         dec = self.DEC[iObj]
+#         # coordinates in [rad]
+#         sourcecoord = np.array([dec, ra]) * np.pi/180.
+#         
+#         # find pixel indices (float) corresponding to ra, dec
+#         iY, iX = enmap.sky2pix(countDirac.shape, countDirac.wcs, sourcecoord, safe=True, corner=False)
+#         if test:
+#            print 'ra, dec =', ra, dec, iY, iX
+#            print countDirac.shape
+#
+#         # Check that the object is within the map boundaries
+#         # before rounding the indices
+#         if iX>=0 and iX<=(countDirac.shape[1]-1) and iY>=0 and iY<=(countDirac.shape[0]-1):
+#             # nearest pixel
+#             # watch out for difference round VS np.round!
+#             jY = np.int(round(iY))
+#             jX = np.int(round(iX))
+#             
+#             if test:
+#               print("Object "+str(iObj)+" overlaps")
+#
+#             # fill the pixel
+#             countDirac[jY, jX] = 1.
+#             velDirac[jY, jX] = - self.vR[iObj] / 3.e5   # v_r/c  [dimless]
+#
+#             # check that I filled the right pixel
+#             if countDirac.at(sourcecoord, prefilter=False, mask_nan=False, order=0)<>1:
+#                print "Filled the wrong pixel for  object", iObj
+#                print "wanted ra, dec=", ra, dec # [deg]
+#                print "chosen closest ra, dec=", posmap[::-1, jY, jX] * 180./np.pi  # [deg]
+#                print "difference in arcmin=", (posmap[::-1, jY, jX] * 180./np.pi - np.array([ra, dec]))*60.  # residual in [arcmin]
+#                print "ra index=", iX, jX, np.int(np.round(iX)), countDirac.shape[1]
+#                print "dec index=", iY, jY, np.int(np.round(iY)), countDirac.shape[0]
+#                
+#
+#             # normalize to integrate to 1 over angles in [muK*arcmin^2]
+#             countDirac[jY, jX] /= pixSizeMap[jY, jX] * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+#             velDirac[jY, jX] /= pixSizeMap[jY, jX] * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+#             
+#
+#
+#      # normalize the mock maps, such that:
+#      # int dOmega count = 1 [muK*arcmin^2]
+#      # int dOmega vel = -(v/c) * sigma(v/c) [muK*arcmin^2]
+#      # the reason for the vel normalization is that the kSZ estimator correlates with v/c,
+#      # then divides by sigma^2(v/c), then re-multiplies by sigma(v/c),
+#      # so that the estimated kSZ has the right amplitude.
+#      # This way, the estimated tSZ and kSZ should converge to 1 muK*arcmin^2,
+#      # and will be easily comparable to the theory curve.
+##      countDirac /= countDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+##      velDirac /= velDirac.pixsize() * (180.*60./np.pi)**2 # divide by pixel area in arcmin^2 
+#      velDirac /= np.std(self.vR / 3.e5)
+#
+##      # undo one power of the window function,
+##      # to undo the fact that I placed the galaxies at the center of the nearest pixel,
+##      # as opposed to their exact position within the pixel
+##      if depixwin:
+##         countDirac = enmap.apply_window(countDirac, pow=-1)
+##         velDirac = enmap.apply_window(velDirac, pow=-1)
+#
+#      # save the maps
+#      enmap.write_map(self.pathOut+"mock_count_dirac_car.fits", countDirac)
+#      enmap.write_map(self.pathOut+"mock_vel_dirac_car.fits", velDirac)
+#      
+#      if sigma is not None:
+#         # convolve maps with a Gaussian  profile of given sigma (not fwhm)
+#         sigma *= np.pi/180./60.  # convert from arcmin to [rad]
+#         countGauss = enmap.smooth_gauss(countDirac, sigma)
+#         velGauss = enmap.smooth_gauss(velDirac, sigma)
+#
+#         # undo one power of the window function,
+#         # to undo the fact that I placed the galaxies at the center of the nearest pixel,
+#         # as opposed to their exact position within the pixel
+#         # individual profiles will look weird, but the stack should then be correct
+#         if depixwin:
+#            countGauss = enmap.apply_window(countGauss, pow=-1)
+#            velGauss = enmap.apply_window(velGauss, pow=-1)
+#         
+#         enmap.write_map(self.pathOut+"mock_count_gauss_car.fits", countGauss)
+#         enmap.write_map(self.pathOut+"mock_vel_gauss_car.fits", velGauss)
+#
+#      tStop = time()
+#      print("Took "+str((tStart-tStop)/60.)+" min")

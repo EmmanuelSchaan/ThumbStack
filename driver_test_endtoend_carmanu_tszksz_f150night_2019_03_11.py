@@ -102,10 +102,10 @@ cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Fa
 # Generate mock maps
 
 # Point sources and Gaussian profiles with sigma=1.5'
-#cmassMariana.generateMockMaps(pactHit, sigma=1.5)
+cmassMariana.generateMockMaps(pactHit, sigma=1.5)
 
 # Same for the catalog with shuffled velocities
-#cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
+cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
 
 
 ###################################################################################
@@ -123,25 +123,27 @@ from thumbstack import *
 
 ###################################################################################
 
+save = False
+
 pathMap = cmassMariana.pathOut + "mock_count_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_dirac_carmanu"
-tsCountDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCountDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_count_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_gauss_carmanu"
-tsCountGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCountGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_vel_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
-tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_vel_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
 
 
 ###################################################################################
@@ -150,24 +152,31 @@ tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, 
 pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffle.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
-tsVelDiracVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsVelDiracVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
 
 pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffle.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 
 ###################################################################################
 
+# Gaussian with sigma = 1.5'
+s1 = 0.25   # 0.6
+s2 = 1.5 # 1.5
+s3 = 1.61   # 1.61
+profile1 = tsVelDiracVShuffleSmall.ftheoryGaussianProfile(sigma_cluster=s1, filterType=filterType) # 0.6
+profile2 = tsVelDiracVShuffleSmall.ftheoryGaussianProfile(sigma_cluster=s2, filterType=filterType) # 1.5
+profile3 = tsVelDiracVShuffleSmall.ftheoryGaussianProfile(sigma_cluster=s3, filterType=filterType) # 1.61
 
 
 # Gaussian with sigma = 1.5'
-profile = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=1.5) # 1.61
-profilePix = tsVelDiracVShuffle.ftheoryGaussianProfilePixelated(sigma_cluster=1.5, resArcmin=0.5) # 1.61
-profilePixPixwin1 = tsVelDiracVShuffle.ftheoryGaussianProfilePixelated(sigma_cluster=1.5, resArcmin=0.5, pixwin=1) # 1.5
-profilePixPixwin3 = tsVelDiracVShuffle.ftheoryGaussianProfilePixelated(sigma_cluster=1.5, resArcmin=0.5, pixwin=3) # 1.5
+#profile = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=1.5) # 1.61
+#profilePix = tsVelDiracVShuffle.ftheoryGaussianProfilePixelated(sigma_cluster=1.5, resArcmin=0.5) # 1.61
+#profilePixPixwin1 = tsVelDiracVShuffle.ftheoryGaussianProfilePixelated(sigma_cluster=1.5, resArcmin=0.5, pixwin=1) # 1.5
+#profilePixPixwin3 = tsVelDiracVShuffle.ftheoryGaussianProfilePixelated(sigma_cluster=1.5, resArcmin=0.5, pixwin=3) # 1.5
 
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
@@ -180,10 +189,13 @@ factor =  (180.*60./np.pi)**2
 ax.errorbar(tsVelDiracVShuffle.RApArcmin, factor*tsVelDiracVShuffle.stackedProfile['ksz_uniformweight'], factor*tsVelDiracVShuffle.sStackedProfile['ksz_uniformweight'], fmt='--', c='g', label=r'vel Dirac v-shuffle')
 ax.errorbar(tsVelGaussVShuffle.RApArcmin, factor*tsVelGaussVShuffle.stackedProfile['ksz_uniformweight'], factor*tsVelGaussVShuffle.sStackedProfile['ksz_uniformweight'], fmt='-', c='g', label=r'vel Gauss v-shuffle')
 #
-ax.plot(tsVelDiracVShuffle.RApArcmin, profile, 'k-', label=r'expected')
-ax.plot(tsVelDiracVShuffle.RApArcmin, profilePix, 'k--', label=r'expected, pixelated')
-ax.plot(tsVelDiracVShuffle.RApArcmin, profilePixPixwin1, 'c-', label=r'expected, pixelated, pixwin 1')
-ax.plot(tsVelDiracVShuffle.RApArcmin, profilePixPixwin3, 'm-', label=r'expected, pixelated, pixwin 3')
+ax.plot(tsVelDiracVShuffle.RApArcmin, profile1, 'k-', label=r'theory '+str(s1))
+ax.plot(tsVelDiracVShuffle.RApArcmin, profile2, 'k-', label=r'theory '+str(s2))
+ax.plot(tsVelDiracVShuffle.RApArcmin, profile3, 'k-', label=r'theory '+str(s3))
+#ax.plot(tsVelDiracVShuffle.RApArcmin, profile, 'k-', label=r'expected')
+#ax.plot(tsVelDiracVShuffle.RApArcmin, profilePix, 'k--', label=r'expected, pixelated')
+#ax.plot(tsVelDiracVShuffle.RApArcmin, profilePixPixwin1, 'c-', label=r'expected, pixelated, pixwin 1')
+#ax.plot(tsVelDiracVShuffle.RApArcmin, profilePixPixwin3, 'm-', label=r'expected, pixelated, pixwin 3')
 #
 ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
 #

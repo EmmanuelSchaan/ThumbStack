@@ -73,12 +73,12 @@ cmassMarianaVShuffleSmall = Catalog(u, massConversion, name="cmass_mariana_vshuf
 # or from the full ACT map geometry
 
 
-## Make mock map using the full pactMap geometry
-## path to true hit count map and mask: Planck + ACT
-#pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/"
-#pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"
-## read maps in common for all mocks
-#boxMask = enmap.read_map(pathMask)[0]
+# Make mock map using the full pactMap geometry
+# path to true hit count map and mask: Planck + ACT
+pathIn = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/"
+pathMask = pathIn + "f150_mask_foot_planck_ps_car.fits"
+# read maps in common for all mocks
+boxMask = enmap.read_map(pathMask)[0]
 
 
 
@@ -97,22 +97,22 @@ cmassMarianaVShuffleSmall = Catalog(u, massConversion, name="cmass_mariana_vshuf
 #print("Final dimensions "+str(boxMask.shape))
 
 
-# Generate empty square map, then make a mock map
-# Generate an empty square map with RA in [0., 5.] and DEC in [-5., 0.] 
-box = np.array([[-5., 5.], [0., 0.]]) * utils.degree
-#box = np.array([[-5., 0.], [0., 5.]]) * utils.degree
-resArcmin = 0.5 #1. #0.5  # 0.1   # map pixel size [arcmin]
-shape,wcs = enmap.geometry(pos=box, res=resArcmin * utils.arcmin, proj='car')
-# create a mask that keeps the whole area
-#boxMask = enmap.zeros((1,) + shape, wcs=wcs)
-boxMask = enmap.ones(shape, wcs=wcs)
+## Generate empty square map, then make a mock map
+## Generate an empty square map with RA in [0., 5.] and DEC in [-5., 0.] 
+#box = np.array([[-5., 5.], [0., 0.]]) * utils.degree
+##box = np.array([[-5., 0.], [0., 5.]]) * utils.degree
+#resArcmin = 0.5 #1. #0.5  # 0.1   # map pixel size [arcmin]
+#shape,wcs = enmap.geometry(pos=box, res=resArcmin * utils.arcmin, proj='car')
+## create a mask that keeps the whole area
+##boxMask = enmap.zeros((1,) + shape, wcs=wcs)
+#boxMask = enmap.ones(shape, wcs=wcs)
 
 
 # create mock map with point sources and Gaussian profiles with sigma=1.5'
-#cmassMarianaVShuffleSmall.generateMockMaps(boxMask, sigma=1.5, test=False)
+cmassMarianaVShuffleSmall.generateMockMaps(boxMask, sigma=1.5, test=False)
 
 # check that the mock map has non-zero pixels
-#pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_count_dirac_car.fits"
+#pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_count_gauss_car.fits"
 #boxMap = enmap.read_map(pathMap)
 #print np.sum(np.abs(boxMap))
 

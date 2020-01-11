@@ -36,16 +36,10 @@ plt.switch_backend('Agg')
 # Mock numbers to generate
 
 # First mock to generate
-if sys.argv[1] is not None:
-   iMock0 = np.int(sys.argv[1])
-else:
-   iMock0 = 0
+iMock0 = np.int(sys.argv[1])
 
 # Number of mocks to generate
-if sys.argv[2] is not None:
-   nMocks = np.int(sys.argv[2])
-else:
-   nMocks = 100
+nMocks = np.int(sys.argv[2])
 
 print("Generating and analyzing  mocks "+str(iMock0)+" to "+str(iMock0+nMocks))
 
@@ -346,7 +340,7 @@ reload(thumbstack)
 from thumbstack import *
 
 # recompute or not the stacked profiles
-save = True
+save = False
 
 
 def doStacking(iMock):
@@ -361,8 +355,8 @@ def doStacking(iMock):
 
 print "Stacking on each mock map"
 tStart = time()
-#result = np.array(map(doStacking, range(iMock0, iMock0+nMocks)))
-result = np.array(map(doStacking, [199, 298, 299, 398, 399]))
+result = np.array(map(doStacking, range(iMock0, iMock0+nMocks)))
+#result = np.array(map(doStacking, [199, 298, 299, 398, 399]))
 tStop = time()
 print "Finished all stacking: took", (tStop-tStart)/60., "min"
 
@@ -389,7 +383,7 @@ for iEst in range(len(Est)):
    est = Est[iEst]
    nRAp = len(result[0][est])
    # shape (nRAp, nMocks)
-   profiles = np.array([[result[i][est][j] for i in range(nMocks)] for j in range(nRAp)])
+   profiles = np.array([[result[j][est][i] for j in range(nMocks)] for i in range(nRAp)])
    
    # estimate and save the mean
    meanStackedProfile[est] = np.mean(profiles, axis=-1)
