@@ -105,7 +105,7 @@ cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Fa
 cmassMariana.generateMockMaps(pactHit, sigma=1.5)
 
 # Same for the catalog with shuffled velocities
-cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
+#cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
 
 
 ###################################################################################
@@ -157,7 +157,7 @@ tsVelDiracVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pact
 pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffle.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
 
 
 
@@ -167,9 +167,9 @@ tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pact
 s1 = 0.25   # 0.6
 s2 = 1.5 # 1.5
 s3 = 1.61   # 1.61
-profile1 = tsVelDiracVShuffleSmall.ftheoryGaussianProfile(sigma_cluster=s1, filterType=filterType) # 0.6
-profile2 = tsVelDiracVShuffleSmall.ftheoryGaussianProfile(sigma_cluster=s2, filterType=filterType) # 1.5
-profile3 = tsVelDiracVShuffleSmall.ftheoryGaussianProfile(sigma_cluster=s3, filterType=filterType) # 1.61
+profile1 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s1, filterType=filterType) # 0.6
+profile2 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s2, filterType=filterType) # 1.5
+profile3 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s3, filterType=filterType) # 1.61
 
 
 # Gaussian with sigma = 1.5'
