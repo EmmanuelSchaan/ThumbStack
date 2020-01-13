@@ -102,7 +102,7 @@ cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Fa
 # Generate mock maps
 
 # Point sources and Gaussian profiles with sigma=1.5'
-cmassMariana.generateMockMaps(pactHit, sigma=1.5)
+#cmassMariana.generateMockMaps(pactHit, sigma=1.5)
 
 # Same for the catalog with shuffled velocities
 #cmassMarianaVShuffle.generateMockMaps(pactHit, sigma=1.5)
@@ -167,9 +167,9 @@ tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pact
 s1 = 0.25   # 0.6
 s2 = 1.5 # 1.5
 s3 = 1.61   # 1.61
-profile1 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s1, filterType=filterType) # 0.6
-profile2 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s2, filterType=filterType) # 1.5
-profile3 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s3, filterType=filterType) # 1.61
+profile1 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s1)#, filterType=filterType) # 0.6
+profile2 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s2)#, filterType=filterType) # 1.5
+profile3 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s3)#, filterType=filterType) # 1.61
 
 
 # Gaussian with sigma = 1.5'
@@ -182,16 +182,16 @@ fig=plt.figure(0)
 ax=fig.add_subplot(111)
 #
 factor =  (180.*60./np.pi)**2
-#ax.errorbar(tsCountDirac.RApArcmin, factor*tsCountDirac.stackedProfile['tsz_uniformweight'], factor*tsCountDirac.sStackedProfile['tsz_uniformweight'], fmt='--', c='r', label=r'count Dirac')
-#ax.errorbar(tsCountGauss.RApArcmin, factor*tsCountGauss.stackedProfile['tsz_uniformweight'], factor*tsCountGauss.sStackedProfile['tsz_uniformweight'], fmt='-', c='r', label=r'count Gauss')
-#ax.errorbar(tsVelDirac.RApArcmin, factor*tsVelDirac.stackedProfile['ksz_uniformweight'], factor*tsVelDirac.sStackedProfile['ksz_uniformweight'], fmt='--', c='b', label=r'vel Dirac')
-#ax.errorbar(tsVelGauss.RApArcmin, factor*tsVelGauss.stackedProfile['ksz_uniformweight'], factor*tsVelGauss.sStackedProfile['ksz_uniformweight'], fmt='-', c='b', label=r'vel Gauss')
+ax.errorbar(tsCountDirac.RApArcmin, factor*tsCountDirac.stackedProfile['tsz_uniformweight'], factor*tsCountDirac.sStackedProfile['tsz_uniformweight'], fmt='--', c='r', label=r'count Dirac')
+ax.errorbar(tsCountGauss.RApArcmin, factor*tsCountGauss.stackedProfile['tsz_uniformweight'], factor*tsCountGauss.sStackedProfile['tsz_uniformweight'], fmt='-', c='r', label=r'count Gauss')
+ax.errorbar(tsVelDirac.RApArcmin, factor*tsVelDirac.stackedProfile['ksz_uniformweight'], factor*tsVelDirac.sStackedProfile['ksz_uniformweight'], fmt='--', c='b', label=r'vel Dirac')
+ax.errorbar(tsVelGauss.RApArcmin, factor*tsVelGauss.stackedProfile['ksz_uniformweight'], factor*tsVelGauss.sStackedProfile['ksz_uniformweight'], fmt='-', c='b', label=r'vel Gauss')
 ax.errorbar(tsVelDiracVShuffle.RApArcmin, factor*tsVelDiracVShuffle.stackedProfile['ksz_uniformweight'], factor*tsVelDiracVShuffle.sStackedProfile['ksz_uniformweight'], fmt='--', c='g', label=r'vel Dirac v-shuffle')
 ax.errorbar(tsVelGaussVShuffle.RApArcmin, factor*tsVelGaussVShuffle.stackedProfile['ksz_uniformweight'], factor*tsVelGaussVShuffle.sStackedProfile['ksz_uniformweight'], fmt='-', c='g', label=r'vel Gauss v-shuffle')
 #
-ax.plot(tsVelDiracVShuffle.RApArcmin, profile1, 'k-', label=r'theory '+str(s1))
-ax.plot(tsVelDiracVShuffle.RApArcmin, profile2, 'k-', label=r'theory '+str(s2))
-ax.plot(tsVelDiracVShuffle.RApArcmin, profile3, 'k-', label=r'theory '+str(s3))
+#ax.plot(tsVelDiracVShuffle.RApArcmin, profile1, 'k-', label=r'theory '+str(s1))
+ax.plot(tsVelDiracVShuffle.RApArcmin, profile2, 'k-', label=r'theory')# '+str(s2))
+#ax.plot(tsVelDiracVShuffle.RApArcmin, profile3, 'k-', label=r'theory '+str(s3))
 #ax.plot(tsVelDiracVShuffle.RApArcmin, profile, 'k-', label=r'expected')
 #ax.plot(tsVelDiracVShuffle.RApArcmin, profilePix, 'k--', label=r'expected, pixelated')
 #ax.plot(tsVelDiracVShuffle.RApArcmin, profilePixPixwin1, 'c-', label=r'expected, pixelated, pixwin 1')
@@ -199,7 +199,7 @@ ax.plot(tsVelDiracVShuffle.RApArcmin, profile3, 'k-', label=r'theory '+str(s3))
 #
 ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
 #
-#fig.savefig(tsCountDirac.pathFig+"/test_mean_stacked_temperature.pdf")
+fig.savefig(tsCountDirac.pathFig+"/test_mean_stacked_temperature_full.pdf")
 #fig.clf()
 
 plt.show()
