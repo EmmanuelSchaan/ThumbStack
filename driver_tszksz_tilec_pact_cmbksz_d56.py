@@ -42,69 +42,13 @@ massConversion = MassConversionKravtsov14()
 ###################################################################################
 # Galaxy catalogs
 
-###################################################################################
 # Mariana
+cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False)
 
-# CMASS
-cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False)
-#cmassSMariana.plotHistograms()
-#cmassSMariana.plotFootprint()
-#cmassMariana.printProperties()
-#
-#cmassNMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False)
-#cmassNMariana.plotHistograms()
-#cmassNMariana.plotFootprint()
-#cmassMariana.printProperties()
-#
-# combined catalog
-cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
-#cmassMariana.addCatalog(cmassNMariana, save=False)
-#cmassMariana.plotHistograms()
-#cmassMariana.plotFootprint()
-#cmassMariana.printProperties()
-
-
-###################################################################################
 # Kendrick
-
-# CMASS
-cmassSKendrick = Catalog(u, massConversion, name="cmass_s_kendrick", nameLong="CMASS S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_S_kendrick.txt", save=False)
-#cmassSKendrick.plotHistograms()
-#cmassSKendrick.plotFootprint()
-#
-#cmassNKendrick = Catalog(u, massConversion, name="cmass_n_kendrick", nameLong="CMASS N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_N_kendrick.txt", save=False)
-#cmassNKendrick.plotHistograms()
-#cmassNKendrick.plotFootprint()
-#
-# combined catalog
-cmassKendrick = cmassSKendrick.copy(name="cmass_kendrick", nameLong="CMASS K")
-#cmassKendrick.addCatalog(cmassNKendrick, save=False)
-#cmassKendrick.plotHistograms()
-#cmassKendrick.plotFootprint()
-
-# LOWZ
-lowzSKendrick = Catalog(u, massConversion, name="lowz_s_kendrick", nameLong="LOWZ S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_S_kendrick.txt", save=False)
-#lowzSKendrick.plotHistograms()
-#lowzSKendrick.plotFootprint()
-#
-#lowzNKendrick = Catalog(u, massConversion, name="lowz_n_kendrick", nameLong="LOWZ N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_N_kendrick.txt", save=False)
-#lowzNKendrick.plotHistograms()
-#lowzNKendrick.plotFootprint()
-#
-# combined catalog
-lowzKendrick = lowzSKendrick.copy(name="lowz_kendrick", nameLong="LOWZ K")
-#lowzKendrick.addCatalog(lowzNKendrick, save=False)
-#lowzKendrick.plotHistograms()
-#lowzKendrick.plotFootprint()
-
-# BOSS = CMASS + LOWZ
-bossKendrick = cmassSKendrick.copy(name="boss_kendrick", nameLong="BOSS K")
-#bossKendrick.addCatalog(cmassNKendrick, save=False)
-bossKendrick.addCatalog(lowzSKendrick, save=False)
-#bossKendrick.addCatalog(lowzNKendrick, save=False)
-#bossKendrick.plotHistograms()
-#bossKendrick.plotFootprint()
-
+cmassKendrick = Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False)
+lowzKendrick = Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False)
+bossKendrick = Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False)
 
 
 ###################################################################################
@@ -137,7 +81,7 @@ print "took", tStop-tStart, "sec"
 #fCl = interp1d(data[:,0], data[:,1], kind='linear', bounds_error=False, fill_value=0.)
 
 # theory power spectrum
-cmb1_6 = StageIVCMB(beam=1.6, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
+#cmb1_6 = StageIVCMB(beam=1.6, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
 
 
 ###################################################################################

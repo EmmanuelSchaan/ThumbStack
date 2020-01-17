@@ -340,7 +340,7 @@ reload(thumbstack)
 from thumbstack import *
 
 # recompute or not the stacked profiles
-save = True
+save = False
 
 
 def doStacking(iMock):
@@ -381,19 +381,19 @@ meanStackedProfile = {}
 for iEst in range(len(Est)):
 #for iEst in range(1):
    est = Est[iEst]
-   nRAp = len(result[0][est])
+   nRAp = len(result[0]['diskring_'+est])
    # shape (nRAp, nMocks)
    profiles = np.array([[result[j]['diskring_'+est][i] for j in range(nMocks)] for i in range(nRAp)])
    
    # estimate and save the mean
-   meanStackedProfile[est] = np.mean(profiles, axis=-1)
+   meanStackedProfile['diskring_'+est] = np.mean(profiles, axis=-1)
    np.savetxt(pathOut+'mean_diskring_'+est+'_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.txt', meanStackedProfile[est])
 
    # estimate and save the cov
-   covStackedProfile[est] = np.cov(profiles, rowvar=True)
+   covStackedProfile['diskring_'+est] = np.cov(profiles, rowvar=True)
    np.savetxt(pathOut+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt", covStackedProfile[est])
    # plot it
-   ts.plotCov(covStackedProfile[est], name="diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".pdf")
+   ts.plotCov(covStackedProfile['diskring_'+est], name="diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".pdf")
 
 
 ###################################################################################

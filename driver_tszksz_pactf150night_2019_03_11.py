@@ -57,8 +57,9 @@ cmassNMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMA
 #cmassMariana.printProperties()
 #
 # combined catalog
-cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
-cmassMariana.addCatalog(cmassNMariana, save=False)
+#cmassMariana = cmassSMariana.copy(name="cmass_mariana", nameLong="CMASS M")
+#cmassMariana.addCatalog(cmassNMariana, save=True)
+cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False)
 #cmassMariana.plotHistograms()
 #cmassMariana.plotFootprint()
 #cmassMariana.printProperties()
@@ -77,8 +78,9 @@ cmassNKendrick = Catalog(u, massConversion, name="cmass_n_kendrick", nameLong="C
 #cmassNKendrick.plotFootprint()
 #
 # combined catalog
-cmassKendrick = cmassSKendrick.copy(name="cmass_kendrick", nameLong="CMASS K")
-cmassKendrick.addCatalog(cmassNKendrick, save=False)
+#cmassKendrick = cmassSKendrick.copy(name="cmass_kendrick", nameLong="CMASS K")
+#cmassKendrick.addCatalog(cmassNKendrick, save=True)
+cmassKendrick = Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False)
 #cmassKendrick.plotHistograms()
 #cmassKendrick.plotFootprint()
 
@@ -92,16 +94,18 @@ lowzNKendrick = Catalog(u, massConversion, name="lowz_n_kendrick", nameLong="LOW
 #lowzNKendrick.plotFootprint()
 #
 # combined catalog
-lowzKendrick = lowzSKendrick.copy(name="lowz_kendrick", nameLong="LOWZ K")
-lowzKendrick.addCatalog(lowzNKendrick, save=False)
+#lowzKendrick = lowzSKendrick.copy(name="lowz_kendrick", nameLong="LOWZ K")
+#lowzKendrick.addCatalog(lowzNKendrick, save=True)
+lowzKendrick = Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False)
 #lowzKendrick.plotHistograms()
 #lowzKendrick.plotFootprint()
 
 # BOSS = CMASS + LOWZ
-bossKendrick = cmassSKendrick.copy(name="boss_kendrick", nameLong="BOSS K")
-bossKendrick.addCatalog(cmassNKendrick, save=False)
-bossKendrick.addCatalog(lowzSKendrick, save=False)
-bossKendrick.addCatalog(lowzNKendrick, save=False)
+#bossKendrick = cmassSKendrick.copy(name="boss_kendrick", nameLong="BOSS K")
+#bossKendrick.addCatalog(cmassNKendrick, save=True)
+#bossKendrick.addCatalog(lowzSKendrick, save=True)
+#bossKendrick.addCatalog(lowzNKendrick, save=True)
+bossKendrick = Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False)
 #bossKendrick.plotHistograms()
 #bossKendrick.plotFootprint()
 
@@ -128,13 +132,13 @@ pactHit = enmap.read_map(pathHit)
 tStop = time()
 print "took", tStop-tStart, "sec"
 
-# measured power spectrum
-data = np.genfromtxt(pathPower)  # l, Cl, sCl
-data = np.nan_to_num(data)
-fCl = interp1d(data[:,0], data[:,1], kind='linear', bounds_error=False, fill_value=0.)
+## measured power spectrum
+#data = np.genfromtxt(pathPower)  # l, Cl, sCl
+#data = np.nan_to_num(data)
+#fCl = interp1d(data[:,0], data[:,1], kind='linear', bounds_error=False, fill_value=0.)
 
-# theory power spectrum
-cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
+## theory power spectrum
+#cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
 
 
 ###################################################################################
@@ -148,37 +152,39 @@ from thumbstack import *
 
 
 name = cmassMariana.name + "_pactf150night20190311"
-tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 ###################################################################################
 
 name = cmassSMariana.name + "_pactf150night20190311"
-tsCmassSM = ThumbStack(u, cmassSMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassSM = ThumbStack(u, cmassSMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = cmassNMariana.name + "_pactf150night20190311"
-tsCmassNM = ThumbStack(u, cmassNMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassNM = ThumbStack(u, cmassNMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
+
+
 
 name = cmassSKendrick.name + "_pactf150night20190311"
-tsCmassSK = ThumbStack(u, cmassSKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassSK = ThumbStack(u, cmassSKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = cmassNKendrick.name + "_pactf150night20190311"
-tsCmassNK = ThumbStack(u, cmassNKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassNK = ThumbStack(u, cmassNKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = cmassKendrick.name + "_pactf150night20190311"
-tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = lowzSKendrick.name + "_pactf150night20190311"
-tsLowzSK = ThumbStack(u, lowzSKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsLowzSK = ThumbStack(u, lowzSKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = lowzNKendrick.name + "_pactf150night20190311"
-tsLowzNK = ThumbStack(u, lowzNKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsLowzNK = ThumbStack(u, lowzNKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = lowzKendrick.name + "_pactf150night20190311"
-tsLowzK = ThumbStack(u, lowzKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsLowzK = ThumbStack(u, lowzKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = bossKendrick.name + "_pactf150night20190311"
-tsBossK = ThumbStack(u, bossKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+tsBossK = ThumbStack(u, bossKendrick, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
 ###################################################################################

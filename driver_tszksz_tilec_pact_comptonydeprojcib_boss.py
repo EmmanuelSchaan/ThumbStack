@@ -42,32 +42,13 @@ massConversion = MassConversionKravtsov14()
 ###################################################################################
 # Galaxy catalogs
 
-###################################################################################
 # Mariana
+cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False)
 
-# CMASS
-cmassNMariana = Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False)
-# combined catalog
-cmassMariana = cmassNMariana.copy(name="cmass_mariana", nameLong="CMASS M")
-
-
-###################################################################################
 # Kendrick
-
-# CMASS
-cmassNKendrick = Catalog(u, massConversion, name="cmass_n_kendrick", nameLong="CMASS N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_N_kendrick.txt", save=False)
-# combined catalog
-cmassKendrick = cmassNKendrick.copy(name="cmass_kendrick", nameLong="CMASS K")
-
-# LOWZ
-lowzNKendrick = Catalog(u, massConversion, name="lowz_n_kendrick", nameLong="LOWZ N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_N_kendrick.txt", save=False)
-# combined catalog
-lowzKendrick = lowzNKendrick.copy(name="lowz_kendrick", nameLong="LOWZ K")
-
-# BOSS = CMASS + LOWZ
-bossKendrick = cmassNKendrick.copy(name="boss_kendrick", nameLong="BOSS K")
-#bossKendrick.addCatalog(cmassNKendrick, save=False)
-bossKendrick.addCatalog(lowzNKendrick, save=False)
+cmassKendrick = Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False)
+lowzKendrick = Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False)
+bossKendrick = Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False)
 
 
 
@@ -99,7 +80,7 @@ print "took", tStop-tStart, "sec"
 #fCl = interp1d(data[:,0], data[:,1], kind='linear', bounds_error=False, fill_value=0.)
 
 # theory power spectrum
-cmb1_6 = StageIVCMB(beam=1.6, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
+#cmb1_6 = StageIVCMB(beam=1.6, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=False)
 
 
 ###################################################################################
@@ -119,10 +100,10 @@ tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, cmbHit=None, name=name
 ###################################################################################
 
 name = cmassKendrick.name + "_" + cmbName
-tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, cmbHit=None, name=name, nameLong=None, save=False, nProc=nProc)
+tsCmassK = ThumbStack(u, cmassKendrick, pactMap, pactMask, cmbHit=None, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = lowzKendrick.name + "_" + cmbName
-tsLowzK = ThumbStack(u, lowzKendrick, pactMap, pactMask, cmbHit=None, name=name, nameLong=None, save=False, nProc=nProc)
+tsLowzK = ThumbStack(u, lowzKendrick, pactMap, pactMask, cmbHit=None, name=name, nameLong=None, save=True, nProc=nProc)
 
 name = bossKendrick.name + "_" + cmbName
 tsBossK = ThumbStack(u, bossKendrick, pactMap, pactMask, cmbHit=None, name=name, nameLong=None, save=True, nProc=nProc)
