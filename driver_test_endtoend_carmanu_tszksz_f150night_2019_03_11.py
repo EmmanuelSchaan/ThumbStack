@@ -128,22 +128,22 @@ save = False
 pathMap = cmassMariana.pathOut + "mock_count_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_dirac_carmanu"
-tsCountDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
+tsCountDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, filterTypes='diskring', nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_count_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_count_gauss_carmanu"
-tsCountGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
+tsCountGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, filterTypes='diskring', nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_vel_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
-tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
+tsVelDirac = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, filterTypes='diskring', nProc=nProc)
 
 pathMap = cmassMariana.pathOut + "mock_vel_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
+tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, filterTypes='diskring', nProc=nProc)
 
 
 ###################################################################################
@@ -152,24 +152,26 @@ tsVelGauss = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, 
 pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_dirac_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffle.name + "_pactf150night20190311_test_endtoend_vel_dirac_carmanu"
-tsVelDiracVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
+tsVelDiracVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, filterTypes='diskring', nProc=nProc)
 
 pathMap = cmassMarianaVShuffle.pathOut + "mock_vel_gauss_car.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffle.name + "_pactf150night20190311_test_endtoend_vel_gauss_carmanu"
-tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
+tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, filterTypes='diskring', nProc=nProc)
 
 
 
 ###################################################################################
 
+filterType = 'diskring'
+
 # Gaussian with sigma = 1.5'
 s1 = 0.25   # 0.6
 s2 = 1.5 # 1.5
 s3 = 1.61   # 1.61
-profile1 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s1)#, filterType=filterType) # 0.6
-profile2 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s2)#, filterType=filterType) # 1.5
-profile3 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s3)#, filterType=filterType) # 1.61
+profile1 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s1, filterType=filterType) # 0.6
+profile2 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s2, filterType=filterType) # 1.5
+profile3 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s3, filterType=filterType) # 1.61
 
 
 # Gaussian with sigma = 1.5'
@@ -182,12 +184,12 @@ fig=plt.figure(0)
 ax=fig.add_subplot(111)
 #
 factor =  (180.*60./np.pi)**2
-ax.errorbar(tsCountDirac.RApArcmin, factor*tsCountDirac.stackedProfile['tsz_uniformweight'], factor*tsCountDirac.sStackedProfile['tsz_uniformweight'], fmt='--', c='r', label=r'count Dirac')
-ax.errorbar(tsCountGauss.RApArcmin, factor*tsCountGauss.stackedProfile['tsz_uniformweight'], factor*tsCountGauss.sStackedProfile['tsz_uniformweight'], fmt='-', c='r', label=r'count Gauss')
-ax.errorbar(tsVelDirac.RApArcmin, factor*tsVelDirac.stackedProfile['ksz_uniformweight'], factor*tsVelDirac.sStackedProfile['ksz_uniformweight'], fmt='--', c='b', label=r'vel Dirac')
-ax.errorbar(tsVelGauss.RApArcmin, factor*tsVelGauss.stackedProfile['ksz_uniformweight'], factor*tsVelGauss.sStackedProfile['ksz_uniformweight'], fmt='-', c='b', label=r'vel Gauss')
-ax.errorbar(tsVelDiracVShuffle.RApArcmin, factor*tsVelDiracVShuffle.stackedProfile['ksz_uniformweight'], factor*tsVelDiracVShuffle.sStackedProfile['ksz_uniformweight'], fmt='--', c='g', label=r'vel Dirac v-shuffle')
-ax.errorbar(tsVelGaussVShuffle.RApArcmin, factor*tsVelGaussVShuffle.stackedProfile['ksz_uniformweight'], factor*tsVelGaussVShuffle.sStackedProfile['ksz_uniformweight'], fmt='-', c='g', label=r'vel Gauss v-shuffle')
+ax.errorbar(tsCountDirac.RApArcmin, factor*tsCountDirac.stackedProfile['diskring_tsz_uniformweight'], factor*tsCountDirac.sStackedProfile['diskring_tsz_uniformweight'], fmt='--', c='r', label=r'count Dirac')
+ax.errorbar(tsCountGauss.RApArcmin, factor*tsCountGauss.stackedProfile['diskring_tsz_uniformweight'], factor*tsCountGauss.sStackedProfile['diskring_tsz_uniformweight'], fmt='-', c='r', label=r'count Gauss')
+ax.errorbar(tsVelDirac.RApArcmin, factor*tsVelDirac.stackedProfile['diskring_ksz_uniformweight'], factor*tsVelDirac.sStackedProfile['diskring_ksz_uniformweight'], fmt='--', c='b', label=r'vel Dirac')
+ax.errorbar(tsVelGauss.RApArcmin, factor*tsVelGauss.stackedProfile['diskring_ksz_uniformweight'], factor*tsVelGauss.sStackedProfile['diskring_ksz_uniformweight'], fmt='-', c='b', label=r'vel Gauss')
+ax.errorbar(tsVelDiracVShuffle.RApArcmin, factor*tsVelDiracVShuffle.stackedProfile['diskring_ksz_uniformweight'], factor*tsVelDiracVShuffle.sStackedProfile['diskring_ksz_uniformweight'], fmt='--', c='g', label=r'vel Dirac v-shuffle')
+ax.errorbar(tsVelGaussVShuffle.RApArcmin, factor*tsVelGaussVShuffle.stackedProfile['diskring_ksz_uniformweight'], factor*tsVelGaussVShuffle.sStackedProfile['diskring_ksz_uniformweight'], fmt='-', c='g', label=r'vel Gauss v-shuffle')
 #
 #ax.plot(tsVelDiracVShuffle.RApArcmin, profile1, 'k-', label=r'theory '+str(s1))
 ax.plot(tsVelDiracVShuffle.RApArcmin, profile2, 'k-', label=r'theory')# '+str(s2))
@@ -199,7 +201,7 @@ ax.plot(tsVelDiracVShuffle.RApArcmin, profile2, 'k-', label=r'theory')# '+str(s2
 #
 ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
 #
-fig.savefig(tsCountDirac.pathFig+"/test_mean_stacked_temperature_full.pdf")
+fig.savefig(tsCountDirac.pathFig+"/test_mean_stacked_temperature_diskring_full.pdf")
 #fig.clf()
 
 plt.show()

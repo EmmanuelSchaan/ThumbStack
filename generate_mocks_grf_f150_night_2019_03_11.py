@@ -348,7 +348,7 @@ def doStacking(iMock):
    pathMap = pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits"
    pactMap = enmap.read_map(pathMap)
    name = cmassMariana.name + "_mockgrf"+str(iMock)+"_pactf150night20190311"
-   ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, nProc=nProc)
+   ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, filterTypes='diskring', nProc=nProc)
    # output the various stacked profiles (tSZ, kSZ, etc.) from this mock GRF CMB map
    return ts.stackedProfile
 
@@ -372,7 +372,7 @@ print "Finished all stacking: took", (tStop-tStart)/60., "min"
 pathMap = pathOut+"mock_"+str(iMock0)+"_grf_f150_daynight.fits"
 pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_mockgrf"+str(iMock0)+"_pactf150night20190311"
-ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, nProc=nProc)
+ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, filterTypes='diskring', nProc=nProc)
 
 
 Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
@@ -383,17 +383,17 @@ for iEst in range(len(Est)):
    est = Est[iEst]
    nRAp = len(result[0][est])
    # shape (nRAp, nMocks)
-   profiles = np.array([[result[j][est][i] for j in range(nMocks)] for i in range(nRAp)])
+   profiles = np.array([[result[j]['diskring_'+est][i] for j in range(nMocks)] for i in range(nRAp)])
    
    # estimate and save the mean
    meanStackedProfile[est] = np.mean(profiles, axis=-1)
-   np.savetxt(pathOut+'mean_'+est+'_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.txt', meanStackedProfile[est])
+   np.savetxt(pathOut+'mean_diskring_'+est+'_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.txt', meanStackedProfile[est])
 
    # estimate and save the cov
    covStackedProfile[est] = np.cov(profiles, rowvar=True)
-   np.savetxt(pathOut+"cov_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt", covStackedProfile[est])
+   np.savetxt(pathOut+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt", covStackedProfile[est])
    # plot it
-   ts.plotCov(covStackedProfile[est], name=est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".pdf")
+   ts.plotCov(covStackedProfile[est], name="diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".pdf")
 
 
 ###################################################################################
@@ -405,8 +405,8 @@ covStackedProfile = {}
 for iEst in range(len(Est)):
 #for iEst in [2]:
    est = Est[iEst]
-   meanStackedProfile[est] = np.genfromtxt(pathOut+"mean_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
-   covStackedProfile[est] = np.genfromtxt(pathOut+"cov_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
+   meanStackedProfile[est] = np.genfromtxt(pathOut+"mean_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
+   covStackedProfile[est] = np.genfromtxt(pathOut+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
 
 
    # Compare diagonal covariance elements
@@ -429,7 +429,7 @@ for iEst in range(len(Est)):
    ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
    ax.set_title(est.replace('_', ' '))
    #
-   fig.savefig(pathFig+'/compare_std_'+est+'_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.pdf', bbox_inches='tight')
+   fig.savefig(pathFig+'/compare_std_diskring_'+est+'_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.pdf', bbox_inches='tight')
    #plt.show()
    fig.clf()
 
@@ -451,7 +451,7 @@ ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')
 ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
 #
-fig.savefig(pathFig+'/nulltests_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.pdf', bbox_inches='tight')
+fig.savefig(pathFig+'/nulltests_diskring_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.pdf', bbox_inches='tight')
 #plt.show()
 fig.clf()
 

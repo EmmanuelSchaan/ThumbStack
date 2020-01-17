@@ -6,7 +6,7 @@ from headers import *
 class ThumbStack(object):
 
 #   def __init__(self, U, Catalog, pathMap="", pathMask="", pathHit="", name="test", nameLong=None, save=False, nProc=1):
-   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit=None, name="test", nameLong=None, save=False, nProc=1):
+   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit=None, name="test", nameLong=None, save=False, nProc=1, filterTypes='diskring'):
       
       self.nProc = nProc
       self.U = U
@@ -19,6 +19,16 @@ class ThumbStack(object):
       self.cmbMap = cmbMap
       self.cmbMask = cmbMask
       self.cmbHit = cmbHit
+
+      # aperture photometry filters to implement
+      if filterTypes=='diskring':
+         self.filterTypes = np.array(['diskring']) 
+      elif filterTypes=='disk':
+         self.filterTypes = np.array(['disk'])
+      elif filterTypes=='ring':
+         self.filterTypes = np.array(['ring'])
+      elif filterTypes=='all':
+         self.filterTypes = np.array(['diskring', 'disk', 'ring'])
       
       # number of samples for bootstraps, shuffles
       self.nSamples = 100
@@ -49,11 +59,11 @@ class ThumbStack(object):
          self.saveFiltering(nProc=self.nProc)
       self.loadFiltering()
       
-      self.measureVarFromHitCount(plot=save)
+      self.measureAllVarFromHitCount(plot=save)
 
       if save:
-         self.saveStackedProfiles()
-      self.loadStackedProfiles()
+         self.saveAllStackedProfiles()
+      self.loadAllStackedProfiles()
 
       if False:
          self.plotAllStackedProfiles()
@@ -67,7 +77,7 @@ class ThumbStack(object):
    
    def loadAPRadii(self):
       # radii to use for AP filter: comoving Mpc/h
-      self.nRAp = 9  #4
+      self.nRAp = 9 #30 #9  #4
       
       # Aperture radii in Mpc/h
       self.rApMinMpch = 1.
@@ -75,8 +85,8 @@ class ThumbStack(object):
       self.RApMpch = np.linspace(self.rApMinMpch, self.rApMaxMpch, self.nRAp)
       
       # Aperture radii in arcmin
-      self.rApMinArcmin = 1.  # 1.
-      self.rApMaxArcmin = 6.  # 4.
+      self.rApMinArcmin = 1.  #0.1   #1.  # 1.
+      self.rApMaxArcmin = 6.  #6.  #6.  # 4.
       self.RApArcmin = np.linspace(self.rApMinArcmin, self.rApMaxArcmin, self.nRAp)
 
 
@@ -245,7 +255,7 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def diskRingFilter(self, opos, stampMap, stampMask, stampHit, r0, r1, test=False):
+   def aperturePhotometryFilter(self, opos, stampMap, stampMask, stampHit, r0, r1, filterType='diskring',  test=False):
       """Apply an AP filter (disk minus ring) to a stamp map:
       AP = int d^2theta * Filter * map.
       Unit is [map unit * sr]
@@ -258,7 +268,7 @@ class ThumbStack(object):
       Output:
       filtMap: [map unit * sr]
       filtMask: [mask unit * sr]
-      filtNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
+      filtHitNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
       diskArea: [sr]
       """
       # coordinates of the square map in radians
@@ -267,93 +277,105 @@ class ThumbStack(object):
       dec = opos[0,:,:]
       ra = opos[1,:,:]
       radius = np.sqrt(ra**2 + dec**2)
-      
-      # disk filter [dimensionless]
-      inDisk = 1.*(radius<=r0)
-      # ring filter [dimensionless], normalized so that the disk-ring filter integrates exactly to zero
-      inRing = 1.*(radius>r0)*(radius<=r1)
-      inRing *= np.sum(inDisk) / np.sum(inRing)
-      # disk minus ring filter [dimensionless]
-      filter = inDisk - inRing
-      
-      # exact angular area of pixel [sr]
+      # exact angular area of a pixel [sr] (same for all pixels in CEA, not CAR)
       pixArea = ra.area() / len(ra.flatten())
-      # exact angular area of disk [sr]
-      diskArea = np.sum(inDisk) * pixArea
-
-      # apply the filter: int_disk d^2theta map -  disk_area / ring_area * int_ring d^2theta map
-      filtMap = np.sum(pixArea * filter * stampMap)   # [map unit * sr]
       
       # detect point sources within the filter:
       # gives 0 in the absence of point sources/edges; gives >=1 in the presence of point sources/edges
       filtMask = np.sum((radius<=r1) * (1-stampMask))   # [dimensionless]
-      
+
+      # disk filter [dimensionless]
+      inDisk = 1.*(radius<=r0)
+      # exact angular area of disk [sr]
+      diskArea = np.sum(inDisk) * pixArea
+      # ring filter [dimensionless]
+      inRing = 1.*(radius>r0)*(radius<=r1)
+
+      if filterType=='diskring':
+         # normalize the ring so that the disk-ring filter integrates exactly to zero
+         inRing *= np.sum(inDisk) / np.sum(inRing)
+         # disk minus ring filter [dimensionless]
+         filterW = inDisk - inRing
+         if np.isnan(np.sum(filterW)):
+            print "filterW sums to nan", r0, r1, np.sum(radius), np.sum(1.*(radius>r0)), np.sum(1.*(radius>r0)*(radius<=r1))
+      elif filterType=='disk':
+         # disk filter [dimensionless]
+         inDisk = 1.*(radius<=r0)
+         filterW = inDisk
+      elif filterType=='ring':
+         filterW = inRing
+      elif filterType=='meanring':
+         filterW = inRing / np.sum(pixArea * inRing)
+
+      # apply the filter: int_disk d^2theta map -  disk_area / ring_area * int_ring d^2theta map
+      filtMap = np.sum(pixArea * filterW * stampMap)   # [map unit * sr]
       # quantify noise std dev in the filter
       if self.cmbHit is not None:
-         filtNoiseStdDev = np.sqrt(np.sum((pixArea * filter)**2 / (1.e-16 + stampHit))) # to get the std devs [sr / sqrt(hit unit)]
+         filtHitNoiseStdDev = np.sqrt(np.sum((pixArea * filterW)**2 / (1.e-16 + stampHit))) # to get the std devs [sr / sqrt(hit unit)]
       else:
-         filtNoiseStdDev = 0.
+         filtHitNoiseStdDev = 0.
       
-      #print "filtNoiseStdDev = ", filtNoiseStdDev
-      if np.isnan(filtNoiseStdDev):
-         print "filtNoiseStdDev is nan"
-         print stampHit
 
+      #print "filtHitNoiseStdDev = ", filtHitNoiseStdDev
+      if np.isnan(filtHitNoiseStdDev):
+         print "filtHitNoiseStdDev is nan"
 
       if test:
          print "AP filter with disk radius =", r0 * (180.*60./np.pi), "arcmin"
-
          # count nb of pixels where filter is strictly positive
-         nbPix = len(np.where(filter>0.)[0])
-         print "- nb of pixels in the cutout: "+str(filter.shape[0] * filter.shape[1])
-         print "= nb of pixels where filter=0: "+str(len(np.where(filter==0.)[0]))
-         print "+ nb of pixels where filter>0: "+str(len(np.where(filter>0.)[0]))
-         print "+ nb of pixels where filter<0: "+str(len(np.where(filter<0.)[0]))
+         nbPix = len(np.where(filterW>0.)[0])
+         print "- nb of pixels in the cutout: "+str(filterW.shape[0] * filterW.shape[1])
+         print "= nb of pixels where filter=0: "+str(len(np.where(filterW==0.)[0]))
+         print "+ nb of pixels where filter>0: "+str(len(np.where(filterW>0.)[0]))
+         print "+ nb of pixels where filter<0: "+str(len(np.where(filterW<0.)[0]))
          print "- disk area: "+str(diskArea)+" sr, ie "+str(diskArea * (180.*60./np.pi)**2)+"arcmin^2"
          print "  (from r0, expect "+str(np.pi*r0**2)+" sr, ie "+str(np.pi*r0**2 * (180.*60./np.pi)**2)+"arcmin^2)"
-         
-         print "- disk-ring filter sums over pixels to "+str(np.sum(filter))
-         print "  (should be 0; compared to "+str(len(filter.flatten()))+")"
-         
-         print "- filter on unit disk: "+str(np.sum(pixArea * filter * inDisk))
+         print "- disk-ring filter sums over pixels to "+str(np.sum(filterW))
+         print "  (should be 0; compared to "+str(len(filterW.flatten()))+")"
+         print "- filter on unit disk: "+str(np.sum(pixArea * filterW * inDisk))
          print "  (should be disk area in sr: "+str(diskArea)+")"
          print "- filter on map: "+str(filtMap)
          print "- filter on mask: "+str(filtMask)
-         print "- filter on inverse hit: "+str(filtNoiseStdDev)
-
+         print "- filter on inverse hit: "+str(filtHitNoiseStdDev)
          print "- plot the filter"
          filterMap = stampMap.copy()
-         filterMap[:,:] = filter.copy()
+         filterMap[:,:] = filterW.copy()
          plots=enplot.plot(filterMap,grid=True)
          enplot.write(self.pathTestFig+"/stampfilter_r0"+floatExpForm(r0)+"_r1"+floatExpForm(r1), plots)
 
-      return filtMap, filtMask, filtNoiseStdDev, diskArea
-
+      return filtMap, filtMask, filtHitNoiseStdDev, diskArea
 
 
 
 
    ##################################################################################
 
-
-
    def analyzeObject(self, iObj, test=False):
-      '''Analysis to be done for each object.
+      '''Analysis to be done for each object: extract cutout map once,
+      then apply all aperture photometry filters requested on it.
       Returns:
       filtMap: [map unit * sr]
       filtMask: [mask unit * sr]
-      filtNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
+      filtHitNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
       diskArea: [sr]
       '''
       
       if iObj%1000==0:
          print "- analyze object", iObj
       
+      
       # create arrays of filter values for the given object
-      filtMap = np.zeros(self.nRAp)
-      filtMask = np.zeros(self.nRAp)
-      filtNoiseStdDev = np.zeros(self.nRAp)
-      diskArea = np.zeros(self.nRAp)
+      filtMap = {}
+      filtMask = {}
+      filtHitNoiseStdDev = {} 
+      filtArea = {}
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+         # create arrays of filter values for the given object
+         filtMap[filterType] = np.zeros(self.nRAp)
+         filtMask[filterType] = np.zeros(self.nRAp)
+         filtHitNoiseStdDev[filterType] = np.zeros(self.nRAp)
+         filtArea[filterType] = np.zeros(self.nRAp)
       
       # only do the analysis if the object overlaps with the CMB map
       if self.overlapFlag[iObj]:
@@ -369,73 +391,190 @@ class ThumbStack(object):
          # extract postage stamp around it
          opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=dDeg, dyDeg=dDeg, resArcmin=0.25, proj='cea', test=test)
          
-         # loop over the radii for the AP filter
-         for iRAp in range(self.nRAp):
-#            # disk radius in comoving Mpc/h
-#            rApMpch = self.RApMpch[iRAp]
-#            # convert to radians at the given redshift
-#            r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
+         for iFilterType in range(len(self.filterTypes)):
+            filterType = self.filterTypes[iFilterType]
 
-            # Disk radius in rad
-            r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
-            # choose an equal area AP filter
-            r1 = r0 * np.sqrt(2.)
-            
-            # perform the filtering
-            filtMap[iRAp], filtMask[iRAp], filtNoiseStdDev[iRAp], diskArea[iRAp] = self.diskRingFilter(opos, stampMap, stampMask, stampHit, r0, r1, test=test)
+            # loop over the radii for the AP filter
+            for iRAp in range(self.nRAp):
+               ## disk radius in comoving Mpc/h
+               #rApMpch = self.RApMpch[iRAp]
+               ## convert to radians at the given redshift
+               #r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
 
+               # Disk radius in rad
+               r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
+               # choose an equal area AP filter
+               r1 = r0 * np.sqrt(2.)
+               
+               # perform the filtering
+               filtMap[filterType][iRAp], filtMask[filterType][iRAp], filtHitNoiseStdDev[filterType][iRAp], filtArea[filterType][iRAp] = self.aperturePhotometryFilter(opos, stampMap, stampMask, stampHit, r0, r1, filterType=filterType, test=test)
+
+      if test:
+         print " plot the measured profile"
+         fig=plt.figure(0)
+         ax=fig.add_subplot(111)
+         #
+         for iFilterType in range(len(self.filterTypes)):
+            filterType = self.filterTypes[iFilterType]
+            ax.plot(self.RApArcmin, filtMap[filterType])
+         #
+         plt.show()
+
+      return filtMap, filtMask, filtHitNoiseStdDev, filtArea
+
+
+
+   def saveFiltering(self, nProc=1):
+      
+      print("Evaluate all filters on all objects")
+      # loop over all objects in catalog
+#      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
+      tStart = time()
+      with sharedmem.MapReduce(np=nProc) as pool:
+         f = lambda iObj: self.analyzeObject(iObj, test=False)
+         result = np.array(pool.map(f, range(self.Catalog.nObj)))
+      tStop = time()
+      print "took", (tStop-tStart)/60., "min"
+
+
+      # unpack and save to file
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+
+         filtMap = np.array([result[iObj,0][filterType][:] for iObj in range(self.Catalog.nObj)])
+         filtMask = np.array([result[iObj,1][filterType][:] for iObj in range(self.Catalog.nObj)])
+         filtHitNoiseStdDev = np.array([result[iObj,2][filterType][:] for iObj in range(self.Catalog.nObj)])
+         filtArea = np.array([result[iObj,3][filterType][:] for iObj in range(self.Catalog.nObj)])
+         
+         np.savetxt(self.pathOut+"/"+filterType+"_filtmap.txt", filtMap)
+         np.savetxt(self.pathOut+"/"+filterType+"_filtmask.txt", filtMask)
+         np.savetxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt", filtHitNoiseStdDev)
+         np.savetxt(self.pathOut+"/"+filterType+"_filtarea.txt", filtArea)
+
+
+   def loadFiltering(self):
+      self.filtMap = {}
+      self.filtMask = {}
+      self.filtHitNoiseStdDev = {}
+      self.filtArea = {}
+
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+         self.filtMap[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmap.txt")
+         self.filtMask[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmask.txt")
+         self.filtHitNoiseStdDev[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt")
+         self.filtArea[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtarea.txt")
+
+
+   ##################################################################################
+
+#!!! This version is slower: re-extracts the cutout maps for each filter type
+# but it is more easily readable
+
+#   def analyzeObject(self, iObj, filterType='diskring', test=False):
+#      '''Analysis to be done for each object.
+#      Returns:
+#      filtMap: [map unit * sr]
+#      filtMask: [mask unit * sr]
+#      filtHitNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
+#      diskArea: [sr]
+#      '''
+#      
+#      if iObj%1000==0:
+#         print "- analyze object", iObj
+#      
+#      # create arrays of filter values for the given object
+#      filtMap = np.zeros(self.nRAp)
+#      filtMask = np.zeros(self.nRAp)
+#      filtHitNoiseStdDev = np.zeros(self.nRAp)
+#      diskArea = np.zeros(self.nRAp)
+#      
+#      # only do the analysis if the object overlaps with the CMB map
+#      if self.overlapFlag[iObj]:
+#         # Object coordinates
+#         ra = self.Catalog.RA[iObj]   # in deg
+#         dec = self.Catalog.DEC[iObj] # in deg
+#         z = self.Catalog.Z[iObj]
+#         
+#         # choose postage stamp size to fit the largest ring
+#         dArcmin = np.ceil(2. * self.rApMaxArcmin * np.sqrt(2.))
+#         dDeg = dArcmin / 60.
+#         
+#         # extract postage stamp around it
+#         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=dDeg, dyDeg=dDeg, resArcmin=0.25, proj='cea', test=test)
+#         
+#         # loop over the radii for the AP filter
+#         for iRAp in range(self.nRAp):
+##            # disk radius in comoving Mpc/h
+##            rApMpch = self.RApMpch[iRAp]
+##            # convert to radians at the given redshift
+##            r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
+#
+#            # Disk radius in rad
+#            r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
+#            # choose an equal area AP filter
+#            r1 = r0 * np.sqrt(2.)
+#            
+#            # perform the filtering
+#            filtMap[iRAp], filtMask[iRAp], filtHitNoiseStdDev[iRAp], diskArea[iRAp] = self.aperturePhotometryFilter(opos, stampMap, stampMask, stampHit, r0, r1, filterType=filterType, test=test)
+#
 #      if test:
 #         print " plot the measured profile"
 #         fig=plt.figure(0)
 #         ax=fig.add_subplot(111)
 #         #
 #         ax.plot(self.r, filtMap)
-
-      return filtMap, filtMask, filtNoiseStdDev, diskArea
-
-
-
-   def saveFiltering(self, nProc=1):
-      
-      # initialize arrays
-      self.filtmap = np.zeros((self.Catalog.nObj, self.nRAp))
-      self.filtMask = np.zeros((self.Catalog.nObj, self.nRAp))
-      self.diskArea = np.zeros((self.Catalog.nObj, self.nRAp))
-      self.filtNoiseStdDev = np.zeros((self.Catalog.nObj, self.nRAp))
-
-      # loop over all objects in catalog
-#      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
-      tStart = time()
-      with sharedmem.MapReduce(np=nProc) as pool:
-         result = np.array(pool.map(self.analyzeObject, range(self.Catalog.nObj)))
-      tStop = time()
-      print "took", (tStop-tStart)/60., "min"
-      
-      # unpack and save to file
-      self.filtMap = result[:,0,:].copy()
-      np.savetxt(self.pathOut+"/filtmap.txt", self.filtMap)
-      #
-      self.filtMask = result[:,1,:].copy()
-      np.savetxt(self.pathOut+"/filtmask.txt", self.filtMask)
-      #
-      self.filtNoiseStdDev = result[:,2,:].copy()
-      np.savetxt(self.pathOut+"/filtnoisestddev.txt", self.filtNoiseStdDev)
-      #
-      self.diskArea = result[:,3,:].copy()
-      np.savetxt(self.pathOut+"/diskarea.txt", self.diskArea)
-
-
-   def loadFiltering(self):
-      self.filtMap = np.genfromtxt(self.pathOut+"/filtmap.txt")
-      self.filtMask = np.genfromtxt(self.pathOut+"/filtmask.txt")
-      self.filtNoiseStdDev = np.genfromtxt(self.pathOut+"/filtnoisestddev.txt")
-      self.diskArea = np.genfromtxt(self.pathOut+"/diskarea.txt")
+#
+#      return filtMap, filtMask, filtHitNoiseStdDev, diskArea
+#
+#
+#
+#   def saveFiltering(self, nProc=1):
+#      
+#      for iFilterType in range(len(self.filterTypes)):
+#         filterType = self.filterTypes[iFilterType]
+#         print("Evaluate "+filterType+" filter on all objects")
+#
+#         # initialize arrays
+#         self.filtmap = np.zeros((self.Catalog.nObj, self.nRAp))
+#         self.filtMask = np.zeros((self.Catalog.nObj, self.nRAp))
+#         self.diskArea = np.zeros((self.Catalog.nObj, self.nRAp))
+#         self.filtHitNoiseStdDev = np.zeros((self.Catalog.nObj, self.nRAp))
+#
+#         # loop over all objects in catalog
+#   #      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
+#         tStart = time()
+#         with sharedmem.MapReduce(np=nProc) as pool:
+#            f = lambda iObj: self.analyzeObject(iObj, filterType=filterType, test=False)
+#            result = np.array(pool.map(f, range(self.Catalog.nObj)))
+#         tStop = time()
+#         print "took", (tStop-tStart)/60., "min"
+#         
+#         # unpack and save to file
+#         np.savetxt(self.pathOut+"/"+filterType+"_filtmap.txt", result[:,0,:])
+#         np.savetxt(self.pathOut+"/"+filterType+"_filtmask.txt", result[:,1,:])
+#         np.savetxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt", result[:,2,:])
+#         np.savetxt(self.pathOut+"/"+filterType+"_filtarea.txt", result[:,3,:])
+#
+#
+#   def loadFiltering(self):
+#      self.filtMap = {}
+#      self.filtMask = {}
+#      self.filtHitNoiseStdDev = {}
+#      self.filtArea = {}
+#
+#      for iFilterType in range(len(self.filterTypes)):
+#         filterType = self.filterTypes[iFilterType]
+#         self.filtMap[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmap.txt")
+#         self.filtMask[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmask.txt")
+#         self.filtHitNoiseStdDev[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt")
+#         self.filtArea[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtarea.txt")
 
 
    ##################################################################################
 
 
-   def catalogMask(self, overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1.):
+   def catalogMask(self, overlap=True, psMask=True, mVir=[1.e6, 1.e17], extraSelection=1., filterType=None):
       '''Returns catalog mask: 1 for objects to keep, 0 for objects to discard.
       Use as:
       maskedQuantity = Quantity[mask]
@@ -451,7 +590,10 @@ class ThumbStack(object):
          #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       # PS mask: look at largest aperture, and remove if any point within the disk or ring is masked
       if psMask:
-         mask *= 1.*(np.abs(self.filtMask[:,-1])<1.)
+         # The point source mask may vary from one filterType to another
+         if filterType is None:
+            filterType = self.filtMask.keys()[0]
+         mask *= 1.*(np.abs(self.filtMask[filterType][:,-1])<1.)
          #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       mask *= extraSelection
       #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
@@ -464,25 +606,25 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def measureVarFromHitCount(self, plot=False):
+   def measureVarFromHitCount(self, filterType,  plot=False):
       """Returns a list of functions, one for each AP filter radius,
-      where the function takes filtNoiseStdDev**2 \propto [(map var) * sr^2] as input and returns the
+      where the function takes filtHitNoiseStdDev**2 \propto [(map var) * sr^2] as input and returns the
       actual measured filter variance [(map unit)^2 * sr^2].
       The functions are expected to be linear if the detector noise is the main source of noise,
       and if the hit counts indeed reflect the detector noise.
       To be used for noise weighting in the stacking.
       """
       # keep only objects that overlap, and mask point sources
-      mask = self.catalogMask(overlap=True, psMask=True)
+      mask = self.catalogMask(overlap=True, psMask=True, filterType=filterType)
       # This array contains the true variances for each object and aperture 
-      self.filtVarTrue = np.zeros((self.Catalog.nObj, self.nRAp))
+      filtVarTrue = np.zeros((self.Catalog.nObj, self.nRAp))
 
       if self.cmbHit is not None:
          print("Interpolate variance=f(hit count) for each aperture")
-         self.fVarFromHitCount = np.empty(self.nRAp, dtype='object')
+         fVarFromHitCount = np.empty(self.nRAp, dtype='object')
          for iRAp in range(self.nRAp):
-            x = self.filtNoiseStdDev[mask, iRAp]**2
-            y = self.filtMap[mask, iRAp].copy()
+            x = self.filtHitNoiseStdDev[filterType][mask, iRAp]**2
+            y = self.filtMap[filterType][mask, iRAp].copy()
             y = (y - np.mean(y))**2
 
             # define bins of hit count values
@@ -497,12 +639,10 @@ class ThumbStack(object):
             sBinnedVar /= np.sqrt(binCounts)
             
             # interpolate, to use as noise weighting
-            #self.fVarFromHitCount.append( interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) )
-            self.fVarFromHitCount[iRAp] = interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) 
+            fVarFromHitCount[iRAp] = interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) 
 
             # evaluate the variance for each object
-            #self.filtVarTrue[mask,iRAp] = self.fVarFromHitCount[iRAp](s2Hit[mask, iRAp])
-            self.filtVarTrue[mask,iRAp] = self.fVarFromHitCount[iRAp](x)
+            filtVarTrue[mask,iRAp] = fVarFromHitCount[iRAp](x)
             
             if plot:
                # plot
@@ -511,10 +651,9 @@ class ThumbStack(object):
                #
                # measured
                ax.errorbar(binCenters, binnedVar*(180.*60./np.pi)**2, yerr=sBinnedVar*(180.*60./np.pi)**2, fmt='.', label=r'measured')
-               #
                # interpolated
                newX = np.logspace(np.log10(np.min(x)/2.), np.log10(np.max(x)*2.), 10.*nBins, 10.)
-               newY = np.array(map(self.fVarFromHitCount[iRAp], newX))
+               newY = np.array(map(fVarFromHitCount[iRAp], newX))
                ax.plot(newX, newY*(180.*60./np.pi)**2, label=r'interpolated')
                #
                ax.set_xscale('log', nonposx='clip')
@@ -526,26 +665,27 @@ class ThumbStack(object):
                fig.savefig(path, bbox_inches='tight')
                fig.clf()
 
-
       else:
          print("Measure var for each aperture (no hit count)")
-         self.meanVarAperture = np.zeros(self.nRAp)
-         self.meanVarAperture = np.var(self.filtMap[mask, :], axis=0)
+         meanVarAperture = np.var(self.filtMap[filterType][mask, :], axis=0)
          for iRAp in range(self.nRAp):
-            #y = self.filtMap[mask, iRAp].copy()
-            #y = (y - np.mean(y))**2
-            #self.meanVarAperture.append(np.mean(y))
-            #self.fVarFromHitCount[iRAp] = lambda x:  self.meanVarAperture[iRAp] * np.ones_like(x)
-            self.filtVarTrue[mask,iRAp] = self.meanVarAperture[iRAp] * np.ones(np.sum(mask))
+            filtVarTrue[mask,iRAp] = meanVarAperture[iRAp] * np.ones(np.sum(mask))
+
+      return filtVarTrue
 
 
-      return
+   def measureAllVarFromHitCount(self, plot=False):
+      self.filtVarTrue = {}
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+         print("For "+filterType+" filter:")
+         self.filtVarTrue[filterType] = self.measureVarFromHitCount(filterType, plot=plot)
 
 
    ##################################################################################
 
 
-   def stackedProfile(self, est, iBootstrap=None, iVShuffle=None, tTh=None):
+   def computeStackedProfile(self, filterType, est, iBootstrap=None, iVShuffle=None, tTh=None):
       """Returns the estimated profile and its uncertainty for each aperture.
       est: string to select the estimator
       iBootstrap: index for bootstrap resampling
@@ -553,11 +693,11 @@ class ThumbStack(object):
       tTh: to replace measured temperatures by a theory expectation
       """
       # select objects that overlap, and reject point sources
-      mask = self.catalogMask(overlap=True, psMask=True)
+      mask = self.catalogMask(overlap=True, psMask=True, filterType=filterType)
       
       # temperatures [muK * sr]
       if tTh is None:
-         t = self.filtMap.copy() # [muK * sr]
+         t = self.filtMap[filterType].copy() # [muK * sr]
       elif tTh=='tsz':
          # expected tSZ signal
          # AP profile shape, between 0 and 1
@@ -589,20 +729,13 @@ class ThumbStack(object):
       v = -self.Catalog.vR[mask] / 3.e5
       v -= np.mean(v)
 
-
       #true filter variance for each object and aperture,
       # valid whether or not a hit count map is available
-      s2Full = self.filtVarTrue[mask, :]
+      s2Full = self.filtVarTrue[filterType][mask, :]
 
       # Variance from hit count (if available)
-      s2Hit = self.filtNoiseStdDev[mask, :]**2
+      s2Hit = self.filtHitNoiseStdDev[filterType][mask, :]**2
       #print "Shape of s2Hit = ", s2Hit.shape
-#
-##      s2Full = self.fVarFromHitCount[:](s2Hit)
-#      s2Full = np.column_stack([self.fVarFromHitCount[iAp](s2Hit[:, iAp]) for iAp in range(self.nRAp)])
-#      #print "Shape of s2Full = ", s2Full.shape
-      
-
 
       
       # halo masses
@@ -694,12 +827,12 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def SaveCovBootstrapStackedProfile(self, est, nSamples=100, nProc=1):
+   def SaveCovBootstrapStackedProfile(self, filterType, est, nSamples=100, nProc=1):
       """Estimate covariance matrix for the stacked profile from bootstrap resampling
       """
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
-         f = lambda iSample: self.stackedProfile(est, iBootstrap=iSample)
+         f = lambda iSample: self.computeStackedProfile(filterType, est, iBootstrap=iSample)
          result = np.array(pool.map(f, range(nSamples)))
          #result = np.array(map(f, range(nSamples)))
       tStop = time()
@@ -710,15 +843,15 @@ class ThumbStack(object):
       # estimate cov
       covStack = np.cov(stackSamples, rowvar=False)
       # save it to file
-      np.savetxt(self.pathOut+"/cov_"+est+"_bootstrap.txt", covStack)
+      np.savetxt(self.pathOut+"/cov_"+filterType+"_"+est+"_bootstrap.txt", covStack)
       
 
-   def SaveCovVShuffleStackedProfile(self, est, nSamples=100, nProc=1):
+   def SaveCovVShuffleStackedProfile(self, filterType, est, nSamples=100, nProc=1):
       """Estimate covariance matrix for the stacked profile from shuffling velocities
       """
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
-         f = lambda iSample: self.stackedProfile(est, iVShuffle=iSample)
+         f = lambda iSample: self.computeStackedProfile(filterType, est, iVShuffle=iSample)
          result = np.array(pool.map(f, range(nSamples)))
       tStop = time()
       print "took", (tStop-tStart)/60., "min"
@@ -728,105 +861,112 @@ class ThumbStack(object):
       # estimate cov
       covStack = np.cov(stackSamples, rowvar=False)
       # save it to file
-      np.savetxt(self.pathOut+"/cov_"+est+"_vshuffle.txt", covStack)
+      np.savetxt(self.pathOut+"/cov_"+filterType+"_"+est+"_vshuffle.txt", covStack)
 
 
    ##################################################################################
 
-   def saveStackedProfiles(self):
+   def saveAllStackedProfiles(self):
       print "- compute stacked profiles and their cov"
       data = np.zeros((self.nRAp, 3))
       data[:,0] = self.RApArcmin # [arcmin]
       
-      # all stacked profiles
-      if self.cmbHit is not None:
-         Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
-      else:
-         Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         # measured stacked profile
-         data[:,1], data[:,2] = self.stackedProfile(est) # [map unit * sr]
-         np.savetxt(self.pathOut+"/"+est+"_measured.txt", data)
-         # expected stacked profile from tSZ
-         data[:,1], data[:,2] = self.stackedProfile(est, tTh='tsz') # [map unit * sr]
-         np.savetxt(self.pathOut+"/"+est+"_theory_tsz.txt", data)
-         # expected stacked profile from kSZ
-         data[:,1], data[:,2] = self.stackedProfile(est, tTh='ksz') # [map unit * sr]
-         np.savetxt(self.pathOut+"/"+est+"_theory_ksz.txt", data)
+      # Compute all filter types and estimators
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
 
-      # covariance matrices from bootstrap,
-      # only for a few select estimators
-      if self.cmbHit is not None:
-         Est = ['tsz_varweight', 'ksz_varweight']
-      else:
-         Est = ['tsz_uniformweight', 'ksz_uniformweight']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         self.SaveCovBootstrapStackedProfile(est, nSamples=100, nProc=self.nProc)
+         # Estimators (tSZ, kSZ, various weightings...)
+         if self.cmbHit is not None:
+            Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
+            # measured stacked profile
+            data[:,1], data[:,2] = self.computeStackedProfile(filterType, est) # [map unit * sr]
+            np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_measured.txt", data)
+            # expected stacked profile from tSZ
+            data[:,1], data[:,2] = self.computeStackedProfile(filterType, est, tTh='tsz') # [map unit * sr]
+            np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_theory_tsz.txt", data)
+            # expected stacked profile from kSZ
+            data[:,1], data[:,2] = self.computeStackedProfile(filterType, est, tTh='ksz') # [map unit * sr]
+            np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_theory_ksz.txt", data)
 
-      # covariance matrices from shuffling velocities,
-      # for ksz only
-      if self.cmbHit is not None:
-         Est = ['ksz_varweight']
-      else:
-         Est = ['ksz_uniformweight']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         self.SaveCovVShuffleStackedProfile(est, nSamples=100, nProc=self.nProc)
+         # covariance matrices from bootstrap,
+         # only for a few select estimators
+         if self.cmbHit is not None:
+            Est = ['tsz_varweight', 'ksz_varweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
+            self.SaveCovBootstrapStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
+
+         # covariance matrices from shuffling velocities,
+         # for ksz only
+         if self.cmbHit is not None:
+            Est = ['ksz_varweight']
+         else:
+            Est = ['ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
+            self.SaveCovVShuffleStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
 
 
-   def loadStackedProfiles(self):
+   def loadAllStackedProfiles(self):
       print "- load stacked profiles and their cov"
       self.stackedProfile = {}
       self.sStackedProfile = {}
       self.covBootstrap = {}
       self.covVShuffle = {}
       
-      # all stacked profiles
-      if self.cmbHit is not None:
-         Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
-      else:
-         Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         # measured stacked profile
-         data = np.genfromtxt(self.pathOut+"/"+est+"_measured.txt")
-         self.stackedProfile[est] = data[:,1]
-         self.sStackedProfile[est] = data[:,2]
-         # expected stacked profile from tSZ
-         data = np.genfromtxt(self.pathOut+"/"+est+"_theory_tsz.txt")
-         self.stackedProfile[est+"_theory_tsz"] = data[:,1]
-         self.sStackedProfile[est+"_theory_tsz"] = data[:,2]
-         # expected stacked profile from kSZ
-         data = np.genfromtxt(self.pathOut+"/"+est+"_theory_ksz.txt")
-         self.stackedProfile[est+"_theory_ksz"] = data[:,1]
-         self.sStackedProfile[est+"_theory_ksz"] = data[:,2]
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
 
-      # covariance matrices from bootstrap,
-      # only for a few select estimators
-      if self.cmbHit is not None:
-         Est = ['tsz_varweight', 'ksz_varweight']
-      else:
-         Est = ['tsz_uniformweight', 'ksz_uniformweight']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         self.covBootstrap[est] = np.genfromtxt(self.pathOut+"/cov_"+est+"_bootstrap.txt")
-      
-      # covariance matrices from shuffling velocities,
-      # for ksz only
-      if self.cmbHit is not None:
-         Est = ['ksz_varweight']
-      else:
-         Est = ['ksz_uniformweight']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         self.covVShuffle[est] = np.genfromtxt(self.pathOut+"/cov_"+est+"_vshuffle.txt")
+         # all stacked profiles
+         if self.cmbHit is not None:
+            Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
+            # measured stacked profile
+            data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_measured.txt")
+            self.stackedProfile[filterType+"_"+est] = data[:,1]
+            self.sStackedProfile[filterType+"_"+est] = data[:,2]
+            # expected stacked profile from tSZ
+            data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_theory_tsz.txt")
+            self.stackedProfile[filterType+"_"+est+"_theory_tsz"] = data[:,1]
+            self.sStackedProfile[filterType+"_"+est+"_theory_tsz"] = data[:,2]
+            # expected stacked profile from kSZ
+            data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_theory_ksz.txt")
+            self.stackedProfile[filterType+"_"+est+"_theory_ksz"] = data[:,1]
+            self.sStackedProfile[filterType+"_"+est+"_theory_ksz"] = data[:,2]
+
+         # covariance matrices from bootstrap,
+         # only for a few select estimators
+         if self.cmbHit is not None:
+            Est = ['tsz_varweight', 'ksz_varweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
+            self.covBootstrap[filterType+"_"+est] = np.genfromtxt(self.pathOut+"/cov_"+filterType+"_"+est+"_bootstrap.txt")
+         
+         # covariance matrices from shuffling velocities,
+         # for ksz only
+         if self.cmbHit is not None:
+            Est = ['ksz_varweight']
+         else:
+            Est = ['ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
+            self.covVShuffle[filterType+"_"+est] = np.genfromtxt(self.pathOut+"/cov_"+filterType+"_"+est+"_vshuffle.txt")
 
 
    ##################################################################################
 
-   def plotStackedProfile(self, Est, name=None):
+   def plotStackedProfile(self, filterType, Est, name=None):
       """Compares stacked profiles, and their uncertainties.
       """
       if name is None:
@@ -845,9 +985,9 @@ class ThumbStack(object):
       for iEst in range(len(Est)):
          est = Est[iEst]
          c = colors[iEst]
-         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[est], factor * self.sStackedProfile[est], fmt='-', c=c, label="measured")
-         ax.plot(self.RApArcmin, factor * self.stackedProfile[est+"_theory_tsz"], ls='--', c=c, label="theory tsz")
-         ax.plot(self.RApArcmin, factor * self.stackedProfile[est+"_theory_ksz"], ls='-.', c=c, label="theory ksz")
+         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est], factor * self.sStackedProfile[filterType+"_"+est], fmt='-', c=c, label="measured")
+         ax.plot(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est+"_theory_tsz"], ls='--', c=c, label="theory tsz")
+         ax.plot(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est+"_theory_ksz"], ls='-.', c=c, label="theory ksz")
       #
       ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
       ax.set_xlabel(r'$R$ [arcmin]')
@@ -866,11 +1006,11 @@ class ThumbStack(object):
       factor = (180.*60./np.pi)**2
       #
       for est in Est:
-         ax.plot(self.RApArcmin, factor * self.sStackedProfile[est], ls='-', label="analytic")
+         ax.plot(self.RApArcmin, factor * self.sStackedProfile[filterType+"_"+est], ls='-', label="analytic")
          if est in self.covBootstrap:
-            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covBootstrap[est])), ls='--', label="bootstrap")
+            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covBootstrap[filterType+"_"+est])), ls='--', label="bootstrap")
          if est in self.covVShuffle:
-            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covVShuffle[est])), ls='-.', label="v shuffle")
+            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covVShuffle[filterType+"_"+est])), ls='-.', label="v shuffle")
       #
       ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
       ax.set_xlabel(r'$R$ [arcmin]')
@@ -883,21 +1023,17 @@ class ThumbStack(object):
 
    def plotAllStackedProfiles(self):
       print "- plot all stacked profiles"
-#      # tSZ
-#      Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight']
-#      self.plotStackedProfile(Est, name="tsz")
-#      # kSZ
-#      Est = ['ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
-#      self.plotStackedProfile(Est, name="ksz")
       
-      # all stacked profiles
-      if self.cmbHit is not None:
-         Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
-      else:
-         Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         self.plotStackedProfile([est], name=est)
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+         # all stacked profiles
+         if self.cmbHit is not None:
+            Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
+            self.plotStackedProfile(filterType, [est], name=filterType+"_"+est)
 
    ##################################################################################
    
@@ -960,143 +1096,151 @@ class ThumbStack(object):
 
    def plotAllCov(self):
       print "- plot all covariances"
-      # covariance matrices from bootstrap,
-      # only for a few select estimators
-      if self.cmbHit is not None:
-         Est = ['tsz_varweight', 'ksz_varweight']
-      else:
-         Est = ['tsz_uniformweight', 'ksz_uniformweight']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         self.plotCov(self.covBootstrap[est], est+"_bootstrap")
-      
-      # covariance matrices from shuffling velocities,
-      # for ksz only
-      if self.cmbHit is not None:
-         Est = ['ksz_varweight']
-      else:
-         Est = ['ksz_uniformweight']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         self.plotCov(self.covVShuffle[est], est+"_vshuffle")
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+
+         # covariance matrices from bootstrap,
+         # only for a few select estimators
+         if self.cmbHit is not None:
+            Est = ['tsz_varweight', 'ksz_varweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
+            self.plotCov(self.covBootstrap[filterType+"_"+est], filterType+"_"+est+"_bootstrap")
+         
+         # covariance matrices from shuffling velocities,
+         # for ksz only
+         if self.cmbHit is not None:
+            Est = ['ksz_varweight']
+         else:
+            Est = ['ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
+            self.plotCov(self.covVShuffle[filterType+"_"+est], filterType+"_"+est+"_vshuffle")
 
 
    ##################################################################################
 
-   def ftheoryGaussianProfile(self, sigma_cluster):
+   def ftheoryGaussianProfile(self, sigma_cluster, filterType='diskring'):
       """Alpha_ksz signal, between 0 and 1.
       Assumes that the projected cluster profile is a 2d Gaussian,
       with sigma_cluster in arcmin
       Assumes equal area disk-ring filter
       """
-      return (1. - np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2))**2
+      if filterType=='diskring':
+         result = (1. - np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2))**2
+      elif filterType=='disk':
+         result = 1. - np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2)
+      elif filterType=='ring':
+         result = np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2) - np.exp(-0.5*(self.RApArcmin*np.sqrt(2.))**2/sigma_cluster**2)
+      return result
+
+   def ftheoryGaussianProfilePixelated(self, sigma_cluster=1.5, filterType='diskring', dxDeg=0.3, dyDeg= 0.3, resArcmin=0.25, proj='cea', pixwin=0, test=False):
+      """Alpha_ksz signal, between 0 and 1.
+      Assumes that the projected cluster profile is a 2d Gaussian,
+      with sigma_cluster in arcmin
+      Assumes equal area disk-ring filter.
+      This version is not analytical, but instead generates a mock cutout map
+      with a Gaussian profile, and runs the AP filters on it.
+      This takes into account the discreteness of the edges of the AP filters
+      due to the pixelation of the map
+      """
+
+      ###########################################
+      # generate pixellized cluster profile map
+
+      # Make sure the number of pixels is (2*n+1),
+      # so that the object is exactly in the middle of the central pixel
+      nx = np.floor((dxDeg * 60. / resArcmin - 1.) / 2.) + 1.
+      dxDeg = (2. * nx + 1.) * resArcmin / 60.
+      ny = np.floor((dyDeg * 60. / resArcmin - 1.) / 2.) + 1.
+      dyDeg = (2. * ny + 1.) * resArcmin / 60.
+
+      # generate null map
+      shape, wcs = enmap.geometry(np.array([[-0.5*dxDeg,-0.5*dyDeg],[0.5*dxDeg,0.5*dyDeg]])*utils.degree, res=resArcmin*utils.arcmin, proj=proj)
+      stampMap = enmap.zeros(shape, wcs)
+      #
+      opos = stampMap.posmap()
+
+      # fill the central pixel
+      ra = 0.
+      dec = 0.
+      # coordinates in [rad]
+      sourcecoord = np.array([dec, ra]) * np.pi/180.
+
+      # find pixel indices (float) corresponding to ra, dec
+      iY, iX = enmap.sky2pix(shape, wcs, sourcecoord, safe=True, corner=False)
+
+      # nearest pixel
+      jY = np.int(round(iY))
+      jX = np.int(round(iX))
+
+      # fill in the central pixel
+      # and normalize to integrate to 1 over angles in [muK*sr]
+      pixSizeMap = stampMap.pixsizemap()
+      stampMap[jY, jX] = 1. / pixSizeMap[jY, jX] # divide by pixel area in sr
+
+      # convolve map with a Gaussian  profile of given sigma (not fwhm)
+      stampMap = enmap.smooth_gauss(stampMap, sigma_cluster * np.pi/180./60.) # convert from arcmin to [rad]
+
+      # apply the pixel window function if desired
+      if pixwin<>0:
+         stampMap = enmap.apply_window(stampMap, pow=pixwin)
 
 
-   def ftheoryGaussianProfilePixelated(self, sigma_cluster=1.5, dxDeg=0.3, dyDeg= 0.3, resArcmin=0.25, proj='cea', pixwin=0, test=False):
-         """Alpha_ksz signal, between 0 and 1.
-         Assumes that the projected cluster profile is a 2d Gaussian,
-         with sigma_cluster in arcmin
-         Assumes equal area disk-ring filter.
-         This version is not analytical, but instead generates a mock cutout map
-         with a Gaussian profile, and runs the AP filters on it.
-         This takes into account the discreteness of the edges of the AP filters
-         due to the pixelation of the map
-         """
+      ###########################################
+      # perform the AP filtering
 
-         ###########################################
-         # generate pixellized cluster profile map
-
-         # Make sure the number of pixels is (2*n+1),
-         # so that the object is exactly in the middle of the central pixel
-         nx = np.floor((dxDeg * 60. / resArcmin - 1.) / 2.) + 1.
-         dxDeg = (2. * nx + 1.) * resArcmin / 60.
-         ny = np.floor((dyDeg * 60. / resArcmin - 1.) / 2.) + 1.
-         dyDeg = (2. * ny + 1.) * resArcmin / 60.
-
-         # generate null map
-         shape, wcs = enmap.geometry(np.array([[-0.5*dxDeg,-0.5*dyDeg],[0.5*dxDeg,0.5*dyDeg]])*utils.degree, res=resArcmin*utils.arcmin, proj=proj)
-         stampMap = enmap.zeros(shape, wcs)
+      # create arrays of filter values for the given object
+      filtMap = np.zeros(self.nRAp)
+  
+      # loop over the radii for the AP filter
+      for iRAp in range(self.nRAp):
+         # Disk radius in rad
+         r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
+         # choose an equal area AP filter
+         r1 = r0 * np.sqrt(2.)
+         
+         # perform the filtering
+         filtMap[iRAp],_,_,_ = self.aperturePhotometryFilter(opos, stampMap, stampMap, stampMap, r0, r1, filterType=filterType, test=False)
+      
+      
+      if test:
+         # compare to the non-pixelated theory profile
+         nonPixelated = self.ftheoryGaussianProfile(sigma_cluster, filterType=filterType)
+         
+         fig=plt.figure(0)
+         ax=fig.add_subplot(111)
          #
-         opos = stampMap.posmap()
-
-         # fill the central pixel
-         ra = 0.
-         dec = 0.
-         # coordinates in [rad]
-         sourcecoord = np.array([dec, ra]) * np.pi/180.
-
-         # find pixel indices (float) corresponding to ra, dec
-         iY, iX = enmap.sky2pix(shape, wcs, sourcecoord, safe=True, corner=False)
-
-         # nearest pixel
-         jY = np.int(round(iY))
-         jX = np.int(round(iX))
-
-         # fill in the central pixel
-         # and normalize to integrate to 1 over angles in [muK*sr]
-         pixSizeMap = stampMap.pixsizemap()
-         stampMap[jY, jX] = 1. / pixSizeMap[jY, jX] # divide by pixel area in sr
-
-         # convolve map with a Gaussian  profile of given sigma (not fwhm)
-         stampMap = enmap.smooth_gauss(stampMap, sigma_cluster * np.pi/180./60.) # convert from arcmin to [rad]
-
-         # apply the pixel window function if desired
-         if pixwin<>0:
-            stampMap = enmap.apply_window(stampMap, pow=pixwin)
-
-
-         ###########################################
-         # perform the AP filtering
-
-         # create arrays of filter values for the given object
-         filtMap = np.zeros(self.nRAp)
-     
-         # loop over the radii for the AP filter
-         for iRAp in range(self.nRAp):
-            # Disk radius in rad
-            r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
-            # choose an equal area AP filter
-            r1 = r0 * np.sqrt(2.)
-            
-            # perform the filtering
-            filtMap[iRAp],_,_,_ = self.diskRingFilter(opos, stampMap, stampMap, stampMap, r0, r1, test=False)
+         ax.plot(self.RApArcmin, nonPixelated, 'k-', label=r'Analytical')
+         ax.plot(self.RApArcmin, filtMap, 'b--', label=r'Pixelated')
+         #
+         ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
          
-         
-         if test:
-            # compare to the non-pixelated theory profile
-            nonPixelated = self.ftheoryGaussianProfile(sigma_cluster)
-            
-            fig=plt.figure(0)
-            ax=fig.add_subplot(111)
-            #
-            ax.plot(self.RApArcmin, nonPixelated, 'k-', label=r'Analytical')
-            ax.plot(self.RApArcmin, filtMap, 'b--', label=r'Pixelated')
-            #
-            ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
-            
-            plt.show()
-         
-         
-         return filtMap
+         plt.show()
+      
+      
+      return filtMap
 
 
 
    ##################################################################################
 
 
-   def computeSnrStack(self, est):
+   def computeSnrStack(self, filterType, est):
       """Compute null rejection, SNR (=detection significance)
       for the requested estimator.
       The estimator considered should have a bootstrap covariance.
       """
 
-      path = self.pathFig+"/snr_"+est+".txt"
+      path = self.pathFig+"/snr_"+filterType+"_"+est+".txt"
       with open(path, 'w') as f:
          f.write("*** "+est+" SNR ***\n")
 
          # data and covariance
-         d = self.stackedProfile[est].copy()
-         cov = self.covBootstrap[est].copy()
+         d = self.stackedProfile[filterType+"_"+est].copy()
+         cov = self.covBootstrap[filterType+"_"+est].copy()
          dof = len(d)
 
          # Compute chi^2_null
@@ -1113,7 +1257,7 @@ class ThumbStack(object):
 
          # Gaussian model: find best fit amplitude
          sigma_cluster = 1.5  # arcmin
-         theory = self.ftheoryGaussianProfile(sigma_cluster)
+         theory = self.ftheoryGaussianProfile(sigma_cluster, filterType=filterType)
          def fdchi2(p):
             a = p[0]
             result = (d-a*theory).dot( np.linalg.inv(cov).dot(d-a*theory) )
@@ -1146,13 +1290,15 @@ class ThumbStack(object):
 
    def computeAllSnr(self):
       print "- compute all SNR and significances"
-      if self.cmbHit is not None:
-         Est = ['tsz_varweight', 'ksz_varweight']
-      else:
-         Est = ['tsz_uniformweight', 'ksz_uniformweight']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         self.computeSnrStack(est)
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+         if self.cmbHit is not None:
+            Est = ['tsz_varweight', 'ksz_varweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
+            self.computeSnrStack(filterType, est)
 
 
 
@@ -1226,14 +1372,14 @@ class ThumbStack(object):
 #
 #      # Histograms of noise std dev, from hit counts
 #      for iRAp in range(self.nRAp):
-#         x = self.filtNoiseStdDev[mask, iRAp]
+#         x = self.filtHitNoiseStdDev[mask, iRAp]
 #         path = self.pathFig+"/hist_noisestddevhit"+str(iRAp)+".pdf"
 #         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'Std dev value [arbitrary]', semilogy=True)
 #
 #
 #      # tSZ / dust
 #      for iRAp in range(self.nRAp):
-#         weights = 1. / self.filtNoiseStdDev[mask, iRAp]**2   # need inverse variance, not std dev
+#         weights = 1. / self.filtHitNoiseStdDev[mask, iRAp]**2   # need inverse variance, not std dev
 #         weights /= np.mean(weights)   # to keep the size and units of the weighted AP outputs
 #         x = self.filtMap[mask, iRAp] * weights
 #         print "- mean tSZ= "+str(np.mean(x))+"; std on mean= "+str(np.std(x)/np.sqrt(len(x)))+"; SNR= "+str(np.mean(x)/np.std(x)*np.sqrt(len(x)))

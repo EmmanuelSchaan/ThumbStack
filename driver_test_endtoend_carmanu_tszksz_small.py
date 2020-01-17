@@ -132,9 +132,9 @@ cmb1_4 = StageIVCMB(beam=1.4, noise=30., lMin=1., lMaxT=1.e5, lMaxP=1.e5, atm=Fa
 #reload(thumbstack)
 #from thumbstack import *
 
-import thumbstack_new_morefilters
-reload(thumbstack_new_morefilters)
-from thumbstack_new_morefilters import *
+import thumbstack
+reload(thumbstack)
+from thumbstack import *
 
 save = True
 
