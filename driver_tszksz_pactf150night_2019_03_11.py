@@ -22,6 +22,10 @@ from cmb import *
 # 68 cores per knl node, 32 cores per haswell node
 #salloc -N 1 --qos=interactive -C haswell -t 04:00:00 -L SCRATCH
 
+# for cori
+plt.switch_backend('Agg')
+
+
 ##################################################################################
 
 nProc = 32 # 1 haswell node on cori

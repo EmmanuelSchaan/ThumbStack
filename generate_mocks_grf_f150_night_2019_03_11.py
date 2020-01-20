@@ -363,7 +363,7 @@ print "Finished all stacking: took", (tStop-tStart)/60., "min"
 
 
 ###################################################################################
-# Estimate the covariances from the mocks
+# Estimate the mean and covariance from the mocks
 
 # for debugging only:
 #nMocks = 10
@@ -387,11 +387,11 @@ for iEst in range(len(Est)):
    
    # estimate and save the mean
    meanStackedProfile['diskring_'+est] = np.mean(profiles, axis=-1)
-   np.savetxt(pathOut+'mean_diskring_'+est+'_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.txt', meanStackedProfile[est])
+   np.savetxt(pathOut+'mean_diskring_'+est+'_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.txt', meanStackedProfile['diskring_'+est])
 
    # estimate and save the cov
    covStackedProfile['diskring_'+est] = np.cov(profiles, rowvar=True)
-   np.savetxt(pathOut+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt", covStackedProfile[est])
+   np.savetxt(pathOut+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt", covStackedProfile['diskring_'+est])
    # plot it
    ts.plotCov(covStackedProfile['diskring_'+est], name="diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".pdf")
 
@@ -405,8 +405,8 @@ covStackedProfile = {}
 for iEst in range(len(Est)):
 #for iEst in [2]:
    est = Est[iEst]
-   meanStackedProfile[est] = np.genfromtxt(pathOut+"mean_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
-   covStackedProfile[est] = np.genfromtxt(pathOut+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
+   meanStackedProfile['diskring_'+est] = np.genfromtxt(pathOut+"mean_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
+   covStackedProfile['diskring_'+est] = np.genfromtxt(pathOut+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
 
 
    # Compare diagonal covariance elements
@@ -416,12 +416,12 @@ for iEst in range(len(Est)):
    # convert from sr to arcmin^2
    factor = (180.*60./np.pi)**2
    #
-   sMocks = np.sqrt(np.diag(covStackedProfile[est]))
+   sMocks = np.sqrt(np.diag(covStackedProfile['diskring_'+est]))
    #ax.errorbar(ts.RApArcmin, factor * sMocks, yerr= factor * sMocks / np.sqrt(nMocks),  label=r'mocks')
    ax.fill_between(ts.RApArcmin, factor * sMocks * (1.-1./np.sqrt(nMocks)), factor * sMocks * (1.+1./np.sqrt(nMocks)), facecolor='m', edgecolor='', alpha=0.5, label=r'mocks')
-   ax.plot(ts.RApArcmin, factor * ts.sStackedProfile[est], label=r'semi-analytical')
+   ax.plot(ts.RApArcmin, factor * ts.sStackedProfile['diskring_'+est], label=r'semi-analytical')
    if est in ts.covBootstrap.keys():
-      sBootstrap = np.sqrt(np.diag(ts.covBootstrap[est]))
+      sBootstrap = np.sqrt(np.diag(ts.covBootstrap['diskring_'+est]))
       ax.plot(ts.RApArcmin, factor * sBootstrap, label=r'bootstrap')
    #
    ax.legend(loc=2)
@@ -444,8 +444,8 @@ factor = (180.*60./np.pi)**2
 #
 for iEst in range(len(Est)):
    est = Est[iEst]
-   sMocks = np.sqrt(np.diag(covStackedProfile[est]))
-   ax.errorbar(ts.RApArcmin*(1.+0.02*iEst/len(Est)), factor * meanStackedProfile[est], yerr= factor * sMocks / np.sqrt(nMocks),  label=est.replace('_', ' '))
+   sMocks = np.sqrt(np.diag(covStackedProfile['diskring_'+est]))
+   ax.errorbar(ts.RApArcmin*(1.+0.02*iEst/len(Est)), factor * meanStackedProfile['diskring_'+est], yerr= factor * sMocks / np.sqrt(nMocks),  label=est.replace('_', ' '))
 #
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')

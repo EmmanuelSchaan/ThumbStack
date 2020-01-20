@@ -16,7 +16,7 @@ cd /global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/
 source ~/python_profile.sh
 
 
-python driver_tszksz_pactf150night_2019_03_11.py
+#python driver_tszksz_pactf150night_2019_03_11.py
 python driver_tszksz_pactf090night_2019_03_11.py
 
 #python driver_tszksz_tilec_pact_cmbksz_d56.py
