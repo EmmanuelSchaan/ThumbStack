@@ -352,14 +352,14 @@ def doStacking(iMock):
    # output the various stacked profiles (tSZ, kSZ, etc.) from this mock GRF CMB map
    return ts.stackedProfile
 
-
+'''
 print "Stacking on each mock map"
 tStart = time()
 result = np.array(map(doStacking, range(iMock0, iMock0+nMocks)))
 #result = np.array(map(doStacking, [199, 298, 299, 398, 399]))
 tStop = time()
 print "Finished all stacking: took", (tStop-tStart)/60., "min"
-
+'''
 
 
 ###################################################################################
@@ -374,7 +374,7 @@ pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_mockgrf"+str(iMock0)+"_pactf150night20190311"
 ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, filterTypes='diskring', nProc=nProc)
 
-
+'''
 Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
 covStackedProfile = {}
 meanStackedProfile = {}
@@ -394,7 +394,7 @@ for iEst in range(len(Est)):
    np.savetxt(pathOut+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt", covStackedProfile['diskring_'+est])
    # plot it
    ts.plotCov(covStackedProfile['diskring_'+est], name="diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".pdf")
-
+'''
 
 ###################################################################################
 # Load and plot the mean and covariances from the mocks
@@ -402,6 +402,7 @@ for iEst in range(len(Est)):
 
 Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
 covStackedProfile = {}
+meanStackedProfile = {}
 for iEst in range(len(Est)):
 #for iEst in [2]:
    est = Est[iEst]
@@ -417,10 +418,10 @@ for iEst in range(len(Est)):
    factor = (180.*60./np.pi)**2
    #
    sMocks = np.sqrt(np.diag(covStackedProfile['diskring_'+est]))
-   #ax.errorbar(ts.RApArcmin, factor * sMocks, yerr= factor * sMocks / np.sqrt(nMocks),  label=r'mocks')
-   ax.fill_between(ts.RApArcmin, factor * sMocks * (1.-1./np.sqrt(nMocks)), factor * sMocks * (1.+1./np.sqrt(nMocks)), facecolor='m', edgecolor='', alpha=0.5, label=r'mocks')
+   ax.fill_between(ts.RApArcmin, factor * sMocks * (1.-np.sqrt(2./nMocks)), factor * sMocks * (1.+np.sqrt(2./nMocks)), facecolor='m', edgecolor='', alpha=0.5)
+   ax.plot(ts.RApArcmin, factor * sMocks, 'm', label=r'mocks')
    ax.plot(ts.RApArcmin, factor * ts.sStackedProfile['diskring_'+est], label=r'semi-analytical')
-   if est in ts.covBootstrap.keys():
+   if 'diskring_'+est in ts.covBootstrap.keys():
       sBootstrap = np.sqrt(np.diag(ts.covBootstrap['diskring_'+est]))
       ax.plot(ts.RApArcmin, factor * sBootstrap, label=r'bootstrap')
    #
@@ -434,8 +435,53 @@ for iEst in range(len(Est)):
    fig.clf()
 
 
+   # ratio
+   fig=plt.figure(1)
+   ax=fig.add_subplot(111)
+   #
+   # convert from sr to arcmin^2
+   factor = (180.*60./np.pi)**2
+   #
+   sMocks = np.sqrt(np.diag(covStackedProfile['diskring_'+est]))
+   ax.fill_between(ts.RApArcmin, sMocks * (1.-np.sqrt(2./nMocks))/ts.sStackedProfile['diskring_'+est], sMocks * (1.+np.sqrt(2./nMocks))/ts.sStackedProfile['diskring_'+est], facecolor='m', edgecolor='', alpha=0.5)
+   ax.plot(ts.RApArcmin, sMocks/ts.sStackedProfile['diskring_'+est], 'm', label=r'mocks')
+   ax.plot(ts.RApArcmin, np.ones_like(ts.RApArcmin), label=r'semi-analytical')
+   if 'diskring_'+est in ts.covBootstrap.keys():
+      sBootstrap = np.sqrt(np.diag(ts.covBootstrap['diskring_'+est]))
+      ax.plot(ts.RApArcmin, sBootstrap/ts.sStackedProfile['diskring_'+est], label=r'bootstrap')
+   #
+   ax.legend(loc=2)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_title(est.replace('_', ' '))
+   #
+   fig.savefig(pathFig+'/ratio_std_diskring_'+est+'_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.pdf', bbox_inches='tight')
+   #plt.show()
+   fig.clf()
 
-# Null test: plot the mean
+   # if a bootstrap cov is available
+   # compare cov mat from mocks and bootstrap
+   if 'diskring_'+est in ts.covBootstrap.keys():
+      covBootstrap = ts.covBootstrap['diskring_'+est]
+      sBootstrap = np.sqrt(np.diag(covBootstrap))
+      corBootstrap = covBootstrap / np.outer(sBootstrap, sBootstrap)
+      #
+      covMocks = covStackedProfile['diskring_'+est]
+      sMocks = np.sqrt(np.diag(covMocks))
+      corMocks = covMocks / np.outer(sMocks, sMocks)
+
+      # keep mocks on top, bootstrap on the bottom
+      cor = np.triu(corMocks) + np.tril(corBootstrap, k=-1)
+      # plot it
+      ts.plotCov(cor, name="corTopMocksBottomBootstrap_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks))
+
+      # keep mocks on top, and diff w bootstrap on the bottom
+      cor = np.triu(corMocks) + np.tril(corMocks-corBootstrap, k=-1)
+      # plot it
+      ts.plotCov(cor, name="corTopMocksBottomDiffMocksMinusBootstrap_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks))
+
+
+# Null test: plot the mean for all estimators
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 #
@@ -445,13 +491,39 @@ factor = (180.*60./np.pi)**2
 for iEst in range(len(Est)):
    est = Est[iEst]
    sMocks = np.sqrt(np.diag(covStackedProfile['diskring_'+est]))
-   ax.errorbar(ts.RApArcmin*(1.+0.02*iEst/len(Est)), factor * meanStackedProfile['diskring_'+est], yerr= factor * sMocks / np.sqrt(nMocks),  label=est.replace('_', ' '))
+   p=ax.plot([],[])
+   ax.errorbar(ts.RApArcmin*(1.+0.05*iEst/len(Est)), factor * meanStackedProfile['diskring_'+est], yerr= factor * sMocks / np.sqrt(nMocks),c=p[0].get_color(), label=est.replace('_', ' '))
+   ax.fill_between(ts.RApArcmin*(1.+0.05*iEst/len(Est)), -factor*sMocks, factor*sMocks , facecolor=p[0].get_color(), edgecolor='', alpha=0.4)
 #
-ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')
 ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
 #
-fig.savefig(pathFig+'/nulltests_diskring_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.pdf', bbox_inches='tight')
+fig.savefig(pathFig+'/nulltests_all_diskring_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.pdf', bbox_inches='tight')
+#plt.show()
+fig.clf()
+
+
+# Null test: plot the mean for select estimators
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+# convert from sr to arcmin^2
+factor = (180.*60./np.pi)**2
+#
+for iEst in range(len(Est)):
+   est = Est[iEst]
+   if 'diskring_'+est in ts.covBootstrap.keys():
+      sMocks = np.sqrt(np.diag(covStackedProfile['diskring_'+est]))
+      p=ax.plot([],[])
+      ax.errorbar(ts.RApArcmin*(1.+0.05*iEst/len(Est)), factor * meanStackedProfile['diskring_'+est], yerr= factor * sMocks / np.sqrt(nMocks),c=p[0].get_color(), label=est.replace('_', ' '))
+      ax.fill_between(ts.RApArcmin*(1.+0.05*iEst/len(Est)), -factor*sMocks, factor*sMocks , facecolor=p[0].get_color(), edgecolor='', alpha=0.4)
+#
+ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
+ax.set_xlabel(r'$R$ [arcmin]')
+ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
+#
+fig.savefig(pathFig+'/nulltests_select_diskring_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.pdf', bbox_inches='tight')
 #plt.show()
 fig.clf()
 
