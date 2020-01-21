@@ -65,7 +65,7 @@ class ThumbStack(object):
          self.saveAllStackedProfiles()
       self.loadAllStackedProfiles()
 
-      if False:
+      if save:
          self.plotAllStackedProfiles()
          self.plotAllCov()
          self.computeAllSnr()

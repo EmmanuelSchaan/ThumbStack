@@ -4,7 +4,7 @@
 #SBATCH -q regular
 #SBATCH -L SCRATCH   #Job requires $SCRATCH file system
 #SBATCH -C haswell   #Use haswell/knl nodes
-#SBATCH -t 23:59:59  #47:59:59 #05:00:00  #27:00:00  # hh:mm:ss
+#SBATCH -t 47:59:59  #47:59:59 #05:00:00  #27:00:00  # hh:mm:ss
 #SBATCH --mail-type=begin
 #SBATCH --mail-type=end
 #SBATCH --mail-user=eschaan@lbl.gov
@@ -28,4 +28,5 @@ source ~/python_profile.sh
 #python generate_mocks_grf_f150_night_2019_03_11.py 400 50
 
 # Run everything together (after modifying the code not to recompute)
-python generate_mocks_grf_f150_night_2019_03_11.py 0 400
+#python generate_mocks_grf_f150_night_2019_03_11.py 0 400
+python generate_mocks_grf_f150_night_2019_03_11.py 400 400

@@ -117,7 +117,7 @@ def genGRF(iMock):
    ## save CAR map
    #enmap.write_map(pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits", grfMap)
 
-'''
+
 print "Generating mocks"
 tStart = time()
 with sharedmem.MapReduce(np=nProc) as pool:
@@ -125,7 +125,7 @@ with sharedmem.MapReduce(np=nProc) as pool:
 #np.array(map(genGRF, range(nMocks)))
 tStop = time()
 print "Took", (tStop-tStart)/60., "min"
-'''
+
 
 #########################################################################
 # Check that the power spectra match the input
@@ -340,7 +340,7 @@ reload(thumbstack)
 from thumbstack import *
 
 # recompute or not the stacked profiles
-save = False
+save = True
 
 
 def doStacking(iMock):
@@ -352,14 +352,14 @@ def doStacking(iMock):
    # output the various stacked profiles (tSZ, kSZ, etc.) from this mock GRF CMB map
    return ts.stackedProfile
 
-'''
+
 print "Stacking on each mock map"
 tStart = time()
 result = np.array(map(doStacking, range(iMock0, iMock0+nMocks)))
 #result = np.array(map(doStacking, [199, 298, 299, 398, 399]))
 tStop = time()
 print "Finished all stacking: took", (tStop-tStart)/60., "min"
-'''
+
 
 
 ###################################################################################
@@ -374,7 +374,7 @@ pactMap = enmap.read_map(pathMap)
 name = cmassMariana.name + "_mockgrf"+str(iMock0)+"_pactf150night20190311"
 ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=False, filterTypes='diskring', nProc=nProc)
 
-'''
+
 Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
 covStackedProfile = {}
 meanStackedProfile = {}
@@ -394,7 +394,7 @@ for iEst in range(len(Est)):
    np.savetxt(pathOut+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt", covStackedProfile['diskring_'+est])
    # plot it
    ts.plotCov(covStackedProfile['diskring_'+est], name="diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".pdf")
-'''
+
 
 ###################################################################################
 # Load and plot the mean and covariances from the mocks
