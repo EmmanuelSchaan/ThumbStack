@@ -30,6 +30,10 @@ plt.switch_backend('Agg')
 
 nProc = 32 # 1 haswell node on cori
 
+
+pathFig = '/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/figures/thumbstack/summary_plots'
+
+
 ##################################################################################
 ##################################################################################
 
@@ -49,7 +53,7 @@ tStart = time()
 
 catalogs = {
       "cmass_s_mariana": Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False),
-      "cmass_s_mariana": Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False),
+      "cmass_n_mariana": Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False),
       "cmass_mariana": Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False),
       #
       "cmass_s_kendrick": Catalog(u, massConversion, name="cmass_s_kendrick", nameLong="CMASS S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_S_kendrick.txt", save=False),
@@ -137,7 +141,7 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 
 ###################################################################################
 ###################################################################################
-# Stacking
+# Do the stacking
 
 
 import thumbstack
@@ -162,176 +166,52 @@ for cmbMapKey in cmbMaps.keys():
 
 
 ###################################################################################
+# Create summary plots
+
+
+# loop over maps
+for cmbMapKey in cmbMaps.keys():
+   cmbName = cmbMaps[cmbMapKey].name
+   print("Loading map "+cmbMaps[cmbMapKey].name)
+   cmbMap = cmbMaps[cmbMapKey].map()
+   cmbMask = cmbMaps[cmbMapKey].mask()
+   cmbHit = cmbMaps[cmbMapKey].hit()
+
+   # load stacking on all catalogs
+   print("Loading all catalogs stacked on this map:")
+   ts = {}
+   for catalogKey in catalogs.keys():
+      catalog = catalogs[catalogKey]
+      name = catalogs[catalogKey].name + "_" + cmbName
+      try:
+         ts[catalogKey] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc)
+      except:
+         print("Could not load stacking for catalog "+catalog.name)
+
+   print("Plotting all stacked profiles on map "+cmbMaps[cmbMapKey].name)
+   # loop over estimators 
+   # the estimators available depend only on the presence of a hit map
+   ts0 = ts[ts.keys()[0]]
+   for est in ts0.Est:
+      print("Estimator "+est)
+      
+#      #plot CMASS Mariana: N, S, N+S
+#      tsArr = [ts['cmass_n_mariana'], ts['cmass_s_mariana'], ts['cmass_mariana']]
+#      ts0.plotStackedProfile('diskring', [est], name='diskring_'+est+'_'+cmbMap.name+'_cmassm', pathDir=pathFig, theory=False, tsArr=tsArr, plot=False)
+
+      #plot CMASS Kendrick: N, S, N+S
+      tsArr = [ts['cmass_n_kendrick'], ts['cmass_s_kendrick'], ts['cmass_kendrick']]
+      ts0.plotStackedProfile('diskring', [est], name='diskring_'+est+'_'+cmbName+'_cmassk', pathDir=pathFig, theory=False, tsArr=tsArr, plot=False)
+
+      #plot LOWZ Kendrick: N, S, N+S
+      tsArr = [ts['lowz_n_kendrick'], ts['lowz_s_kendrick'], ts['lowz_kendrick']]
+      ts0.plotStackedProfile('diskring', [est], name='diskring_'+est+'_'+cmbName+'_lowzk', pathDir=pathFig, theory=False, tsArr=tsArr, plot=False)
+
+      #plot BOSS Kendrick: CMASS, LOWZ, CMASS+LOWZ
+      tsArr = [ts['cmass_kendrick'], ts['lowz_kendrick'], ts['boss_kendrick']]
+      ts0.plotStackedProfile('diskring', [est], name='diskring_'+est+'_'+cmbName+'_bossk', pathDir=pathFig, theory=False, tsArr=tsArr, plot=False)
 
 
 
 
 
-
-
-
-
-
-
-
-# Plot kSZ for the various samples
-
-'''
-# plot CMASS Mariana
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-#
-# convert from sr to arcmin^2
-factor = (180.*60./np.pi)**2
-#
-# CMASS M
-ax.errorbar(tsCmassM.RApArcmin+0.02, factor * tsCmassM.kSZ, factor * np.sqrt(np.diag(tsCmassM.covKsz)), c='r', label=r'CMASS M')
-ax.errorbar(tsCmassNM.RApArcmin, factor * tsCmassNM.kSZ, factor * np.sqrt(np.diag(tsCmassNM.covKsz)), fmt='--', c='r', alpha=0.2, label=r'CMASS N M')
-ax.errorbar(tsCmassSM.RApArcmin+0.01, factor * tsCmassSM.kSZ, factor * np.sqrt(np.diag(tsCmassSM.covKsz)), fmt='-.', c='r', alpha=0.2, label=r'CMASS S M')
-#
-ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
-ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-#ax.set_ylim((0., 2.))
-#
-path = tsCmassM.pathFig+"/ksz_cmass_mariana.pdf"
-fig.savefig(path, bbox_inches='tight')
-fig.clf()
-
-
-# plot CMASS Kendrick
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-#
-# CMASS K
-ax.errorbar(tsCmassK.RApArcmin+0.02, factor * tsCmassK.kSZ, factor * np.sqrt(np.diag(tsCmassK.covKsz)), c='r', label=r'CMASS K')
-ax.errorbar(tsCmassNK.RApArcmin, factor * tsCmassNK.kSZ, factor * np.sqrt(np.diag(tsCmassNK.covKsz)), fmt='--', c='r', alpha=0.2, label=r'CMASS N K')
-ax.errorbar(tsCmassSK.RApArcmin+0.01, factor * tsCmassSK.kSZ, factor * np.sqrt(np.diag(tsCmassSK.covKsz)), fmt='-.', c='r', alpha=0.2, label=r'CMASS S K')
-#
-ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
-ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-ax.set_ylim((0., 10.))
-#
-path = tsCmassK.pathFig+"/ksz_cmass_kendrick.pdf"
-fig.savefig(path, bbox_inches='tight')
-fig.clf()
-
-
-# plot LOWZ Kendrick
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-#
-ax.errorbar(tsLowzK.RApArcmin+0.02, factor * tsLowzK.kSZ, factor * np.sqrt(np.diag(tsLowzK.covKsz)), c='r', label=r'LOWZ K')
-ax.errorbar(tsLowzNK.RApArcmin, factor * tsLowzNK.kSZ, factor * np.sqrt(np.diag(tsLowzNK.covKsz)), fmt='--', c='r', alpha=0.2, label=r'LOWZ N K')
-ax.errorbar(tsLowzSK.RApArcmin+0.01, factor * tsLowzSK.kSZ, factor * np.sqrt(np.diag(tsLowzSK.covKsz)), fmt='-.', c='r', alpha=0.2, label=r'LOWZ S K')
-#
-ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
-ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-#ax.set_ylim((0., 2.))
-#
-path = tsLowzK.pathFig+"/ksz_lowz_kendrick.pdf"
-fig.savefig(path, bbox_inches='tight')
-fig.clf()
-
-
-
-# plot BOSS Kendrick
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-#
-# CMASS K
-ax.errorbar(tsBossK.RApArcmin, factor * tsBossK.kSZ, factor * np.sqrt(np.diag(tsBossK.covKsz)), fmt='--', c='r', label=r'BOSS K')
-#
-ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
-ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-#ax.set_xlim((0., 2.))
-#
-path = tsBossK.pathFig+"/ksz_kendrick.pdf"
-fig.savefig(path, bbox_inches='tight')
-fig.clf()
-
-
-
-###################################################################################
-# Plot tSZ for the various samples
-
-
-# plot CMASS Mariana
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-#
-# convert from sr to arcmin^2
-factor = (180.*60./np.pi)**2
-#
-# CMASS M
-ax.errorbar(tsCmassM.RApArcmin+0.02, factor * tsCmassM.tSZ, factor * np.sqrt(np.diag(tsCmassM.covTsz)), c='r', label=r'CMASS M')
-ax.errorbar(tsCmassNM.RApArcmin, factor * tsCmassNM.tSZ, factor * np.sqrt(np.diag(tsCmassNM.covTsz)), fmt='--', c='r', alpha=0.2, label=r'CMASS N M')
-ax.errorbar(tsCmassSM.RApArcmin+0.01, factor * tsCmassSM.tSZ, factor * np.sqrt(np.diag(tsCmassSM.covTsz)), fmt='-.', c='r', alpha=0.2, label=r'CMASS S M')
-#
-ax.legend(loc=1, fontsize='x-small', labelspacing=0.1)
-ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-#ax.set_ylim((0., 2.))
-#
-path = tsCmassM.pathFig+"/tsz_cmass_mariana.pdf"
-fig.savefig(path, bbox_inches='tight')
-fig.clf()
-
-
-# plot CMASS Kendrick
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-#
-# CMASS K
-ax.errorbar(tsCmassK.RApArcmin+0.02, factor * tsCmassK.tSZ, factor * np.sqrt(np.diag(tsCmassK.covTsz)), c='r', label=r'CMASS K')
-ax.errorbar(tsCmassNK.RApArcmin, factor * tsCmassNK.tSZ, factor * np.sqrt(np.diag(tsCmassNK.covTsz)), fmt='--', c='r', alpha=0.2, label=r'CMASS N K')
-ax.errorbar(tsCmassSK.RApArcmin+0.01, factor * tsCmassSK.tSZ, factor * np.sqrt(np.diag(tsCmassSK.covTsz)), fmt='-.', c='r', alpha=0.2, label=r'CMASS S K')
-#
-ax.legend(loc=1, fontsize='x-small', labelspacing=0.1)
-ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-#ax.set_ylim((0., 10.))
-#
-path = tsCmassK.pathFig+"/tsz_cmass_kendrick.pdf"
-fig.savefig(path, bbox_inches='tight')
-fig.clf()
-
-
-# plot LOWZ Kendrick
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-#
-# CMASS K
-ax.errorbar(tsLowzK.RApArcmin+0.02, factor * tsLowzK.tSZ, factor * np.sqrt(np.diag(tsLowzK.covTsz)), c='r', label=r'LOWZ K')
-ax.errorbar(tsLowzNK.RApArcmin, factor * tsLowzNK.tSZ, factor * np.sqrt(np.diag(tsLowzNK.covTsz)), fmt='--', c='r', alpha=0.2, label=r'LOWZ N K')
-ax.errorbar(tsLowzSK.RApArcmin+0.01, factor * tsLowzSK.tSZ, factor * np.sqrt(np.diag(tsLowzSK.covTsz)), fmt='-.', c='r', alpha=0.2, label=r'LOWZ S K')
-#
-ax.legend(loc=1, fontsize='x-small', labelspacing=0.1)
-ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-#ax.set_ylim((0., 2.))
-#
-path = tsLowzK.pathFig+"/tsz_lowz_kendrick.pdf"
-fig.savefig(path, bbox_inches='tight')
-fig.clf()
-
-
-# plot BOSS Kendrick
-fig=plt.figure(0)
-ax=fig.add_subplot(111)
-#
-# CMASS K
-ax.errorbar(tsBossK.RApArcmin, factor * tsBossK.tSZ, factor * np.sqrt(np.diag(tsBossK.covTsz)), fmt='--', c='r', label=r'BOSS K')
-#
-ax.legend(loc=1, fontsize='x-small', labelspacing=0.1)
-ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-#ax.set_xlim((0., 2.))
-#
-path = tsBossK.pathFig+"/tsz_kendrick.pdf"
-fig.savefig(path, bbox_inches='tight')
-fig.clf()
-'''

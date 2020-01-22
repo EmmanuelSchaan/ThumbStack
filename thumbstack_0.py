@@ -29,19 +29,7 @@ class ThumbStack(object):
          self.filterTypes = np.array(['ring'])
       elif filterTypes=='all':
          self.filterTypes = np.array(['diskring', 'disk', 'ring'])
-
-      # estimators (ksz, tsz) and weightings (uniform, hit, var, ...)
-      # for stacked profiles, bootstrap cov and v-shuffle cov
-      if self.cmbHit is not None:
-         self.Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
-         self.EstBoosttrap = ['tsz_varweight', 'ksz_varweight']
-         self.EstVShuffle = ['ksz_varweight']
-      else:
-         self.Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
-         self.EstBootstrap = ['tsz_uniformweight', 'ksz_uniformweight']
-         self.EstVShuffle = ['ksz_uniformweight']
-
-
+      
       # number of samples for bootstraps, shuffles
       self.nSamples = 100
       
@@ -888,8 +876,12 @@ class ThumbStack(object):
          filterType = self.filterTypes[iFilterType]
 
          # Estimators (tSZ, kSZ, various weightings...)
-         for iEst in range(len(self.Est)):
-            est = self.Est[iEst]
+         if self.cmbHit is not None:
+            Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
             # measured stacked profile
             data[:,1], data[:,2] = self.computeStackedProfile(filterType, est) # [map unit * sr]
             np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_measured.txt", data)
@@ -902,14 +894,22 @@ class ThumbStack(object):
 
          # covariance matrices from bootstrap,
          # only for a few select estimators
-         for iEst in range(len(self.EstBootstrap)):
-            est = self.EstBootstrap[iEst]
+         if self.cmbHit is not None:
+            Est = ['tsz_varweight', 'ksz_varweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
             self.SaveCovBootstrapStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
 
          # covariance matrices from shuffling velocities,
          # for ksz only
-         for iEst in range(len(self.EstVShuffle)):
-            est = self.EstVShuffle[iEst]
+         if self.cmbHit is not None:
+            Est = ['ksz_varweight']
+         else:
+            Est = ['ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
             self.SaveCovVShuffleStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
 
 
@@ -924,8 +924,12 @@ class ThumbStack(object):
          filterType = self.filterTypes[iFilterType]
 
          # all stacked profiles
-         for iEst in range(len(self.Est)):
-            est = self.Est[iEst]
+         if self.cmbHit is not None:
+            Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
             # measured stacked profile
             data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_measured.txt")
             self.stackedProfile[filterType+"_"+est] = data[:,1]
@@ -941,107 +945,37 @@ class ThumbStack(object):
 
          # covariance matrices from bootstrap,
          # only for a few select estimators
-         for iEst in range(len(self.EstBootstrap)):
-            est = self.EstBootstrap[iEst]
+         if self.cmbHit is not None:
+            Est = ['tsz_varweight', 'ksz_varweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
             self.covBootstrap[filterType+"_"+est] = np.genfromtxt(self.pathOut+"/cov_"+filterType+"_"+est+"_bootstrap.txt")
          
          # covariance matrices from shuffling velocities,
          # for ksz only
-         for iEst in range(len(self.EstVShuffle)):
-            est = self.EstVShuffle[iEst]
+         if self.cmbHit is not None:
+            Est = ['ksz_varweight']
+         else:
+            Est = ['ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
             self.covVShuffle[filterType+"_"+est] = np.genfromtxt(self.pathOut+"/cov_"+filterType+"_"+est+"_vshuffle.txt")
 
 
    ##################################################################################
 
-   def plotStackedProfile(self, filterType, Est, name=None, pathDir=None, theory=True, tsArr=None, plot=False):
-      """Compares stacked profiles, and their uncertainties.
-      If pathDir is not specified, save to local figure folder.
-      """
-      if name is None:
-         name = Est[0]
-      if tsArr is None:
-         tsArr = [self]
-      if pathDir is None:
-         pathDir = self.pathFig
-      
-      # stacked profile
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # convert from sr to arcmin^2
-      factor = (180.*60./np.pi)**2
-      #
-      ax.axhline(0., c='k', lw=1)
-      #
-      colors = ['r', 'g', 'b', 'm', 'c']
-      lineStyles = ['-', '--', '-.', ':']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         c = colors[iEst%len(colors)]
-
-         for iTs in range(len(tsArr)):
-            ts = tsArr[iTs]
-            ls = lineStyles[iTs%len(tsArr)]
-
-            ax.errorbar(ts.RApArcmin+iTs*0.05, factor * ts.stackedProfile[filterType+"_"+est], factor * ts.sStackedProfile[filterType+"_"+est], fmt=ls, c=c, label=filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
-            if theory:
-               ax.plot(ts.RApArcmin+iTs*0.05, factor * ts.stackedProfile[filterType+"_"+est+"_theory_tsz"], ls='--', c=c, label="theory tsz, "+filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
-               ax.plot(ts.RApArcmin+iTs*0.05, factor * ts.stackedProfile[filterType+"_"+est+"_theory_ksz"], ls='-.', c=c, label="theory ksz, "+filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
-      #
-      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
-      ax.set_xlabel(r'$R$ [arcmin]')
-      ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
-      #ax.set_ylim((0., 2.))
-      #
-      path = pathDir+"/"+name+".pdf"
-      fig.savefig(path, bbox_inches='tight')
-      if plot:
-         plt.show()
-      fig.clf()
-
-
-
-      # uncertainty on stacked profile
-      fig=plt.figure(0)
-      ax=fig.add_subplot(111)
-      #
-      # convert from sr to arcmin^2
-      factor = (180.*60./np.pi)**2
-      #
-      colors = ['r', 'g', 'b', 'm', 'c']
-      lineStyles = ['-', '--', '-.', ':']
-      for iEst in range(len(Est)):
-         est = Est[iEst]
-         c = colors[iEst%len(colors)]
-
-         for iTs in range(len(tsArr)):
-            ts = tsArr[iTs]
-            ls = lineStyles[iTs%len(tsArr)]
-
-            ax.plot(ts.RApArcmin+iTs*0.05, factor * ts.sStackedProfile[filterType+"_"+est], c=c, ls=ls, lw=2, label='analytic, '+filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
-            if est in ts.covBootstrap:
-               ax.plot(ts.RApArcmin+iTs*0.05, factor * np.sqrt(np.diag(ts.covBootstrap[filterType+"_"+est])), c=c, ls=ls, lw=1.5, label="bootstrap, "+filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
-            if est in ts.covVShuffle:
-               ax.plot(ts.RApArcmin+iTs*0.05, factor * np.sqrt(np.diag(ts.covVShuffle[filterType+"_"+est])), c=c, ls=ls, lw=1, label="v shuffle, "+filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
-      #
-      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
-      ax.set_xlabel(r'$R$ [arcmin]')
-      ax.set_ylabel(r'$\sigma(T)$ [$\mu K\cdot\text{arcmin}^2$]')
-      #ax.set_ylim((0., 2.))
-      #
-      path = pathDir+"/s_"+name+".pdf"
-      fig.savefig(path, bbox_inches='tight')
-      if plot:
-         plt.show()
-      fig.clf()
-
-
-#   def plotStackedProfile(self, filterType, Est, name=None):
+#   def plotStackedProfile(self, filterType, Est, name=None, pathDir=None, theory=True, tsArr=None, plot=False):
 #      """Compares stacked profiles, and their uncertainties.
+#      If pathDir is not specified, save to local figure folder.
 #      """
 #      if name is None:
 #         name = Est[0]
+#      if tsArr is None:
+#         tsArr = [self]
+#      if pathDir is None:
+#         pathDir = self.pathFig
 #      
 #      # stacked profile
 #      fig=plt.figure(0)
@@ -1053,21 +987,32 @@ class ThumbStack(object):
 #      ax.axhline(0., c='k', lw=1)
 #      #
 #      colors = ['r', 'g', 'b', 'm', 'c']
+#      lineStyles = ['-', '--', '-.', ':']
 #      for iEst in range(len(Est)):
 #         est = Est[iEst]
-#         c = colors[iEst]
-#         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est], factor * self.sStackedProfile[filterType+"_"+est], fmt='-', c=c, label="measured")
-#         ax.plot(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est+"_theory_tsz"], ls='--', c=c, label="theory tsz")
-#         ax.plot(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est+"_theory_ksz"], ls='-.', c=c, label="theory ksz")
+#         c = colors[iEst%len(colors)]
+#
+#         for iTs in range(len(tsArr)):
+#            ts = tsArr[iTs]
+#            ls = lineStyles[iFilterType%len(FilterType)]
+#
+#            ax.errorbar(ts.RApArcmin, factor * ts.stackedProfile[filterType+"_"+est], factor * ts.sStackedProfile[filterType+"_"+est], fmt=ls, c=c, label=filterType.replace('_',' ')+' '+est.replace('_', ' '))
+#            if theory:
+#               ax.plot(ts.RApArcmin, factor * ts.stackedProfile[filterType+"_"+est+"_theory_tsz"], ls='--', c=c, label="theory tsz")
+#               ax.plot(ts.RApArcmin, factor * ts.stackedProfile[filterType+"_"+est+"_theory_ksz"], ls='-.', c=c, label="theory ksz")
 #      #
 #      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 #      ax.set_xlabel(r'$R$ [arcmin]')
 #      ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
 #      #ax.set_ylim((0., 2.))
 #      #
-#      path = self.pathFig+"/"+name+".pdf"
+#      path = pathDir+"/"+name+".pdf"
 #      fig.savefig(path, bbox_inches='tight')
+#      if plot:
+#         plt.show()
 #      fig.clf()
+#
+#
 #
 #      # uncertainty on stacked profile
 #      fig=plt.figure(0)
@@ -1076,21 +1021,133 @@ class ThumbStack(object):
 #      # convert from sr to arcmin^2
 #      factor = (180.*60./np.pi)**2
 #      #
-#      for est in Est:
-#         ax.plot(self.RApArcmin, factor * self.sStackedProfile[filterType+"_"+est], ls='-', label="analytic")
-#         if est in self.covBootstrap:
-#            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covBootstrap[filterType+"_"+est])), ls='--', label="bootstrap")
-#         if est in self.covVShuffle:
-#            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covVShuffle[filterType+"_"+est])), ls='-.', label="v shuffle")
+#      colors = ['r', 'g', 'b', 'm', 'c']
+#      lineStyles = ['-', '--', '-.', ':']
+#      for iEst in range(len(Est)):
+#         est = Est[iEst]
+#         c = colors[iEst%len(colors)]
+#
+#         for iTs in range(len(tsArr)):
+#            ts = tsArr[iTs]
+#            ls = lineStyles[iFilterType%len(FilterType)]
+#
+#            ax.plot(ts.RApArcmin, factor * ts.sStackedProfile[filterType+"_"+est], c=c, ls=ls, lw=2, label='analytic, '+filterType.replace('_',' ')+' '+est.replace('_', ' '))
+#            if est in ts.covBootstrap:
+#               ax.plot(ts.RApArcmin, factor * np.sqrt(np.diag(ts.covBootstrap[filterType+"_"+est])), c=c, ls=ls, lw=1.5, label="bootstrap")
+#            if est in ts.covVShuffle:
+#               ax.plot(ts.RApArcmin, factor * np.sqrt(np.diag(ts.covVShuffle[filterType+"_"+est])), c=c, ls=ls, lw=1, label="v shuffle")
 #      #
 #      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 #      ax.set_xlabel(r'$R$ [arcmin]')
 #      ax.set_ylabel(r'$\sigma(T)$ [$\mu K\cdot\text{arcmin}^2$]')
 #      #ax.set_ylim((0., 2.))
 #      #
-#      path = self.pathFig+"/s_"+name+".pdf"
+#      path = pathDir+"/s_"+name+".pdf"
 #      fig.savefig(path, bbox_inches='tight')
+#      if plot:
+#         plt.show()
 #      fig.clf()
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   def plotStackedProfile(self, filterType, Est, name=None):
+      """Compares stacked profiles, and their uncertainties.
+      """
+      if name is None:
+         name = Est[0]
+      
+      # stacked profile
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # convert from sr to arcmin^2
+      factor = (180.*60./np.pi)**2
+      #
+      ax.axhline(0., c='k', lw=1)
+      #
+      colors = ['r', 'g', 'b', 'm', 'c']
+      for iEst in range(len(Est)):
+         est = Est[iEst]
+         c = colors[iEst]
+         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est], factor * self.sStackedProfile[filterType+"_"+est], fmt='-', c=c, label="measured")
+         ax.plot(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est+"_theory_tsz"], ls='--', c=c, label="theory tsz")
+         ax.plot(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est+"_theory_ksz"], ls='-.', c=c, label="theory ksz")
+      #
+      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+      ax.set_xlabel(r'$R$ [arcmin]')
+      ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
+      #ax.set_ylim((0., 2.))
+      #
+      path = self.pathFig+"/"+name+".pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+
+      # uncertainty on stacked profile
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # convert from sr to arcmin^2
+      factor = (180.*60./np.pi)**2
+      #
+      for est in Est:
+         ax.plot(self.RApArcmin, factor * self.sStackedProfile[filterType+"_"+est], ls='-', label="analytic")
+         if est in self.covBootstrap:
+            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covBootstrap[filterType+"_"+est])), ls='--', label="bootstrap")
+         if est in self.covVShuffle:
+            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covVShuffle[filterType+"_"+est])), ls='-.', label="v shuffle")
+      #
+      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+      ax.set_xlabel(r'$R$ [arcmin]')
+      ax.set_ylabel(r'$\sigma(T)$ [$\mu K\cdot\text{arcmin}^2$]')
+      #ax.set_ylim((0., 2.))
+      #
+      path = self.pathFig+"/s_"+name+".pdf"
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
 
    def plotAllStackedProfiles(self):
       print "- plot all stacked profiles"
@@ -1098,8 +1155,12 @@ class ThumbStack(object):
       for iFilterType in range(len(self.filterTypes)):
          filterType = self.filterTypes[iFilterType]
          # all stacked profiles
-         for iEst in range(len(self.Est)):
-            est = self.Est[iEst]
+         if self.cmbHit is not None:
+            Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
             self.plotStackedProfile(filterType, [est], name=filterType+"_"+est)
 
    ##################################################################################
@@ -1168,14 +1229,22 @@ class ThumbStack(object):
 
          # covariance matrices from bootstrap,
          # only for a few select estimators
-         for iEst in range(len(self.EstBootstrap)):
-            est = self.EstBootstrap[iEst]
+         if self.cmbHit is not None:
+            Est = ['tsz_varweight', 'ksz_varweight']
+         else:
+            Est = ['tsz_uniformweight', 'ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
             self.plotCov(self.covBootstrap[filterType+"_"+est], filterType+"_"+est+"_bootstrap")
          
          # covariance matrices from shuffling velocities,
          # for ksz only
-         for iEst in range(len(self.EstVShuffle)):
-            est = self.EstVShuffle[iEst]
+         if self.cmbHit is not None:
+            Est = ['ksz_varweight']
+         else:
+            Est = ['ksz_uniformweight']
+         for iEst in range(len(Est)):
+            est = Est[iEst]
             self.plotCov(self.covVShuffle[filterType+"_"+est], filterType+"_"+est+"_vshuffle")
 
 
