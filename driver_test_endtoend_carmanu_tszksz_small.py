@@ -109,7 +109,7 @@ boxMask = enmap.read_map(pathMask)[0]
 
 
 # create mock map with point sources and Gaussian profiles with sigma=1.5'
-cmassMarianaVShuffleSmall.generateMockMaps(boxMask, sigma=1.5, test=False)
+#cmassMarianaVShuffleSmall.generateMockMaps(boxMask, sigma=1.5, test=False)
 
 # check that the mock map has non-zero pixels
 #pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_count_gauss_car.fits"
@@ -136,13 +136,18 @@ import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
-save = True
+save = False
 
 # Do it on mocks with shuffled velocities
 pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_vel_dirac_car.fits"
 boxMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffleSmall.name + "_test_endtoend_vel_dirac_carmanu"
 tsVelDiracVShuffleSmall = ThumbStack(u, cmassMarianaVShuffleSmall, boxMap, boxMask, cmbHit=None, name=name, nameLong=None, save=save, nProc=nProc, filterTypes='all')
+
+# debugging the stacked map function
+ts = tsVelDiracVShuffleSmall
+stackedMap = ts.computeStackedProfile('diskring', 'ksz_varweight', iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=True)
+
 
 pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_vel_gauss_car.fits"
 boxMap = enmap.read_map(pathMap)
