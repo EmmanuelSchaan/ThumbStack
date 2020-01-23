@@ -117,3 +117,7 @@ import basic_functions
 reload(basic_functions)
 from basic_functions import *
 
+import flat_map
+reload(flat_map)
+from flat_map import *
+

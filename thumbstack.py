@@ -6,7 +6,7 @@ from headers import *
 class ThumbStack(object):
 
 #   def __init__(self, U, Catalog, pathMap="", pathMask="", pathHit="", name="test", nameLong=None, save=False, nProc=1):
-   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit=None, name="test", nameLong=None, save=False, nProc=1, filterTypes='diskring'):
+   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit=None, name="test", nameLong=None, save=False, nProc=1, filterTypes='diskring', doStackedMap=False):
       
       self.nProc = nProc
       self.U = U
@@ -81,6 +81,14 @@ class ThumbStack(object):
          self.plotAllStackedProfiles()
          self.plotAllCov()
          self.computeAllSnr()
+
+      if doStackedMap:
+         # save all stacked maps
+         #self.saveAllStackedMaps()
+         # save only the stacked maps for
+         # the best tsz and ksz estimators,
+         # and for the diskring weighting
+         self.saveAllStackedMaps(filterTypes=['diskring'], Est=['tsz_varweight', 'ksz_varweight'])
 
 
 
@@ -811,13 +819,15 @@ class ThumbStack(object):
          # remove mean temperature
          t -= np.mean(t, axis=0)
          weights = m[:,np.newaxis] * v[:,np.newaxis] / s2Full
-         norm = np.mean(m) * np.std(v) / np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2 / s2Full)
+         norm = np.mean(m) * np.std(v) / np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2 / s2Full, axis=0)
+
 
       # return the stacked profiles
       if not stackedMap:
          stack = norm * np.sum(t * weights, axis=0)
          sStack = norm * np.sqrt(np.sum(s2Full * weights**2, axis=0))
          return stack, sStack
+
 
       # or, if requested, compute and return the stacked cutout map
       else:
@@ -866,21 +876,26 @@ class ThumbStack(object):
          resMap *= norm
          return resMap
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#         # dispatch each chunk of objects to a different processor
+#         with sharedmem.MapReduce(np=self.nProc) as pool:
+#            result = np.array(pool.map(stackChunk, range(nChunk)))
+#
+#         # sum all the chunks
+#
+#         return result
+#         print result.shape
+#
+#         omap = result[0,0]
+#         print omap.shape
+#
+#         return result
+#
+#         resMap = np.sum(result[:,1], axis=0)
+#         print resMap.shape
+#         # normalize by the proper sum of weights
+#         resMap *= norm
+#         return omap, resMap
+#
 
 
 #   def computeStackedProfile(self, filterType, est, iBootstrap=None, iVShuffle=None, tTh=None):
@@ -1063,6 +1078,45 @@ class ThumbStack(object):
 
 
    ##################################################################################
+
+
+   def saveAllStackedMaps(self, filterTypes=None, Est=None):
+      print "- compute stacked maps"
+      if filterTypes is None:
+         filterTypes = self.filterTypes
+      if Est is None:
+         Est = self.Est
+
+      # Get geometry of cutout map
+      # for plotting only
+      # (copied and pasted from extractStamp and analyzeObject)
+      # choose postage stamp size to fit the largest ring
+      dArcmin = np.ceil(2. * self.rApMaxArcmin * np.sqrt(2.))
+      dDeg = dArcmin / 60.
+      resArcmin = 0.25
+      # Make sure the number of pixels is (2*n+1),
+      # so that the object is exactly in the middle of the central pixel
+      nx = np.int(np.floor((dDeg * 60. / resArcmin - 1.) / 2.) + 1.)
+      dDeg = (2. * nx + 1.) * resArcmin / 60.
+
+
+      # loop over filter types: only matter
+      # because they determine the weights in the stacked map
+      for iFilterType in range(len(filterTypes)):
+         filterType = filterTypes[iFilterType]
+         # Estimators (tSZ, kSZ, various weightings...)
+         for iEst in range(len(Est)):
+            est = Est[iEst]
+            print "compute stacked map:", filterType, est
+            stackedMap = self.computeStackedProfile(filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=True)
+            # plot the stacked map and save it
+            baseMap = FlatMap(nX=stackedMap.shape[0], nY=stackedMap.shape[1], sizeX=dDeg*np.pi/180., sizeY=dDeg*np.pi/180.)
+            path = self.pathFig + "/stackedmap_"+filterType+"_"+est+".pdf"
+            baseMap.plot(data=stackedMap, save=True, path=path)
+
+
+   ##################################################################################
+
 
    def saveAllStackedProfiles(self):
       print "- compute stacked profiles and their cov"

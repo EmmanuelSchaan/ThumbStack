@@ -146,7 +146,8 @@ tsVelDiracVShuffleSmall = ThumbStack(u, cmassMarianaVShuffleSmall, boxMap, boxMa
 
 # debugging the stacked map function
 ts = tsVelDiracVShuffleSmall
-stackedMap = ts.computeStackedProfile('diskring', 'ksz_varweight', iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=True)
+#resMap = ts.computeStackedProfile('diskring', 'ksz_varweight', iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=True)
+ts.saveAllStackedMaps()
 
 
 pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_vel_gauss_car.fits"
