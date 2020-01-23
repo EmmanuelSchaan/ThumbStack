@@ -144,10 +144,8 @@ boxMap = enmap.read_map(pathMap)
 name = cmassMarianaVShuffleSmall.name + "_test_endtoend_vel_dirac_carmanu"
 tsVelDiracVShuffleSmall = ThumbStack(u, cmassMarianaVShuffleSmall, boxMap, boxMask, cmbHit=None, name=name, nameLong=None, save=save, nProc=nProc, filterTypes='all')
 
-# debugging the stacked map function
-ts = tsVelDiracVShuffleSmall
-#resMap = ts.computeStackedProfile('diskring', 'ksz_varweight', iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=True)
-ts.saveAllStackedMaps()
+# Create stacked maps
+#tsVelDiracVshuffleSmall.saveAllStackedMaps()
 
 
 pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_vel_gauss_car.fits"

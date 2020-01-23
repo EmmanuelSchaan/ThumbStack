@@ -34,7 +34,7 @@ class ThumbStack(object):
       # for stacked profiles, bootstrap cov and v-shuffle cov
       if self.cmbHit is not None:
          self.Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
-         self.EstBoosttrap = ['tsz_varweight', 'ksz_varweight']
+         self.EstBootstrap = ['tsz_varweight', 'ksz_varweight']
          self.EstVShuffle = ['ksz_varweight']
       else:
          self.Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']

@@ -110,29 +110,47 @@ cmbMaps = {
          "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "act_planck_f090_prelim_div_mono.fits",
          name="pactf090night20190311"),
       #
-      "plancksmica18": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_maps_2018_PR3/" + "car_planck_smicacmb.fits",
-         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_maps_2018_PR3/" + "car_planck_nonact_gal_ps_mask.fits",
-         name="plancksmica18"),
+#      "plancksmica18": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_maps_2018_PR3/" + "car_planck_smicacmb.fits",
+#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_maps_2018_PR3/" + "car_planck_nonact_gal_ps_mask.fits",
+#         name="plancksmica18"),
       "plancksmicanosz18": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_maps_2018_PR3/" + "car_planck_smicacmbnosz.fits",
          "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_maps_2018_PR3/" + "car_planck_nonact_gal_ps_mask.fits",
          name="plancksmicanosz18"),
-      "planck54518": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_maps_2018_PR3/" + "car_planck545.fits",
-         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_maps_2018_PR3/" + "car_planck_gal_ps_mask.fits",
-         name="planck54518"),
+#      "planck54518": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_maps_2018_PR3/" + "car_planck545.fits",
+#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_maps_2018_PR3/" + "car_planck_gal_ps_mask.fits",
+#         name="planck54518"),
       #
       "tilecpactcmbkszd56": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_deep56/" + "tilec_single_tile_deep56_cmb_map_v1.0.0_rc_joint.fits",
          "./output/cmb_map/tilec_pact_cmbksz_d56/" + "mask_foot_planck_ps_car.fits",
          name="tilecpactcmbkszd56"),
-      # !!! missing y and y-no-CIB for D56
+      "tilecpactyd56": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_deep56/" + "tilec_single_tile_boss_comptony_map_v1.0.0_rc_joint.fits",
+         "./output/cmb_map/tilec_pact_cmbksz_d56/" + "mask_foot_planck_ps_car.fits",
+         name="tilecpactyd56"),
+      "tilecpactynocibd56": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_deep56/" + "tilec_single_tile_boss_comptony_deprojects_cib_map_v1.0.0_rc_joint.fits",
+         "./output/cmb_map/tilec_pact_cmbksz_d56/" + "mask_foot_planck_ps_car.fits",
+         name="tilecpactynocibd56")
+      "tilecpactcmbksznoyd56": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_deep56/" + "tilec_single_tile_boss_cmb_deprojects_comptony_map_v1.0.0_rc_joint.fits",
+         "./output/cmb_map/tilec_pact_cmbksz_d56/" + "mask_foot_planck_ps_car.fits",
+         name="tilecpactcmbksznoyd56"),
+      "tilecpactcmbksznocibd56": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_deep56/" + "tilec_single_tile_boss_cmb_deprojects_cib_map_v1.0.0_rc_joint.fits",
+         "./output/cmb_map/tilec_pact_cmbksz_d56/" + "mask_foot_planck_ps_car.fits",
+         name="tilecpactcmbksznocibd56"),
+      # 
       "tilecpactcmbkszbossn": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_boss/" + "tilec_single_tile_boss_cmb_map_v1.0.0_rc_joint.fits",
          "./output/cmb_map/tilec_pact_cmbksz_boss/" + "mask_foot_planck_ps_car.fits",
          name="tilecpactcmbkszbossn"),
-      "tilecpactybossn": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_boss/" + "tilec_single_tile_boss_comptony_map_v1.0.0_rc_joint.fits",
+#      "tilecpactybossn": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_boss/" + "tilec_single_tile_boss_comptony_map_v1.0.0_rc_joint.fits",
+#         "./output/cmb_map/tilec_pact_cmbksz_boss/" + "mask_foot_planck_ps_car.fits",
+#         name="tilecpactybossn"),
+#      "tilecpactynocibbossn": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_boss/" + "tilec_single_tile_boss_comptony_deprojects_cib_map_v1.0.0_rc_joint.fits",
+#         "./output/cmb_map/tilec_pact_cmbksz_boss/" + "mask_foot_planck_ps_car.fits",
+#         name="tilecpactynocibbossn")
+      "tilecpactcmbksznoybossn": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_boss/" + "tilec_single_tile_boss_cmb_deprojects_comptony_map_v1.0.0_rc_joint.fits",
          "./output/cmb_map/tilec_pact_cmbksz_boss/" + "mask_foot_planck_ps_car.fits",
-         name="tilecpactybossn"),
-      "tilecpactynocibbossn": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_boss/" + "tilec_single_tile_boss_comptony_deprojects_cib_map_v1.0.0_rc_joint.fits",
+         name="tilecpactcmbksznoybossn"),
+      "tilecpactcmbksznocibbossn": cmbMap("/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_rc_20190919/map_v1.0.0_rc_joint_boss/" + "tilec_single_tile_boss_cmb_deprojects_cib_map_v1.0.0_rc_joint.fits",
          "./output/cmb_map/tilec_pact_cmbksz_boss/" + "mask_foot_planck_ps_car.fits",
-         name="tilecpactynocibbossn")
+         name="tilecpactcmbksznocibbossn"),
       }
 
 tStop = time()
@@ -157,10 +175,13 @@ for cmbMapKey in cmbMaps.keys():
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
+   cmbName = cmbMaps[cmbMapKey].name
+   print("Analyzing map "+cmbName)
 
    for catalogKey in catalogs.keys():
       catalog = catalogs[catalogKey]
-      name = catalogs[catalogKey].name + "_" + cmbMaps[cmbMapKey].name
+      print("Analyzing catalog "+catalog.name)
+      name = catalog.name + "_" + cmbName
       #ts[cmbMapKey, catalogKey] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc)
       ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc)
 
@@ -195,9 +216,9 @@ for cmbMapKey in cmbMaps.keys():
    for est in ts0.Est:
       print("Estimator "+est)
       
-#      #plot CMASS Mariana: N, S, N+S
-#      tsArr = [ts['cmass_n_mariana'], ts['cmass_s_mariana'], ts['cmass_mariana']]
-#      ts0.plotStackedProfile('diskring', [est], name='diskring_'+est+'_'+cmbMap.name+'_cmassm', pathDir=pathFig, theory=False, tsArr=tsArr, plot=False)
+      #plot CMASS Mariana: N, S, N+S
+      tsArr = [ts['cmass_n_mariana'], ts['cmass_s_mariana'], ts['cmass_mariana']]
+      ts0.plotStackedProfile('diskring', [est], name='diskring_'+est+'_'+cmbMap.name+'_cmassm', pathDir=pathFig, theory=False, tsArr=tsArr, plot=False)
 
       #plot CMASS Kendrick: N, S, N+S
       tsArr = [ts['cmass_n_kendrick'], ts['cmass_s_kendrick'], ts['cmass_kendrick']]
