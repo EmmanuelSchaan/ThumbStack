@@ -159,6 +159,10 @@ name = cmassMariana.name + "_pactf150night20190311"
 tsCmassM = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, nProc=nProc)
 
 
+# visualization: generate stacked cutout maps
+#tsCmassM.saveAllStackedMaps(filterTypes=['diskring'], Est=['tsz_varweight', 'ksz_varweight'])
+
+
 ###################################################################################
 
 name = cmassSMariana.name + "_pactf150night20190311"

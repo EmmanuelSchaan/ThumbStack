@@ -117,7 +117,7 @@ def genGRF(iMock):
    ## save CAR map
    #enmap.write_map(pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits", grfMap)
 
-
+'''
 print "Generating mocks"
 tStart = time()
 with sharedmem.MapReduce(np=nProc) as pool:
@@ -125,7 +125,7 @@ with sharedmem.MapReduce(np=nProc) as pool:
 #np.array(map(genGRF, range(nMocks)))
 tStop = time()
 print "Took", (tStop-tStart)/60., "min"
-
+'''
 
 #########################################################################
 # Check that the power spectra match the input

@@ -121,10 +121,11 @@ class ThumbStack(object):
       
       # choose postage stamp size to fit the largest ring
       dArcmin = np.ceil(2. * self.rApMaxArcmin * np.sqrt(2.))
+      dDeg = dArcmin / 60.
       #
-      nx = np.floor((dArcmin / self.resCutoutArcmin - 1.) / 2.) + 1.
+      nx = np.floor((dDeg * 60. / self.resCutoutArcmin - 1.) / 2.) + 1.
       dxDeg = (2. * nx + 1.) * self.resCutoutArcmin / 60.
-      ny = np.floor((dArcmin / self.resCutoutArcmin - 1.) / 2.) + 1.
+      ny = np.floor((dDeg * 60. / self.resCutoutArcmin - 1.) / 2.) + 1.
       dyDeg = (2. * ny + 1.) * self.resCutoutArcmin / 60.
 
       # define geometry of small square maps to be extracted
@@ -211,15 +212,30 @@ class ThumbStack(object):
    ##################################################################################
    
 
-   def extractStamp(self, ra, dec, test=False):
+   def extractStamp(self, ra, dec, dxDeg=0.3, dyDeg=0.3, resArcmin=0.25, proj='cea', test=False):
       """Extracts a small CEA or CAR map around the given position, with the given angular size and resolution.
       ra, dec in degrees.
       Does it for the map, the mask and the hit count.
       """
 
-      stampMap = self.cutoutGeometry()
-      stampMask = stampMap.copy()
-      stampHit = stampMap.copy()
+      # Make sure the number of pixels is (2*n+1),
+      # so that the object is exactly in the middle of the central pixel
+      nx = np.floor((dxDeg * 60. / resArcmin - 1.) / 2.) + 1.
+      dxDeg = (2. * nx + 1.) * resArcmin / 60.
+      ny = np.floor((dyDeg * 60. / resArcmin - 1.) / 2.) + 1.
+      dyDeg = (2. * ny + 1.) * resArcmin / 60.
+
+      # define geometry of small square maps to be extracted
+      # here dxDeg * dyDeg, with 0.25arcmin pixel
+      # the center of the small square map will be specified later
+      # car: not equal area, but equally-spaced coordinates
+      # cea: equal area pixels, but coordinates are not equally spaced
+      # previous kSZ paper: went out to 5arcmin
+      # Planck paper CV: went out to 18 arcmin
+      shape, wcs = enmap.geometry(np.array([[-0.5*dxDeg,-0.5*dyDeg],[0.5*dxDeg,0.5*dyDeg]])*utils.degree, res=resArcmin*utils.arcmin, proj=proj)
+      stampMap = enmap.zeros(shape, wcs)
+      stampMask = enmap.zeros(shape, wcs)
+      stampHit = enmap.zeros(shape, wcs)
 
       # coordinates of the square map (between -1 and 1 deg)
       # output map position [{dec,ra},ny,nx]
@@ -388,7 +404,7 @@ class ThumbStack(object):
       diskArea: [sr]
       '''
       
-      if iObj%10000==0:
+      if iObj%1000==0:
          print "- analyze object", iObj
       
       
@@ -415,7 +431,7 @@ class ThumbStack(object):
          dArcmin = np.ceil(2. * self.rApMaxArcmin * np.sqrt(2.))
          dDeg = dArcmin / 60.
          # extract postage stamp around it
-         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, test=test)
+         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=dDeg, dyDeg=dDeg, resArcmin=0.25, proj='cea', test=test)
          
          for iFilterType in range(len(self.filterTypes)):
             filterType = self.filterTypes[iFilterType]
@@ -490,6 +506,111 @@ class ThumbStack(object):
          self.filtMask[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmask.txt")
          self.filtHitNoiseStdDev[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt")
          self.filtArea[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtarea.txt")
+
+
+   ##################################################################################
+
+#!!! This version is slower: re-extracts the cutout maps for each filter type
+# but it is more easily readable
+
+#   def analyzeObject(self, iObj, filterType='diskring', test=False):
+#      '''Analysis to be done for each object.
+#      Returns:
+#      filtMap: [map unit * sr]
+#      filtMask: [mask unit * sr]
+#      filtHitNoiseStdDev: [1/sqrt(hit unit) * sr], ie [std dev * sr] if [hit map] = inverse var
+#      diskArea: [sr]
+#      '''
+#      
+#      if iObj%1000==0:
+#         print "- analyze object", iObj
+#      
+#      # create arrays of filter values for the given object
+#      filtMap = np.zeros(self.nRAp)
+#      filtMask = np.zeros(self.nRAp)
+#      filtHitNoiseStdDev = np.zeros(self.nRAp)
+#      diskArea = np.zeros(self.nRAp)
+#      
+#      # only do the analysis if the object overlaps with the CMB map
+#      if self.overlapFlag[iObj]:
+#         # Object coordinates
+#         ra = self.Catalog.RA[iObj]   # in deg
+#         dec = self.Catalog.DEC[iObj] # in deg
+#         z = self.Catalog.Z[iObj]
+#         
+#         # choose postage stamp size to fit the largest ring
+#         dArcmin = np.ceil(2. * self.rApMaxArcmin * np.sqrt(2.))
+#         dDeg = dArcmin / 60.
+#         
+#         # extract postage stamp around it
+#         opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=dDeg, dyDeg=dDeg, resArcmin=0.25, proj='cea', test=test)
+#         
+#         # loop over the radii for the AP filter
+#         for iRAp in range(self.nRAp):
+##            # disk radius in comoving Mpc/h
+##            rApMpch = self.RApMpch[iRAp]
+##            # convert to radians at the given redshift
+##            r0 = rApMpch / self.U.bg.comoving_transverse_distance(z) # rad
+#
+#            # Disk radius in rad
+#            r0 = self.RApArcmin[iRAp] / 60. * np.pi/180.
+#            # choose an equal area AP filter
+#            r1 = r0 * np.sqrt(2.)
+#            
+#            # perform the filtering
+#            filtMap[iRAp], filtMask[iRAp], filtHitNoiseStdDev[iRAp], diskArea[iRAp] = self.aperturePhotometryFilter(opos, stampMap, stampMask, stampHit, r0, r1, filterType=filterType, test=test)
+#
+#      if test:
+#         print " plot the measured profile"
+#         fig=plt.figure(0)
+#         ax=fig.add_subplot(111)
+#         #
+#         ax.plot(self.r, filtMap)
+#
+#      return filtMap, filtMask, filtHitNoiseStdDev, diskArea
+#
+#
+#
+#   def saveFiltering(self, nProc=1):
+#      
+#      for iFilterType in range(len(self.filterTypes)):
+#         filterType = self.filterTypes[iFilterType]
+#         print("Evaluate "+filterType+" filter on all objects")
+#
+#         # initialize arrays
+#         self.filtmap = np.zeros((self.Catalog.nObj, self.nRAp))
+#         self.filtMask = np.zeros((self.Catalog.nObj, self.nRAp))
+#         self.diskArea = np.zeros((self.Catalog.nObj, self.nRAp))
+#         self.filtHitNoiseStdDev = np.zeros((self.Catalog.nObj, self.nRAp))
+#
+#         # loop over all objects in catalog
+#   #      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
+#         tStart = time()
+#         with sharedmem.MapReduce(np=nProc) as pool:
+#            f = lambda iObj: self.analyzeObject(iObj, filterType=filterType, test=False)
+#            result = np.array(pool.map(f, range(self.Catalog.nObj)))
+#         tStop = time()
+#         print "took", (tStop-tStart)/60., "min"
+#         
+#         # unpack and save to file
+#         np.savetxt(self.pathOut+"/"+filterType+"_filtmap.txt", result[:,0,:])
+#         np.savetxt(self.pathOut+"/"+filterType+"_filtmask.txt", result[:,1,:])
+#         np.savetxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt", result[:,2,:])
+#         np.savetxt(self.pathOut+"/"+filterType+"_filtarea.txt", result[:,3,:])
+#
+#
+#   def loadFiltering(self):
+#      self.filtMap = {}
+#      self.filtMask = {}
+#      self.filtHitNoiseStdDev = {}
+#      self.filtArea = {}
+#
+#      for iFilterType in range(len(self.filterTypes)):
+#         filterType = self.filterTypes[iFilterType]
+#         self.filtMap[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmap.txt")
+#         self.filtMask[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtmask.txt")
+#         self.filtHitNoiseStdDev[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtnoisestddev.txt")
+#         self.filtArea[filterType] = np.genfromtxt(self.pathOut+"/"+filterType+"_filtarea.txt")
 
 
    ##################################################################################
@@ -751,23 +872,48 @@ class ThumbStack(object):
          weightsLong = np.zeros(self.Catalog.nObj)
          weightsLong[mask] = weights[:,iRAp0]
 
+         #print "weightsLong", weightsLong
+         
          def stackChunk(iChunk):
             # object indices to be processed
             chunk = chunkIndices[iChunk]
 
-            # start with a null map for stacking 
-            resMap = self.cutoutGeometry()
+
+            # start with a null map, and stack on it.
+            # the initial map needs to have the right geometry
+            # choose postage stamp size to fit the largest ring
+            dArcmin = np.ceil(2. * self.rApMaxArcmin * np.sqrt(2.))
+            dDeg = dArcmin / 60.
+            resArcmin = 0.25
+            #
+            nx = np.floor((dDeg * 60. / resArcmin - 1.) / 2.) + 1.
+            dxDeg = (2. * nx + 1.) * resArcmin / 60.
+            ny = np.floor((dDeg * 60. / resArcmin - 1.) / 2.) + 1.
+            dyDeg = (2. * ny + 1.) * resArcmin / 60.
+            #
+            # define geometry of small square maps to be extracted
+            shape, wcs = enmap.geometry(np.array([[-0.5*dxDeg,-0.5*dyDeg],[0.5*dxDeg,0.5*dyDeg]])*utils.degree, res=resArcmin*utils.arcmin, proj='cea')
+            resMap = enmap.zeros(shape, wcs)
+
+            
+            #resMap = self.cutoutGeometry()
+
+
+
+
+            #resMap = 0.
             for iObj in chunk:
-               if iObj%10000==0:
-                  print "- analyze object", iObj
                if self.overlapFlag[iObj]:
                   # Object coordinates
                   ra = self.Catalog.RA[iObj]   # in deg
                   dec = self.Catalog.DEC[iObj] # in deg
                   z = self.Catalog.Z[iObj]
                   # extract postage stamp around it
-                  opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, test=False)
+                  opos, stampMap, stampMask, stampHit = self.extractStamp(ra, dec, dxDeg=dDeg, dyDeg=dDeg, resArcmin=0.25, proj='cea', test=False)
                   resMap += stampMap * weightsLong[iObj]
+                  #print "stampMap[:,:]", stampMap[:,:]
+            #print "resMap shape", resMap.shape
+            #print "resMap", resMap
             return resMap
 
          # dispatch each chunk of objects to a different processor
@@ -779,6 +925,167 @@ class ThumbStack(object):
          # normalize by the proper sum of weights
          resMap *= norm
          return resMap
+
+#         # dispatch each chunk of objects to a different processor
+#         with sharedmem.MapReduce(np=self.nProc) as pool:
+#            result = np.array(pool.map(stackChunk, range(nChunk)))
+#
+#         # sum all the chunks
+#
+#         return result
+#         print result.shape
+#
+#         omap = result[0,0]
+#         print omap.shape
+#
+#         return result
+#
+#         resMap = np.sum(result[:,1], axis=0)
+#         print resMap.shape
+#         # normalize by the proper sum of weights
+#         resMap *= norm
+#         return omap, resMap
+#
+
+
+#   def computeStackedProfile(self, filterType, est, iBootstrap=None, iVShuffle=None, tTh=None):
+#      """Returns the estimated profile and its uncertainty for each aperture.
+#      est: string to select the estimator
+#      iBootstrap: index for bootstrap resampling
+#      iVShuffle: index for shuffling velocities
+#      tTh: to replace measured temperatures by a theory expectation
+#      """
+#      # select objects that overlap, and reject point sources
+#      mask = self.catalogMask(overlap=True, psMask=True, filterType=filterType)
+#      
+#      # temperatures [muK * sr]
+#      if tTh is None:
+#         t = self.filtMap[filterType].copy() # [muK * sr]
+#      elif tTh=='tsz':
+#         # expected tSZ signal
+#         # AP profile shape, between 0 and 1
+#         sigma_cluster = 1.5  # arcmin
+#         shape = self.ftheoryGaussianProfile(sigma_cluster) # between 0 and 1 [dimless]
+#         # multiply by integrated y to get y profile [sr]
+#         t = np.column_stack([self.Catalog.integratedY[:] * shape[iAp] for iAp in range(self.nRAp)])
+#         # convert from y profile to dT profile
+#         Tcmb = 2.726   # K
+#         h = 6.63e-34   # SI
+#         kB = 1.38e-23  # SI
+#         def f(nu):
+#            """frequency dependence for tSZ temperature
+#            """
+#            x = h*nu/(kB*Tcmb)
+#            return x*(np.exp(x)+1.)/(np.exp(x)-1.) -4.
+#         t *= 2. * f(150.e9) * Tcmb * 1.e6  # [muK * sr]
+#      elif tTh=='ksz':
+#         # expected kSZ signal
+#         # AP profile shape, between 0 and 1
+#         sigma_cluster = 1.5  # arcmin
+#         shape = self.ftheoryGaussianProfile(sigma_cluster) # between 0 and 1 [dimless]
+#         # multiply by integrated kSZ to get kSZ profile [muK * sr]
+#         t = np.column_stack([self.Catalog.integratedKSZ[:] * shape[iAp] for iAp in range(self.nRAp)])   # [muK * sr]
+#      t = t[mask, :]
+#      tNoMean = t - np.mean(t, axis=0)
+#
+#      # v/c [dimless]
+#      v = -self.Catalog.vR[mask] / 3.e5
+#      v -= np.mean(v)
+#
+#      #true filter variance for each object and aperture,
+#      # valid whether or not a hit count map is available
+#      s2Full = self.filtVarTrue[filterType][mask, :]
+#
+#      # Variance from hit count (if available)
+#      s2Hit = self.filtHitNoiseStdDev[filterType][mask, :]**2
+#      #print "Shape of s2Hit = ", s2Hit.shape
+#
+#      
+#      # halo masses
+#      m = self.Catalog.Mvir[mask]
+#      
+#      if iBootstrap is not None:
+#         # make sure each resample is independent,
+#         # and make the resampling reproducible
+#         np.random.seed(iBootstrap)
+#         # list of overlapping objects
+#         nObj = np.sum(mask)
+#         I = np.arange(nObj)
+#         # choose with replacement from this list
+#         J = np.random.choice(I, size=nObj, replace=True)
+#         #
+#         t = t[J,:]
+#         tNoMean = tNoMean[J,:]
+#         v = v[J]
+#         s2Hit = s2Hit[J,:]
+#         s2Full = s2Full[J,:]
+#         m = m[J]
+#      
+#      if iVShuffle is not None:
+#         # make sure each shuffling is independent,
+#         # and make the shuffling reproducible
+#         np.random.seed(iVShuffle)
+#         # list of overlapping objects
+#         nObj = np.sum(mask)
+#         I = np.arange(nObj)
+#         # shuffle the velocities
+#         J = np.random.permutation(I)
+#         #
+#         v = v[J]
+#      
+#      # tSZ: uniform weighting
+#      if est=='tsz_uniformweight':
+#         stack = np.mean(t, axis=0)
+#         sStack = np.sqrt(np.sum(s2Full, axis=0)) / t.shape[0]
+#      # tSZ: detector-noise weighted (hit count)
+#      elif est=='tsz_hitweight':
+#         stack = np.sum(t/s2Hit, axis=0) / np.sum(1./s2Hit, axis=0)
+#         sStack = np.sum(s2Full/s2Hit**2, axis=0) / np.sum(1./s2Hit, axis=0)**2
+#         sStack = np.sqrt(sStack)
+#      # tSZ: full noise weighted (detector noise + CMB)
+#      elif est=='tsz_varweight':
+#         stack = np.sum(t/s2Full , axis=0) / np.sum(1./s2Full, axis=0)
+#         sStack = 1. / np.sum(1./s2Full, axis=0)
+#         sStack = np.sqrt(sStack)
+#
+#      # kSZ: uniform weighting
+#      elif est=='ksz_uniformweight':
+#         stack = np.sum(tNoMean*v[:,np.newaxis], axis=0) / np.sum(v[:,np.newaxis]**2, axis=0)
+#         sStack = np.sum(s2Full*v[:,np.newaxis]**2, axis=0) / np.sum(v[:,np.newaxis]**2, axis=0)**2
+#         sStack = np.sqrt(sStack)
+#         # renormalize the kSZ estimator
+#         stack *= np.std(v)
+#         sStack *= np.std(v)
+#      # kSZ: detector-noise weighted (hit count)
+#      elif est=='ksz_hitweight':
+#         stack = np.sum(tNoMean*v[:,np.newaxis]/s2Hit, axis=0) / np.sum(v[:,np.newaxis]**2/s2Hit, axis=0)
+#         sStack = np.sum(s2Full*v[:,np.newaxis]**2/s2Hit**2, axis=0) / np.sum(v[:,np.newaxis]**2/s2Hit, axis=0)**2
+#         sStack = np.sqrt(sStack)
+#         # renormalize the kSZ estimator
+#         stack *= np.std(v)
+#         sStack *= np.std(v)
+#      # kSZ: full noise weighted (detector noise + CMB)
+#      elif est=='ksz_varweight':
+#         stack = np.sum(tNoMean*v[:,np.newaxis]/s2Full, axis=0) / np.sum(v[:,np.newaxis]**2/s2Full, axis=0)
+#         sStack = np.sum(s2Full*v[:,np.newaxis]**2/s2Full**2, axis=0) / np.sum(v[:,np.newaxis]**2/s2Full, axis=0)**2
+#         sStack = np.sqrt(sStack)
+#         # renormalize the kSZ estimator
+#         stack *= np.std(v)
+#         sStack *= np.std(v)
+#      # kSZ: full noise weighted (detector noise + CMB)
+#      elif est=='ksz_massvarweight':
+#         stack = np.sum(tNoMean*m[:,np.newaxis] * v[:,np.newaxis]/s2Full, axis=0)
+#         stack /= np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2/s2Full, axis=0)
+#         sStack = np.sum(s2Full * m[:,np.newaxis]**2 * v[:,np.newaxis]**2/s2Full**2, axis=0)
+#         sStack /= np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2/s2Full, axis=0)**2
+#         sStack = np.sqrt(sStack)
+#         # renormalize the kSZ estimator
+#         stack *= np.mean(m)
+#         sStack *= np.mean(m)
+#         stack *= np.std(v)
+#         sStack *= np.std(v)
+#
+#      return stack, sStack
 
 
    ##################################################################################
@@ -830,10 +1137,17 @@ class ThumbStack(object):
       if Est is None:
          Est = self.Est
 
-      # Get cutout geometry, for plotting
-      cutoutMap = self.cutoutGeometry()
-      size = cutoutMap.posmap()[0,:,:].max() - cutoutMap.posmap()[0,:,:].min()
-      baseMap = FlatMap(nX=cutoutMap.shape[0], nY=cutoutMap.shape[1], sizeX=size, sizeY=size)
+      # Get geometry of cutout map
+      # for plotting only
+      # (copied and pasted from extractStamp and analyzeObject)
+      # choose postage stamp size to fit the largest ring
+      dArcmin = np.ceil(2. * self.rApMaxArcmin * np.sqrt(2.))
+      dDeg = dArcmin / 60.
+      resArcmin = 0.25
+      # Make sure the number of pixels is (2*n+1),
+      # so that the object is exactly in the middle of the central pixel
+      nx = np.int(np.floor((dDeg * 60. / resArcmin - 1.) / 2.) + 1.)
+      dDeg = (2. * nx + 1.) * resArcmin / 60.
 
 
       # loop over filter types: only matter
@@ -846,6 +1160,7 @@ class ThumbStack(object):
             print "compute stacked map:", filterType, est
             stackedMap = self.computeStackedProfile(filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=True)
             # plot the stacked map and save it
+            baseMap = FlatMap(nX=stackedMap.shape[0], nY=stackedMap.shape[1], sizeX=dDeg*np.pi/180., sizeY=dDeg*np.pi/180.)
             path = self.pathFig + "/stackedmap_"+filterType+"_"+est+".pdf"
             baseMap.plot(data=stackedMap, save=True, path=path)
 
@@ -1011,6 +1326,61 @@ class ThumbStack(object):
          plt.show()
       fig.clf()
 
+
+#   def plotStackedProfile(self, filterType, Est, name=None):
+#      """Compares stacked profiles, and their uncertainties.
+#      """
+#      if name is None:
+#         name = Est[0]
+#      
+#      # stacked profile
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      # convert from sr to arcmin^2
+#      factor = (180.*60./np.pi)**2
+#      #
+#      ax.axhline(0., c='k', lw=1)
+#      #
+#      colors = ['r', 'g', 'b', 'm', 'c']
+#      for iEst in range(len(Est)):
+#         est = Est[iEst]
+#         c = colors[iEst]
+#         ax.errorbar(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est], factor * self.sStackedProfile[filterType+"_"+est], fmt='-', c=c, label="measured")
+#         ax.plot(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est+"_theory_tsz"], ls='--', c=c, label="theory tsz")
+#         ax.plot(self.RApArcmin, factor * self.stackedProfile[filterType+"_"+est+"_theory_ksz"], ls='-.', c=c, label="theory ksz")
+#      #
+#      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+#      ax.set_xlabel(r'$R$ [arcmin]')
+#      ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
+#      #ax.set_ylim((0., 2.))
+#      #
+#      path = self.pathFig+"/"+name+".pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
+#
+#      # uncertainty on stacked profile
+#      fig=plt.figure(0)
+#      ax=fig.add_subplot(111)
+#      #
+#      # convert from sr to arcmin^2
+#      factor = (180.*60./np.pi)**2
+#      #
+#      for est in Est:
+#         ax.plot(self.RApArcmin, factor * self.sStackedProfile[filterType+"_"+est], ls='-', label="analytic")
+#         if est in self.covBootstrap:
+#            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covBootstrap[filterType+"_"+est])), ls='--', label="bootstrap")
+#         if est in self.covVShuffle:
+#            ax.plot(self.RApArcmin, factor * np.sqrt(np.diag(self.covVShuffle[filterType+"_"+est])), ls='-.', label="v shuffle")
+#      #
+#      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+#      ax.set_xlabel(r'$R$ [arcmin]')
+#      ax.set_ylabel(r'$\sigma(T)$ [$\mu K\cdot\text{arcmin}^2$]')
+#      #ax.set_ylim((0., 2.))
+#      #
+#      path = self.pathFig+"/s_"+name+".pdf"
+#      fig.savefig(path, bbox_inches='tight')
+#      fig.clf()
 
    def plotAllStackedProfiles(self):
       print "- plot all stacked profiles"
@@ -1288,3 +1658,83 @@ class ThumbStack(object):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##      myHistogram(DEC[mask], nBins=71, lim=(-90., 90.), path=path, nameLatex=r'$x$ [km/s]', semilogx=False, doGauss=False)
+#
+#      # first, keep all objects that overlap, even the masked ones
+#      mask = self.catalogMask(overlap=True, psMask=False)
+#
+#      # check that the non-overlapping objects are the ones with the correct DEC
+#      path = self.pathFig+"/hist_dec_overlap.pdf"
+#      myHistogram(self.Catalog.DEC[mask], nBins=71, lim=(-30., 90.), path=path, nameLatex=r'Dec [deg]')
+#
+#      # check the values of the filters on the point source mask, to find a relevant cut
+#      # look at the largest aperture
+#      x = self.filtMask[mask,-1]
+#      path = self.pathFig+"/hist_psmaskvalue_before.pdf"
+#      myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'PS mask value', semilogy=True)
+#
+#      # then  remove the objects that overlap with point sources
+#      mask = self.catalogMask(overlap=True, psMask=True)
+#
+#      # redo the mask histogram, to check
+#      x = self.filtMask[mask,-1]
+#      path = self.pathFig+"/hist_psmaskvalue_after.pdf"
+#      myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'PS mask value', semilogy=True)
+#
+#      # Histograms of filter outputs
+#      for iRAp in range(self.nRAp):
+#         x = self.filtMap[mask, iRAp]
+#         path = self.pathFig+"/hist_filtvalue"+str(iRAp)+".pdf"
+#         S2Theory = []
+#         for f in fsAp:
+#            # theory assumes int d^2theta W = 1
+#            s2Theory = f(self.RApArcmin[iRAp] * np.pi/180./60.)**2
+#            # so multiply by disk area, but it can vary from object to object
+#            # we neglect this source of scatter and just keep the mean
+#            s2Theory *= np.mean(self.diskArea[mask, iRAp])**2
+#            S2Theory.append(s2Theory)
+#         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'AP filter value', S2Theory=S2Theory, doGauss=True, semilogy=True)
+#
+#
+#      # Histograms of noise std dev, from hit counts
+#      for iRAp in range(self.nRAp):
+#         x = self.filtHitNoiseStdDev[mask, iRAp]
+#         path = self.pathFig+"/hist_noisestddevhit"+str(iRAp)+".pdf"
+#         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'Std dev value [arbitrary]', semilogy=True)
+#
+#
+#      # tSZ / dust
+#      for iRAp in range(self.nRAp):
+#         weights = 1. / self.filtHitNoiseStdDev[mask, iRAp]**2   # need inverse variance, not std dev
+#         weights /= np.mean(weights)   # to keep the size and units of the weighted AP outputs
+#         x = self.filtMap[mask, iRAp] * weights
+#         print "- mean tSZ= "+str(np.mean(x))+"; std on mean= "+str(np.std(x)/np.sqrt(len(x)))+"; SNR= "+str(np.mean(x)/np.std(x)*np.sqrt(len(x)))
+#         path = self.pathFig+"/hist_tsz"+str(iRAp)+".pdf"
+#         myHistogram(x, nBins=71, lim=(np.min(x), np.max(x)), path=path, nameLatex=r'Std dev value [arbitrary]', semilogy=True)
+
+
+   ##################################################################################
+   ##################################################################################

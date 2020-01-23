@@ -145,7 +145,7 @@ name = cmassMarianaVShuffleSmall.name + "_test_endtoend_vel_dirac_carmanu"
 tsVelDiracVShuffleSmall = ThumbStack(u, cmassMarianaVShuffleSmall, boxMap, boxMask, cmbHit=None, name=name, nameLong=None, save=save, nProc=nProc, filterTypes='all')
 
 # Create stacked maps
-#tsVelDiracVshuffleSmall.saveAllStackedMaps()
+#tsVelDiracVShuffleSmall.saveAllStackedMaps()
 
 
 pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_vel_gauss_car.fits"
