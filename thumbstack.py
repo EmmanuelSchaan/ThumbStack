@@ -1115,6 +1115,8 @@ class ThumbStack(object):
          result = np.exp(-0.5*self.RApArcmin**2/sigma_cluster**2) - np.exp(-0.5*(self.RApArcmin*np.sqrt(2.))**2/sigma_cluster**2)
       return result
 
+
+
    def ftheoryGaussianProfilePixelated(self, sigma_cluster=1.5, filterType='diskring', dxDeg=0.3, dyDeg= 0.3, resArcmin=0.25, proj='cea', pixwin=0, test=False):
       """Alpha_ksz signal, between 0 and 1.
       Assumes that the projected cluster profile is a 2d Gaussian,
@@ -1129,17 +1131,8 @@ class ThumbStack(object):
       ###########################################
       # generate pixellized cluster profile map
 
-      # Make sure the number of pixels is (2*n+1),
-      # so that the object is exactly in the middle of the central pixel
-      nx = np.floor((dxDeg * 60. / resArcmin - 1.) / 2.) + 1.
-      dxDeg = (2. * nx + 1.) * resArcmin / 60.
-      ny = np.floor((dyDeg * 60. / resArcmin - 1.) / 2.) + 1.
-      dyDeg = (2. * ny + 1.) * resArcmin / 60.
-
-      # generate null map
-      shape, wcs = enmap.geometry(np.array([[-0.5*dxDeg,-0.5*dyDeg],[0.5*dxDeg,0.5*dyDeg]])*utils.degree, res=resArcmin*utils.arcmin, proj=proj)
-      stampMap = enmap.zeros(shape, wcs)
-      #
+      # generate null cutout map
+      stampMap = self.cutoutGeometry()
       opos = stampMap.posmap()
 
       # fill the central pixel
@@ -1147,14 +1140,11 @@ class ThumbStack(object):
       dec = 0.
       # coordinates in [rad]
       sourcecoord = np.array([dec, ra]) * np.pi/180.
-
       # find pixel indices (float) corresponding to ra, dec
       iY, iX = enmap.sky2pix(shape, wcs, sourcecoord, safe=True, corner=False)
-
       # nearest pixel
       jY = np.int(round(iY))
       jX = np.int(round(iX))
-
       # fill in the central pixel
       # and normalize to integrate to 1 over angles in [muK*sr]
       pixSizeMap = stampMap.pixsizemap()
@@ -1203,22 +1193,30 @@ class ThumbStack(object):
       return filtMap
 
 
-
    ##################################################################################
 
 
-   def computeSnrStack(self, filterType, est):
+   def computeSnrStack(self, filterType, est, tTh=None):
       """Compute null rejection, SNR (=detection significance)
       for the requested estimator.
       The estimator considered should have a bootstrap covariance.
       """
 
-      path = self.pathFig+"/snr_"+filterType+"_"+est+".txt"
+
+      # replace data with theory if requested
+      if tTh=='tsz':
+         tTh = '_theory_tsz'
+      elif tTh=='ksz':
+         tTh = '_theory_ksz'
+      else:
+         tTh = ''
+
+      path = self.pathFig+"/snr_"+filterType+"_"+est+tTh+".txt"
       with open(path, 'w') as f:
          f.write("*** "+est+" SNR ***\n")
 
          # data and covariance
-         d = self.stackedProfile[filterType+"_"+est].copy()
+         d = self.stackedProfile[filterType+"_"+est+tTh].copy()
          cov = self.covBootstrap[filterType+"_"+est].copy()
          dof = len(d)
 
@@ -1269,15 +1267,11 @@ class ThumbStack(object):
 
    def computeAllSnr(self):
       print "- compute all SNR and significances"
-      for iFilterType in range(len(self.filterTypes)):
-         filterType = self.filterTypes[iFilterType]
-         if self.cmbHit is not None:
-            Est = ['tsz_varweight', 'ksz_varweight']
-         else:
-            Est = ['tsz_uniformweight', 'ksz_uniformweight']
-         for iEst in range(len(Est)):
-            est = Est[iEst]
+      for filterType in self.filterTypes:
+         for est in self.EstBootstrap:
             self.computeSnrStack(filterType, est)
+            self.computeSnrStack(filterType, est, tTh='tsz')
+            self.computeSnrStack(filterType, est, tTh='ksz')
 
 
 
