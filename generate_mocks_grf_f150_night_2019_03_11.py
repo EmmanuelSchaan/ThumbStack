@@ -348,9 +348,21 @@ def doStacking(iMock):
    pathMap = pathOut+"mock_"+str(iMock)+"_grf_f150_daynight.fits"
    pactMap = enmap.read_map(pathMap)
    name = cmassMariana.name + "_mockgrf"+str(iMock)+"_pactf150night20190311"
-   ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, filterTypes='diskring', nProc=nProc)
+   try:
+      ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=save, filterTypes='diskring', nProc=nProc)
+   # If not already precomputed, do it
+   except:
+      print("Precomputing stack on mock "+str(iMock))
+      ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, filterTypes='diskring', nProc=nProc)
    # output the various stacked profiles (tSZ, kSZ, etc.) from this mock GRF CMB map
    return ts.stackedProfile
+
+
+#!!! for debugging
+#save=True
+#doStacking(652)
+#save=False
+#!!!
 
 
 print "Stacking on each mock map"

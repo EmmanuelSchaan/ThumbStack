@@ -40,3 +40,7 @@ source ~/python_profile.sh
 python generate_mocks_grf_f150_night_2019_03_11.py 0 800
 
 
+
+# just to fix some of the mocks
+#python generate_mocks_grf_f150_night_2019_03_11.py 652 149
+
