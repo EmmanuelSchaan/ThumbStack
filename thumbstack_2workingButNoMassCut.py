@@ -48,10 +48,6 @@ class ThumbStack(object):
 
       # number of samples for bootstraps, shuffles
       self.nSamples = 100
-
-      # number of mMax cuts to test,
-      # for tSZ contamination to kSZ
-      self.nMMax = 20
       
       # Output path
       self.pathOut = "./output/thumbstack/"+self.name
@@ -135,21 +131,6 @@ class ThumbStack(object):
       shape, wcs = enmap.geometry(np.array([[-0.5*dxDeg,-0.5*dyDeg],[0.5*dxDeg,0.5*dyDeg]])*utils.degree, res=self.resCutoutArcmin*utils.arcmin, proj=self.projCutout)
       cutoutMap = enmap.zeros(shape, wcs)
       return cutoutMap
-
-
-   def loadMMaxBins(self, test=True):
-      '''Choose the mMax values to have the same number of galaxies
-      added in the sample for each mMax increment.
-      '''
-      self.MMax = np.interp(np.linspace(0, self.Catalog.nObj, self.nMMax+1),
-                           np.arange(self.Catalog.nObj),
-                           np.sort(self.Catalog.Mvir))[1:]
-      if test:
-         print "Checking the mMax bins:"
-         print "number of bins:", self.nMMax, len(self.MMax)
-         print "values of mMax:", self.MMax
-
-      
 
    ##################################################################################
    
@@ -629,7 +610,7 @@ class ThumbStack(object):
 
 
 
-   def computeStackedProfile(self, filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=False, mVir=[1.e6, 1.e17], z=[0., 100.]):
+   def computeStackedProfile(self, filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=False):
       """Returns the estimated profile and its uncertainty for each aperture.
       est: string to select the estimator
       iBootstrap: index for bootstrap resampling
@@ -637,7 +618,7 @@ class ThumbStack(object):
       tTh: to replace measured temperatures by a theory expectation
       """
       # select objects that overlap, and reject point sources
-      mask = self.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=mVir, z=z)
+      mask = self.catalogMask(overlap=True, psMask=True, filterType=filterType)
       
       # temperatures [muK * sr]
       if tTh is None:
@@ -1215,76 +1196,6 @@ class ThumbStack(object):
 
 
    ##################################################################################
-
-
-#   def computeSnrStack(self, filterType, est, tTh=None):
-#      """Compute null rejection, SNR (=detection significance)
-#      for the requested estimator.
-#      The estimator considered should have a bootstrap covariance.
-#      """
-#
-#
-#      # replace data with theory if requested
-#      if tTh=='tsz':
-#         tTh = '_theory_tsz'
-#      elif tTh=='ksz':
-#         tTh = '_theory_ksz'
-#      else:
-#         tTh = ''
-#
-#      path = self.pathFig+"/snr_"+filterType+"_"+est+tTh+".txt"
-#      with open(path, 'w') as f:
-#         f.write("*** "+est+" SNR ***\n")
-#
-#         # data and covariance
-#         d = self.stackedProfile[filterType+"_"+est+tTh].copy()
-#         cov = self.covBootstrap[filterType+"_"+est].copy()
-#         dof = len(d)
-#
-#         # Compute chi^2_null
-#         chi2Null = d.dot( np.linalg.inv(cov).dot(d) )
-#         # goodness of fit for null hypothesis
-#         f.write("number of dof:"+str(dof)+"\n")
-#         f.write("null chi2Null="+str(chi2Null)+"\n")
-#         pteNull = 1.- stats.chi2.cdf(chi2Null, dof)
-#         f.write("null pte="+str(pteNull)+"\n")
-#         # pte as a function of sigma, for a Gaussian random variable
-#         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
-#         sigmaNull = optimize.brentq(fsigmaToPTE , 0., 1.e3)
-#         f.write("null pte significance="+str(sigmaNull)+"sigmas\n\n")
-#
-#         # Gaussian model: find best fit amplitude
-#         sigma_cluster = 1.5  # arcmin
-#         theory = self.ftheoryGaussianProfile(sigma_cluster, filterType=filterType)
-#         def fdchi2(p):
-#            a = p[0]
-#            result = (d-a*theory).dot( np.linalg.inv(cov).dot(d-a*theory) )
-#            result -= chi2Null
-#            return result
-#         # Minimize the chi squared
-#         p0 = 1.
-#         res = optimize.minimize(fdchi2, p0)
-#         abest = res.x[0]
-#         #sbest= res.x[1]
-#         f.write("best-fit amplitude="+str(abest)+"\n")
-#         f.write("number of dof:"+str(dof - 1)+"\n\n")
-#
-#         # goodness of fit for best fit
-#         chi2Best = fdchi2([abest])+chi2Null
-#         f.write("best-fit chi2="+str(chi2Best)+"\n")
-#         pteBest = 1.- stats.chi2.cdf(chi2Best, dof-1.)
-#         f.write("best-fit pte="+str(pteBest)+"\n")
-#         # pte as a function of sigma, for a Gaussian random variable
-#         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteBest
-#         sigma = optimize.brentq(fsigmaToPTE , 0., 1.e3)
-#         f.write("best-fit pte significance="+str(sigma)+"sigmas\n\n")
-#
-#         # favour of best fit over null
-#         f.write("best-fit sqrt(delta chi2)="+str(np.sqrt(abs(fdchi2([abest]))))+"sigmas\n")
-#         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.))
-#         pte = fsigmaToPTE( np.sqrt(abs(fdchi2([abest]))) )
-#         f.write("pte (if Gaussian)="+str(pte)+"\n")
-
 
 
    def computeSnrStack(self, filterType, est, tTh=None):

@@ -340,7 +340,7 @@ reload(thumbstack)
 from thumbstack import *
 
 # recompute or not the stacked profiles
-save = True
+save = False
 
 
 def doStacking(iMock):

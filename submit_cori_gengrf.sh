@@ -26,7 +26,17 @@ source ~/python_profile.sh
 #python generate_mocks_grf_f150_night_2019_03_11.py 300 50
 #python generate_mocks_grf_f150_night_2019_03_11.py 350 50
 #python generate_mocks_grf_f150_night_2019_03_11.py 400 50
+#
+#python generate_mocks_grf_f150_night_2019_03_11.py 494 50
+#python generate_mocks_grf_f150_night_2019_03_11.py 500 50
+#python generate_mocks_grf_f150_night_2019_03_11.py 550 50
+#python generate_mocks_grf_f150_night_2019_03_11.py 600 50
+#python generate_mocks_grf_f150_night_2019_03_11.py 650 50
+#python generate_mocks_grf_f150_night_2019_03_11.py 700 50
+#python generate_mocks_grf_f150_night_2019_03_11.py 750 50
 
 # Run everything together (after modifying the code not to recompute)
 #python generate_mocks_grf_f150_night_2019_03_11.py 0 400
-python generate_mocks_grf_f150_night_2019_03_11.py 400 400
+python generate_mocks_grf_f150_night_2019_03_11.py 0 800
+
+
