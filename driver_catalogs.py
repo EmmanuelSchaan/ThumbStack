@@ -106,7 +106,7 @@ bossKendrick = cmassSKendrick.copy(name="boss_kendrick", nameLong="BOSS K")
 bossKendrick.addCatalog(cmassNKendrick, save=True)
 bossKendrick.addCatalog(lowzSKendrick, save=True)
 bossKendrick.addCatalog(lowzNKendrick, save=True)
-bossKendrick = Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=True)
+bossKendrick = Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False)
 #bossKendrick.plotHistograms()
 #bossKendrick.plotFootprint()
 

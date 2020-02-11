@@ -4,7 +4,7 @@
 #SBATCH -q regular
 #SBATCH -L SCRATCH   #Job requires $SCRATCH file system
 #SBATCH -C haswell   #Use haswell/knl nodes
-#SBATCH -t 15:59:59  # hh:mm:ss
+#SBATCH -t 47:59:59  #15:59:59  # hh:mm:ss
 #SBATCH --mail-type=begin
 #SBATCH --mail-type=end
 #SBATCH --mail-user=eschaan@lbl.gov

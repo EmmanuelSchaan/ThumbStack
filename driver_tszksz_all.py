@@ -166,7 +166,6 @@ import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
-'''
 save = True
 
 
@@ -182,7 +181,7 @@ for cmbMapKey in cmbMaps.keys():
       print("Analyzing catalog "+catalog.name)
       name = catalog.name + "_" + cmbName
       ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc)
-'''
+
 
 ###################################################################################
 # Create summary plots
