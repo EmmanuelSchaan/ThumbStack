@@ -118,7 +118,7 @@ class Catalog(object):
       #
       # velocity in spherical coordinates,
       # from catalog of spherical displacements
-      self.vR = data[:,15]  # [km/s]   from spherical catalog
+      self.vR = data[:,15]  # [km/s]   from spherical catalog, >0 away from us
       self.vTheta = data[:,16]   # [km/s]
       self.vPhi = data[:,17]  # [km/s]
       #
@@ -188,7 +188,7 @@ class Catalog(object):
 
    
    def addIntegratedKSZ(self):
-      """Integrated kSZ signal: int d^2theta n_e sigma_T v/c Tcmb
+      """Integrated kSZ signal: int d^2theta n_e sigma_T (-v/c) Tcmb
       in muK * sr
       """
       print "- add integrated kSZ"
@@ -251,7 +251,7 @@ class Catalog(object):
       #
       # velocity in spherical coordinates,
       # from catalog of spherical displacements
-      data[:,15] = self.vR  # [km/s]   from spherical catalo
+      data[:,15] = self.vR  # [km/s]   from spherical catalog, >0 away from us
       data[:,16] = self.vTheta   # [km/s]
       data[:,17] = self.vPhi  # [km/s]
       #
@@ -265,7 +265,7 @@ class Catalog(object):
       # Integrated optical depth [sr]: int d^2theta n_e^2d sigma_T = (total nb of electrons) * sigma_T / (a chi)^2
       data[:,21] = self.integratedTau   # [sr]
       #
-      # Integrated kSZ signal [muK * sr]: int d^2theta n_e^2d sigma_T v/c Tcmb
+      # Integrated kSZ signal [muK * sr]: int d^2theta n_e^2d sigma_T (-v/c) Tcmb
       data[:, 22] = self.integratedKSZ # [muK * sr]
       #
       # Integrated Y signal [sr]: int d^2theta n_e^2d sigma_T (kB Te / me c^2)
@@ -310,7 +310,7 @@ class Catalog(object):
       #
       # velocity in spherical coordinates,
       # from catalog of spherical displacements
-      self.vR = data[:,15]  # [km/s]   from spherical catalo
+      self.vR = data[:,15]  # [km/s]   from spherical catalog, >0 away from us
       self.vTheta = data[:,16]   # [km/s]
       self.vPhi = data[:,17]  # [km/s]
       #
@@ -324,7 +324,7 @@ class Catalog(object):
       # Integrated optical depth [dimless]: int d^2theta n_e^2d sigma_T = (total nb of electrons) * sigma_T / (a chi)^2
       self.integratedTau = data[:,21]   # [dimless]
       #
-      # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T v/c Tcmb
+      # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T (-v/c) Tcmb
       self.integratedKSZ = data[:, 22] # [muK * sr]
       #
       # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)

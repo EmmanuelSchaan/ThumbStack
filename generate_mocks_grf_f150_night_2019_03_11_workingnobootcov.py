@@ -355,7 +355,7 @@ def doStacking(iMock):
       print("Precomputing stack on mock "+str(iMock))
       ts = ThumbStack(u, cmassMariana, pactMap, pactMask, pactHit, name=name, nameLong=None, save=True, filterTypes='diskring', nProc=nProc)
    # output the various stacked profiles (tSZ, kSZ, etc.) from this mock GRF CMB map
-   return ts.stackedProfile, ts.covBootstrap, ts.covVShuffle
+   return ts.stackedProfile
 
 
 #!!! for debugging
@@ -393,10 +393,10 @@ meanStackedProfile = {}
 for iEst in range(len(Est)):
 #for iEst in range(1):
    est = Est[iEst]
-   nRAp = len(result[0][0]['diskring_'+est])
+   nRAp = len(result[0]['diskring_'+est])
    # shape (nRAp, nMocks)
-   profiles = np.array([[result[j][0]['diskring_'+est][i] for j in range(nMocks)] for i in range(nRAp)])
-
+   profiles = np.array([[result[j]['diskring_'+est][i] for j in range(nMocks)] for i in range(nRAp)])
+   
    # estimate and save the mean
    meanStackedProfile['diskring_'+est] = np.mean(profiles, axis=-1)
    np.savetxt(pathOut+'mean_diskring_'+est+'_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.txt', meanStackedProfile['diskring_'+est])
@@ -406,24 +406,6 @@ for iEst in range(len(Est)):
    np.savetxt(pathOut+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt", covStackedProfile['diskring_'+est])
    # plot it
    ts.plotCov(covStackedProfile['diskring_'+est], name="diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".pdf")
-
-
-Est = ['tsz_varweight', 'ksz_varweight']
-covBootstrap = {}
-for iEst in range(len(Est)):
-#for iEst in range(1):
-   est = Est[iEst]
-   nRAp = len(result[0][0]['diskring_'+est])
-   # shape (nRAp, nRap, nMocks)
-   covsBoot = np.array([[[result[k][1]['diskring_'+est][i,j] for k in range(nMocks)] for i in range(nRAp)] for j in range(nRAp)])
-
-   # estimate and save the mean
-   covBootstrap['diskring_'+est] = np.mean(covsBoot, axis=-1)
-   np.savetxt(pathOut+'mean_covbootstrap_diskring_'+est+'_mocks'+str(iMock0)+"-"+str(iMock0+nMocks)+'.txt', covBootstrap['diskring_'+est])
-
-   # plot it
-   ts.plotCov(covBootstrap['diskring_'+est], name="meancovboot_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".pdf")
-
 
 
 ###################################################################################
@@ -438,8 +420,6 @@ for iEst in range(len(Est)):
    est = Est[iEst]
    meanStackedProfile['diskring_'+est] = np.genfromtxt(pathOut+"mean_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
    covStackedProfile['diskring_'+est] = np.genfromtxt(pathOut+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
-   if 'diskring_'+est in ts.covBootstrap.keys():
-      covBootstrap['diskring_'+est] = np.genfromtxt(pathOut+"mean_covbootstrap_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
 
 
    # Compare diagonal covariance elements
@@ -454,8 +434,8 @@ for iEst in range(len(Est)):
    ax.plot(ts.RApArcmin, factor * sMocks, 'm', label=r'mocks')
    ax.plot(ts.RApArcmin, factor * ts.sStackedProfile['diskring_'+est], label=r'semi-analytical')
    if 'diskring_'+est in ts.covBootstrap.keys():
-      sBootstrap = np.sqrt(np.diag(covBootstrap['diskring_'+est]))
-      ax.plot(ts.RApArcmin, factor * sBootstrap, label=r'mean bootstrap')
+      sBootstrap = np.sqrt(np.diag(ts.covBootstrap['diskring_'+est]))
+      ax.plot(ts.RApArcmin, factor * sBootstrap, label=r'bootstrap')
    #
    ax.legend(loc=2)
    ax.set_xlabel(r'$R$ [arcmin]')
@@ -479,7 +459,7 @@ for iEst in range(len(Est)):
    ax.plot(ts.RApArcmin, sMocks/ts.sStackedProfile['diskring_'+est], 'm', label=r'mocks')
    ax.plot(ts.RApArcmin, np.ones_like(ts.RApArcmin), label=r'semi-analytical')
    if 'diskring_'+est in ts.covBootstrap.keys():
-      sBootstrap = np.sqrt(np.diag(covBootstrap['diskring_'+est]))
+      sBootstrap = np.sqrt(np.diag(ts.covBootstrap['diskring_'+est]))
       ax.plot(ts.RApArcmin, sBootstrap/ts.sStackedProfile['diskring_'+est], label=r'bootstrap')
    #
    ax.legend(loc=2)
@@ -494,8 +474,9 @@ for iEst in range(len(Est)):
    # if a bootstrap cov is available
    # compare cov mat from mocks and bootstrap
    if 'diskring_'+est in ts.covBootstrap.keys():
-      sBootstrap = np.sqrt(np.diag(covBootstrap['diskring_'+est]))
-      corBootstrap = covBootstrap['diskring_'+est] / np.outer(sBootstrap, sBootstrap)
+      covBootstrap = ts.covBootstrap['diskring_'+est]
+      sBootstrap = np.sqrt(np.diag(covBootstrap))
+      corBootstrap = covBootstrap / np.outer(sBootstrap, sBootstrap)
       #
       covMocks = covStackedProfile['diskring_'+est]
       sMocks = np.sqrt(np.diag(covMocks))

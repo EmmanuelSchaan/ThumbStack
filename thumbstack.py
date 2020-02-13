@@ -6,7 +6,7 @@ from headers import *
 class ThumbStack(object):
 
 #   def __init__(self, U, Catalog, pathMap="", pathMask="", pathHit="", name="test", nameLong=None, save=False, nProc=1):
-   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit=None, name="test", nameLong=None, save=False, nProc=1, filterTypes='diskring', doStackedMap=False):
+   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit=None, name="test", nameLong=None, save=False, nProc=1, filterTypes='diskring', doStackedMap=False, doMBins=False):
       
       self.nProc = nProc
       self.U = U
@@ -19,6 +19,7 @@ class ThumbStack(object):
       self.cmbMap = cmbMap
       self.cmbMask = cmbMask
       self.cmbHit = cmbHit
+      self.doMBins = doMBins
 
       # aperture photometry filters to implement
       if filterTypes=='diskring':
@@ -36,10 +37,12 @@ class ThumbStack(object):
          self.Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
          self.EstBootstrap = ['tsz_varweight', 'ksz_varweight']
          self.EstVShuffle = ['ksz_varweight']
+         self.EstMBins = ['tsz_varweight', 'ksz_varweight']
       else:
          self.Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
          self.EstBootstrap = ['tsz_uniformweight', 'ksz_uniformweight']
          self.EstVShuffle = ['ksz_uniformweight']
+         self.EstMBins = ['tsz_uniformweight', 'ksz_uniformweight']
 
       # resolution of the cutout maps to be extracted
       self.resCutoutArcmin = 0.25   # [arcmin]
@@ -70,6 +73,7 @@ class ThumbStack(object):
       print "- Thumbstack: "+str(self.name)
       
       self.loadAPRadii()
+      self.loadMMaxBins()
       
       if save:
          self.saveOverlapFlag(nProc=self.nProc)
@@ -137,13 +141,16 @@ class ThumbStack(object):
       return cutoutMap
 
 
-   def loadMMaxBins(self, test=True):
+   def loadMMaxBins(self, test=False):
       '''Choose the mMax values to have the same number of galaxies
       added in the sample for each mMax increment.
       '''
-      self.MMax = np.interp(np.linspace(0, self.Catalog.nObj, self.nMMax+1),
-                           np.arange(self.Catalog.nObj),
-                           np.sort(self.Catalog.Mvir))[1:]
+#      self.MMax = np.interp(np.linspace(0, self.Catalog.nObj, self.nMMax+1),
+#                           np.arange(self.Catalog.nObj),
+#                           np.sort(self.Catalog.Mvir))[1:]
+      
+      self.MMax = np.logspace(np.log10(self.Catalog.Mvir.min()*1.1), np.log10(self.Catalog.Mvir.max()), self.nMMax)
+
       if test:
          print "Checking the mMax bins:"
          print "number of bins:", self.nMMax, len(self.MMax)
@@ -667,7 +674,7 @@ class ThumbStack(object):
          # multiply by integrated kSZ to get kSZ profile [muK * sr]
          t = np.column_stack([self.Catalog.integratedKSZ[:] * shape[iAp] for iAp in range(self.nRAp)])   # [muK * sr]
       t = t[mask, :]
-      # v/c [dimless]
+      # -v/c [dimless]
       v = -self.Catalog.vR[mask] / 3.e5
       v -= np.mean(v)
       #true filter variance for each object and aperture,
@@ -804,12 +811,12 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def SaveCovBootstrapStackedProfile(self, filterType, est, nSamples=100, nProc=1):
+   def SaveCovBootstrapStackedProfile(self, filterType, est, mVir=[1.e6, 1.e17], z=[0., 100.], nSamples=100, nProc=1):
       """Estimate covariance matrix for the stacked profile from bootstrap resampling
       """
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
-         f = lambda iSample: self.computeStackedProfile(filterType, est, iBootstrap=iSample)
+         f = lambda iSample: self.computeStackedProfile(filterType, est, iBootstrap=iSample, mVir=mVir, z=z)
          result = np.array(pool.map(f, range(nSamples)))
          #result = np.array(map(f, range(nSamples)))
       tStop = time()
@@ -823,12 +830,12 @@ class ThumbStack(object):
       np.savetxt(self.pathOut+"/cov_"+filterType+"_"+est+"_bootstrap.txt", covStack)
       
 
-   def SaveCovVShuffleStackedProfile(self, filterType, est, nSamples=100, nProc=1):
+   def SaveCovVShuffleStackedProfile(self, filterType, est, mVir=[1.e6, 1.e17], z=[0., 100.], nSamples=100, nProc=1):
       """Estimate covariance matrix for the stacked profile from shuffling velocities
       """
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
-         f = lambda iSample: self.computeStackedProfile(filterType, est, iVShuffle=iSample)
+         f = lambda iSample: self.computeStackedProfile(filterType, est, iVShuffle=iSample, mVir=mVir, z=z)
          result = np.array(pool.map(f, range(nSamples)))
       tStop = time()
       print "took", (tStop-tStart)/60., "min"
@@ -896,6 +903,32 @@ class ThumbStack(object):
             data[:,1], data[:,2] = self.computeStackedProfile(filterType, est, tTh='ksz') # [map unit * sr]
             np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_theory_ksz.txt", data)
 
+
+      # Stacked profiles in mass bins, to check for contamination
+      if self.doMBins:
+         for iFilterType in range(len(self.filterTypes)):
+            filterType = self.filterTypes[iFilterType]
+            for iEst in range(len(self.EstMBins)):
+               est = self.Est[iEst]
+               data = np.zeros((self.nRAp, 2*self.nMMax+1))
+               data[:,0] = self.RApArcmin # [arcmin]
+               dataTsz = data.copy()
+               dataKsz = data.copy()
+               for iMMax in range(self.nMMax):
+                  mMax = self.MMax[iMMax]
+                  # measured stacked profile
+                  data[:,1+2*iMMax], data[:,1+2*iMMax+1] = self.computeStackedProfile(filterType, est, mVir=[1.e6, mMax]) # [map unit * sr]
+                  # expcted from tSZ
+                  dataTsz[:,1+2*iMMax], dataTsz[:,1+2*iMMax+1] = self.computeStackedProfile(filterType, est, mVir=[1.e6, mMax], tTh='tsz') # [map unit * sr]
+                  # expected from kSZ
+                  dataKsz[:,1+2*iMMax], dataKsz[:,1+2*iMMax+1] = self.computeStackedProfile(filterType, est, mVir=[1.e6, mMax], tTh='ksz') # [map unit * sr]
+
+               # Save all stacked profiles
+               np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_mmax_measured.txt", data)
+               np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_mmax_theory_tsz.txt", dataTsz)
+               np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_mmax_theory_ksz.txt", dataKsz)
+
+
          # covariance matrices from bootstrap,
          # only for a few select estimators
          for iEst in range(len(self.EstBootstrap)):
@@ -935,6 +968,28 @@ class ThumbStack(object):
             self.stackedProfile[filterType+"_"+est+"_theory_ksz"] = data[:,1]
             self.sStackedProfile[filterType+"_"+est+"_theory_ksz"] = data[:,2]
 
+
+         # stacked profiles in mass bins
+         if self.doMBins:
+            for iEst in range(len(self.EstMBins)):
+               est = self.Est[iEst]
+
+               # measured stacked profile
+               data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_mmax_measured.txt")
+               for iMMax in range(self.nMMax):
+                  self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)] = data[:,1+2*iMMax]
+                  self.sStackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)] = data[:,1+2*iMMax+1]
+               # expected stacked profile from tSZ
+               data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_mmax_theory_tsz.txt")
+               for iMMax in range(self.nMMax):
+                  self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_tsz"] = data[:,1+2*iMMax]
+                  self.sStackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_tsz"] = data[:,1+2*iMMax+1]
+               # expected stacked profile from kSZ
+               data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_mmax_theory_ksz.txt")
+               for iMMax in range(self.nMMax):
+                  self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_ksz"] = data[:,1+2*iMMax]
+                  self.sStackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_ksz"] = data[:,1+2*iMMax+1]
+
          # covariance matrices from bootstrap,
          # only for a few select estimators
          for iEst in range(len(self.EstBootstrap)):
@@ -950,7 +1005,7 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def plotStackedProfile(self, filterType, Est, name=None, pathDir=None, theory=True, tsArr=None, plot=False):
+   def plotStackedProfile(self, filterType, Est, name=None, pathDir=None, theory=True, tsArr=None, plot=False, legend=True):
       """Compares stacked profiles, and their uncertainties.
       If pathDir is not specified, save to local figure folder.
       """
@@ -970,22 +1025,23 @@ class ThumbStack(object):
       #
       ax.axhline(0., c='k', lw=1)
       #
-      colors = ['r', 'g', 'b', 'm', 'c']
+      #colors = ['r', 'g', 'b', 'm', 'c']
       lineStyles = ['-', '--', '-.', ':']
       for iEst in range(len(Est)):
          est = Est[iEst]
-         c = colors[iEst%len(colors)]
+         #c = colors[iEst%len(colors)]
 
          for iTs in range(len(tsArr)):
             ts = tsArr[iTs]
             ls = lineStyles[iTs%len(tsArr)]
 
-            ax.errorbar(ts.RApArcmin+iTs*0.05, factor * ts.stackedProfile[filterType+"_"+est], factor * ts.sStackedProfile[filterType+"_"+est], fmt=ls, c=c, label=filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
+            ax.errorbar(ts.RApArcmin+iTs*0.05, factor * ts.stackedProfile[filterType+"_"+est], factor * ts.sStackedProfile[filterType+"_"+est], fmt=ls, label=filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
             if theory:
-               ax.plot(ts.RApArcmin+iTs*0.05, factor * ts.stackedProfile[filterType+"_"+est+"_theory_tsz"], ls='--', c=c, label="theory tsz, "+filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
-               ax.plot(ts.RApArcmin+iTs*0.05, factor * ts.stackedProfile[filterType+"_"+est+"_theory_ksz"], ls='-.', c=c, label="theory ksz, "+filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
+               ax.plot(ts.RApArcmin+iTs*0.05, factor * ts.stackedProfile[filterType+"_"+est+"_theory_tsz"], ls='--', label="theory tsz, "+filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
+               ax.plot(ts.RApArcmin+iTs*0.05, factor * ts.stackedProfile[filterType+"_"+est+"_theory_ksz"], ls='-.', label="theory ksz, "+filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
       #
-      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+      if legend:
+         ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
       ax.set_xlabel(r'$R$ [arcmin]')
       ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
       #ax.set_ylim((0., 2.))
@@ -1021,7 +1077,8 @@ class ThumbStack(object):
             if est in ts.covVShuffle:
                ax.plot(ts.RApArcmin+iTs*0.05, factor * np.sqrt(np.diag(ts.covVShuffle[filterType+"_"+est])), c=c, ls=ls, lw=1, label="v shuffle, "+filterType.replace('_',' ')+' '+est.replace('_', ' ')+' '+ts.name.replace('_',' '))
       #
-      ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+      if legend:
+         ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
       ax.set_xlabel(r'$R$ [arcmin]')
       ax.set_ylabel(r'$\sigma(T)$ [$\mu K\cdot\text{arcmin}^2$]')
       #ax.set_ylim((0., 2.))
@@ -1042,6 +1099,157 @@ class ThumbStack(object):
          for iEst in range(len(self.Est)):
             est = self.Est[iEst]
             self.plotStackedProfile(filterType, [est], name=filterType+"_"+est)
+
+         # stacked profiles in mass bins
+         if self.doMBins:
+            self.plotTszKszContaminationMMax()
+
+#            for iEst in range(len(self.EstMBins)):
+#               est = self.Est[iEst]
+#               # measured stacked profiles
+#               estArr = [est+"_mmax"+str(iMMax) for iMMax in range(self.nMMax)] + [est]
+#               self.plotStackedProfile(filterType, estArr, name=filterType+"_"+est+"_mmax", theory=False, legend=False)
+#               # expected from tSZ
+#               estArr = [est+"_mmax"+str(iMMax)+"_theory_tsz" for iMMax in range(self.nMMax)] + [est]
+#               self.plotStackedProfile(filterType, estArr, name=filterType+"_"+est+"_mmax_theory_tsz", theory=False, legend=False)
+#               # expected from kSZ
+#               estArr = [est+"_mmax"+str(iMMax)+"_theory_ksz" for iMMax in range(self.nMMax)] + [est]
+#               self.plotStackedProfile(filterType, estArr, name=filterType+"_"+est+"_mmax_theory_ksz", theory=False, legend=False)
+
+
+   ##################################################################################
+
+   def plotTszKszContaminationMMax(self):
+      '''Bias from tSZ to kSZ and vice versa:
+      compare bias to signal and error bar,
+      as a function of maximum mass in the galaxy sample.
+      '''
+
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+
+         for iEst in range(len(self.EstMBins)):
+            est = self.Est[iEst]
+
+            TszToKsz = np.zeros(self.nMMax)
+            KszToTsz = np.zeros(self.nMMax)
+            # checks that the estimators are unbiased for all Mmax
+            KszToKsz = np.zeros(self.nMMax)
+            TszToTsz = np.zeros(self.nMMax)
+            # error bars as a function of Mmax
+            sKsz = np.zeros(self.nMMax)
+            sTsz = np.zeros(self.nMMax)
+            for iMMax in range(self.nMMax):
+               # ratio of expected tSZ for this Mmax
+               # to the full expected kSZ
+               ratio = self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_tsz"].copy()
+               ratio /= self.stackedProfile[filterType+"_"+est+"_theory_ksz"]
+               # here the value at each aperture is equal to the mean
+               TszToKsz[iMMax] = np.mean(ratio)
+
+               # ratio of expected tSZ for this Mmax
+               # to the full expected tSZ, as a check
+               ratio = self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_tsz"].copy()
+               ratio /= self.stackedProfile[filterType+"_"+est+"_theory_tsz"]
+               # here the value at each aperture is equal to the mean
+               TszToTsz[iMMax] = np.mean(ratio)
+
+               # expected error bar for the corresponding Mmax cut
+               ratio = self.sStackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)].copy()
+               ratio /= self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_ksz"]
+               # here the value at each aperture is equal to the mean
+               sKsz[iMMax] = np.abs(np.mean(ratio))
+
+                  
+               # ratio of expected kSZ for this Mmax
+               # to the full expected tSZ
+               ratio = self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_ksz"].copy()
+               ratio /= self.stackedProfile[filterType+"_"+est+"_theory_tsz"]
+               # here the value at each aperture is equal to the mean
+               KszToTsz[iMMax] = np.mean(ratio)
+
+               # ratio of expected kSZ for this Mmax
+               # to the full expected kSZ, as a check
+               ratio = self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_ksz"].copy()
+               ratio /= self.stackedProfile[filterType+"_"+est+"_theory_ksz"]
+               # here the value at each aperture is equal to the mean
+               KszToKsz[iMMax] = np.mean(ratio)
+
+               # expected error bar for the corresponding Mmax cut
+               ratio = self.sStackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)].copy()
+               ratio /= self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_tsz"]
+               # here the value at each aperture is equal to the mean
+               sTsz[iMMax] = np.abs(np.mean(ratio))
+
+
+            fig=plt.figure(0)
+            ax=fig.add_subplot(111)
+            #
+            # convert from sr to arcmin^2
+            factor = (180.*60./np.pi)**2
+            #
+            ax.axhline(0., c='k', lw=1)
+            #
+            #ax.axhline(1., lw=1, label=r'Expected kSZ')
+            ax.plot(self.MMax, KszToKsz, 'b', label='kSZ signal')
+            ax.plot(self.MMax, -KszToKsz, 'b--')
+            ax.plot(self.MMax, 0.1*KszToKsz, 'b', alpha=0.3)
+            ax.plot(self.MMax, -0.1*KszToKsz, 'b--', alpha=0.3)
+            #
+            ax.plot(self.MMax, TszToKsz, 'r', label='tSZ bias to kSZ')
+            ax.plot(self.MMax, -TszToKsz, 'r--')
+            #
+            ax.fill_between(self.MMax, sKsz, edgecolor='', facecolor='gray', alpha=0.5, label='kSZ error bar')
+            ax.fill_between(self.MMax, 0.1*sKsz, edgecolor='', facecolor='gray', alpha=0.3)
+            #
+            ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+            ax.set_xscale('log', nonposx='clip')
+            ax.set_yscale('log', nonposy='clip')
+            ax.set_xlabel(r'$M_\text{vir max}$ [$M_\odot$]')
+            #ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
+            #ax.set_ylim((0., 2.))
+            #
+            name = filterType+"_"+est+"_mmax_tsztoksz"
+            path = self.pathFig+"/"+name+".pdf"
+            fig.savefig(path, bbox_inches='tight')
+            fig.clf()
+
+
+            fig=plt.figure(1)
+            ax=fig.add_subplot(111)
+            #
+            # convert from sr to arcmin^2
+            factor = (180.*60./np.pi)**2
+            #
+            ax.axhline(0., c='k', lw=1)
+            #ax.axhline(1., lw=1, label=r'Expected tSZ')
+            ax.plot(self.MMax, TszToTsz, 'b', label='tSZ signal')
+            ax.plot(self.MMax, -TszToTsz, 'b--')
+            ax.plot(self.MMax, 0.1*TszToTsz, 'b', alpha=0.3)
+            ax.plot(self.MMax, -0.1*TszToTsz, 'b--', alpha=0.3)
+            #
+            ax.plot(self.MMax, KszToTsz, 'r', label='kSZ bias to tSZ')
+            ax.plot(self.MMax, -KszToTsz, 'r--')
+            #
+            ax.fill_between(self.MMax, sTsz, edgecolor='', facecolor='gray', alpha=0.5, label='tSZ error bar')
+            ax.fill_between(self.MMax, 0.1*sTsz, edgecolor='', facecolor='gray', alpha=0.3)
+            #
+            ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+            ax.set_xscale('log', nonposx='clip')
+            ax.set_yscale('log', nonposy='clip')
+            ax.set_xlabel(r'$M_\text{vir max}$ [$M_\odot$]')
+            #ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
+            #ax.set_ylim((0., 2.))
+            #
+            name = filterType+"_"+est+"_mmax_ksztotsz"
+            path = self.pathFig+"/"+name+".pdf"
+            fig.savefig(path, bbox_inches='tight')
+            fig.clf()
+
+
+
+
+
 
    ##################################################################################
    
@@ -1215,76 +1423,6 @@ class ThumbStack(object):
 
 
    ##################################################################################
-
-
-#   def computeSnrStack(self, filterType, est, tTh=None):
-#      """Compute null rejection, SNR (=detection significance)
-#      for the requested estimator.
-#      The estimator considered should have a bootstrap covariance.
-#      """
-#
-#
-#      # replace data with theory if requested
-#      if tTh=='tsz':
-#         tTh = '_theory_tsz'
-#      elif tTh=='ksz':
-#         tTh = '_theory_ksz'
-#      else:
-#         tTh = ''
-#
-#      path = self.pathFig+"/snr_"+filterType+"_"+est+tTh+".txt"
-#      with open(path, 'w') as f:
-#         f.write("*** "+est+" SNR ***\n")
-#
-#         # data and covariance
-#         d = self.stackedProfile[filterType+"_"+est+tTh].copy()
-#         cov = self.covBootstrap[filterType+"_"+est].copy()
-#         dof = len(d)
-#
-#         # Compute chi^2_null
-#         chi2Null = d.dot( np.linalg.inv(cov).dot(d) )
-#         # goodness of fit for null hypothesis
-#         f.write("number of dof:"+str(dof)+"\n")
-#         f.write("null chi2Null="+str(chi2Null)+"\n")
-#         pteNull = 1.- stats.chi2.cdf(chi2Null, dof)
-#         f.write("null pte="+str(pteNull)+"\n")
-#         # pte as a function of sigma, for a Gaussian random variable
-#         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
-#         sigmaNull = optimize.brentq(fsigmaToPTE , 0., 1.e3)
-#         f.write("null pte significance="+str(sigmaNull)+"sigmas\n\n")
-#
-#         # Gaussian model: find best fit amplitude
-#         sigma_cluster = 1.5  # arcmin
-#         theory = self.ftheoryGaussianProfile(sigma_cluster, filterType=filterType)
-#         def fdchi2(p):
-#            a = p[0]
-#            result = (d-a*theory).dot( np.linalg.inv(cov).dot(d-a*theory) )
-#            result -= chi2Null
-#            return result
-#         # Minimize the chi squared
-#         p0 = 1.
-#         res = optimize.minimize(fdchi2, p0)
-#         abest = res.x[0]
-#         #sbest= res.x[1]
-#         f.write("best-fit amplitude="+str(abest)+"\n")
-#         f.write("number of dof:"+str(dof - 1)+"\n\n")
-#
-#         # goodness of fit for best fit
-#         chi2Best = fdchi2([abest])+chi2Null
-#         f.write("best-fit chi2="+str(chi2Best)+"\n")
-#         pteBest = 1.- stats.chi2.cdf(chi2Best, dof-1.)
-#         f.write("best-fit pte="+str(pteBest)+"\n")
-#         # pte as a function of sigma, for a Gaussian random variable
-#         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteBest
-#         sigma = optimize.brentq(fsigmaToPTE , 0., 1.e3)
-#         f.write("best-fit pte significance="+str(sigma)+"sigmas\n\n")
-#
-#         # favour of best fit over null
-#         f.write("best-fit sqrt(delta chi2)="+str(np.sqrt(abs(fdchi2([abest]))))+"sigmas\n")
-#         fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.))
-#         pte = fsigmaToPTE( np.sqrt(abs(fdchi2([abest]))) )
-#         f.write("pte (if Gaussian)="+str(pte)+"\n")
-
 
 
    def computeSnrStack(self, filterType, est, tTh=None):
