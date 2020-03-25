@@ -32,7 +32,7 @@ class MassConversionKravtsov14(object):
       '''
 
       # interpolate M_star = f(M_vir)
-      self.mVir = np.logspace(np.log10(1.e10), np.log10(1.e16), 501, 10.) # [M_sun]
+      self.mVir = np.logspace(np.log10(1.e9), np.log10(1.e18), 501, 10.) # [M_sun]
       self.mStar = np.array(map(self.fmStar, self.mVir))  # [M_sun]
       self.fmStarTomVir = interp1d(self.mStar, self.mVir, kind='cubic', bounds_error=True, fill_value=0.)
       self.fmVirTomStar = interp1d(self.mVir, self.mStar, kind='cubic', bounds_error=True, fill_value=0.)
