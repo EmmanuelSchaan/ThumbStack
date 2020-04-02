@@ -37,12 +37,12 @@ class ThumbStack(object):
          self.Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
          self.EstBootstrap = ['tsz_varweight', 'ksz_varweight']
          self.EstVShuffle = ['ksz_varweight']
-         self.EstMBins = ['tsz_varweight', 'ksz_varweight']
+         self.EstMBins = ['ksz_varweight']# ['tsz_varweight', 'ksz_varweight']
       else:
          self.Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
          self.EstBootstrap = ['tsz_uniformweight', 'ksz_uniformweight']
          self.EstVShuffle = ['ksz_uniformweight']
-         self.EstMBins = ['tsz_uniformweight', 'ksz_uniformweight']
+         self.EstMBins = ['ksz_uniformweight'] #['tsz_uniformweight', 'ksz_uniformweight']
 
       # resolution of the cutout maps to be extracted
       self.resCutoutArcmin = 0.25   # [arcmin]
@@ -55,6 +55,12 @@ class ThumbStack(object):
       # number of mMax cuts to test,
       # for tSZ contamination to kSZ
       self.nMMax = 20
+
+      # fiducial mass cuts, to avoid eg tSZ contamination
+      # from massive clusters
+      self.mMin = 1.e6
+      self.mMax = 1.e14 # 1.e17
+
       
       # Output path
       self.pathOut = "./output/thumbstack/"+self.name
@@ -75,6 +81,9 @@ class ThumbStack(object):
       self.loadAPRadii()
       self.loadMMaxBins()
       
+#!!!! remove
+      save = False
+
       if save:
          self.saveOverlapFlag(nProc=self.nProc)
       self.loadOverlapFlag()
@@ -85,9 +94,16 @@ class ThumbStack(object):
       
       self.measureAllVarFromHitCount(plot=save)
 
+#!!!! remove
+      save = True
+
       if save:
          self.saveAllStackedProfiles()
       self.loadAllStackedProfiles()
+
+#!!!! remove
+      #self.plotAllStackedProfiles()
+      #self.plotTszKszContaminationMMax()
 
       if save:
          self.plotAllStackedProfiles()
@@ -521,11 +537,13 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def catalogMask(self, overlap=True, psMask=True, mVir=[1.e6, 1.e17], z=[0., 100.], extraSelection=1., filterType=None):
+   def catalogMask(self, overlap=True, psMask=True, mVir=None, z=[0., 100.], extraSelection=1., filterType=None):
       '''Returns catalog mask: 1 for objects to keep, 0 for objects to discard.
       Use as:
       maskedQuantity = Quantity[mask]
       '''
+      if mVir is None:
+         mVir = [self.mMin, self.mMax]
       # Here mask is 1 for objects we want to keep
       mask = np.ones_like(self.Catalog.RA)
       #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
@@ -577,7 +595,7 @@ class ThumbStack(object):
             y = (y - np.mean(y))**2
 
             # define bins of hit count values
-            nBins = 21
+            nBins = 11
             BinsX = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
             
             # compute histograms
@@ -635,14 +653,16 @@ class ThumbStack(object):
 
 
 
-
-   def computeStackedProfile(self, filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=False, mVir=[1.e6, 1.e17], z=[0., 100.]):
+   def computeStackedProfile(self, filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=False, mVir=None, z=[0., 100.]):
       """Returns the estimated profile and its uncertainty for each aperture.
       est: string to select the estimator
       iBootstrap: index for bootstrap resampling
       iVShuffle: index for shuffling velocities
       tTh: to replace measured temperatures by a theory expectation
       """
+      if mVir is None:
+         mVir = [self.mMin, self.mMax]
+
       # select objects that overlap, and reject point sources
       mask = self.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=mVir, z=z)
       
@@ -811,9 +831,11 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def SaveCovBootstrapStackedProfile(self, filterType, est, mVir=[1.e6, 1.e17], z=[0., 100.], nSamples=100, nProc=1):
+   def SaveCovBootstrapStackedProfile(self, filterType, est, mVir=None, z=[0., 100.], nSamples=100, nProc=1):
       """Estimate covariance matrix for the stacked profile from bootstrap resampling
       """
+      if mVir is None:
+         mVir = [self.mMin, self.mMax]
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
          f = lambda iSample: self.computeStackedProfile(filterType, est, iBootstrap=iSample, mVir=mVir, z=z)
@@ -830,9 +852,11 @@ class ThumbStack(object):
       np.savetxt(self.pathOut+"/cov_"+filterType+"_"+est+"_bootstrap.txt", covStack)
       
 
-   def SaveCovVShuffleStackedProfile(self, filterType, est, mVir=[1.e6, 1.e17], z=[0., 100.], nSamples=100, nProc=1):
+   def SaveCovVShuffleStackedProfile(self, filterType, est, mVir=None, z=[0., 100.], nSamples=100, nProc=1):
       """Estimate covariance matrix for the stacked profile from shuffling velocities
       """
+      if mVir is None:
+         mVir = [self.mMin, self.mMax]
       tStart = time()
       with sharedmem.MapReduce(np=nProc) as pool:
          f = lambda iSample: self.computeStackedProfile(filterType, est, iVShuffle=iSample, mVir=mVir, z=z)
@@ -909,7 +933,7 @@ class ThumbStack(object):
          for iFilterType in range(len(self.filterTypes)):
             filterType = self.filterTypes[iFilterType]
             for iEst in range(len(self.EstMBins)):
-               est = self.Est[iEst]
+               est = self.EstMBins[iEst]
                data = np.zeros((self.nRAp, 2*self.nMMax+1))
                data[:,0] = self.RApArcmin # [arcmin]
                dataTsz = data.copy()
@@ -972,7 +996,7 @@ class ThumbStack(object):
          # stacked profiles in mass bins
          if self.doMBins:
             for iEst in range(len(self.EstMBins)):
-               est = self.Est[iEst]
+               est = self.EstMBins[iEst]
 
                # measured stacked profile
                data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_mmax_measured.txt")
@@ -1104,11 +1128,11 @@ class ThumbStack(object):
          if self.doMBins:
             self.plotTszKszContaminationMMax()
 
-#            for iEst in range(len(self.EstMBins)):
-#               est = self.Est[iEst]
-#               # measured stacked profiles
-#               estArr = [est+"_mmax"+str(iMMax) for iMMax in range(self.nMMax)] + [est]
-#               self.plotStackedProfile(filterType, estArr, name=filterType+"_"+est+"_mmax", theory=False, legend=False)
+            for iEst in range(len(self.EstMBins)):
+               est = self.Est[iEst]
+               # measured stacked profiles
+               estArr = [est+"_mmax"+str(iMMax) for iMMax in range(self.nMMax)] + [est]
+               self.plotStackedProfile(filterType, estArr, name=filterType+"_"+est+"_mmax", theory=False, legend=False)
 #               # expected from tSZ
 #               estArr = [est+"_mmax"+str(iMMax)+"_theory_tsz" for iMMax in range(self.nMMax)] + [est]
 #               self.plotStackedProfile(filterType, estArr, name=filterType+"_"+est+"_mmax_theory_tsz", theory=False, legend=False)
@@ -1125,11 +1149,19 @@ class ThumbStack(object):
       as a function of maximum mass in the galaxy sample.
       '''
 
+      print "Plotting contamination as a function of MMax"
+      print self.filterTypes
+      print self.EstMBins
+
       for iFilterType in range(len(self.filterTypes)):
          filterType = self.filterTypes[iFilterType]
 
+         print filterType
+
          for iEst in range(len(self.EstMBins)):
-            est = self.Est[iEst]
+            est = self.EstMBins[iEst]
+
+            print est
 
             TszToKsz = np.zeros(self.nMMax)
             KszToTsz = np.zeros(self.nMMax)
@@ -1154,9 +1186,10 @@ class ThumbStack(object):
                # here the value at each aperture is equal to the mean
                TszToTsz[iMMax] = np.mean(ratio)
 
-               # expected error bar for the corresponding Mmax cut
+               # expected kSZ error bar for the corresponding Mmax cut
                ratio = self.sStackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)].copy()
-               ratio /= self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_ksz"]
+               ratio /= self.stackedProfile[filterType+"_"+est+"_theory_ksz"]
+               #ratio /= self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_ksz"]
                # here the value at each aperture is equal to the mean
                sKsz[iMMax] = np.abs(np.mean(ratio))
 
@@ -1175,12 +1208,13 @@ class ThumbStack(object):
                # here the value at each aperture is equal to the mean
                KszToKsz[iMMax] = np.mean(ratio)
 
-               # expected error bar for the corresponding Mmax cut
+               # expected error tSZ bar for the corresponding Mmax cut
                ratio = self.sStackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)].copy()
-               ratio /= self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_tsz"]
+               ratio /= self.stackedProfile[filterType+"_"+est+"_theory_tsz"]
+               #ratio /= self.stackedProfile[filterType+"_"+est+"_mmax"+str(iMMax)+"_theory_tsz"]
                # here the value at each aperture is equal to the mean
                sTsz[iMMax] = np.abs(np.mean(ratio))
-
+   
 
             fig=plt.figure(0)
             ax=fig.add_subplot(111)
@@ -1202,6 +1236,7 @@ class ThumbStack(object):
             ax.fill_between(self.MMax, sKsz, edgecolor='', facecolor='gray', alpha=0.5, label='kSZ error bar')
             ax.fill_between(self.MMax, 0.1*sKsz, edgecolor='', facecolor='gray', alpha=0.3)
             #
+            ax.set_ylim((1.e-3, 10.))
             ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
             ax.set_xscale('log', nonposx='clip')
             ax.set_yscale('log', nonposy='clip')
@@ -1234,6 +1269,7 @@ class ThumbStack(object):
             ax.fill_between(self.MMax, sTsz, edgecolor='', facecolor='gray', alpha=0.5, label='tSZ error bar')
             ax.fill_between(self.MMax, 0.1*sTsz, edgecolor='', facecolor='gray', alpha=0.3)
             #
+            ax.set_ylim((1.e-3, 10.))
             ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
             ax.set_xscale('log', nonposx='clip')
             ax.set_yscale('log', nonposy='clip')

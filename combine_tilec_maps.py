@@ -27,40 +27,27 @@ import rotfuncs
 #########################################################################
 # path for figures and output
 
-# CMB
-pathFig = "./figures/cmb_map/tilec_pact_cmbksz/"
-pathOut = "./output/cmb_map/tilec_pact_cmbksz/"
-#
-pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_cmb_map_v1.1.0_joint.fits"
-pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_cmb_map_v1.1.0_joint.fits"
 
-## CMB no Y
-#pathFig = "./figures/cmb_map/tilec_pact_cmbksznoy/"
-#pathOut = "./output/cmb_map/tilec_pact_cmbksznoy/"
-##
-#pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_comptony_map_v1.1.0_joint.fits"
-#pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_comptony_map_v1.1.0_joint.fits"
+mapId = sys.argv[1]
 
-## CMB no CIB
-#pathFig = "./figures/cmb_map/tilec_pact_cmbksznocib/"
-#pathOut = "./output/cmb_map/tilec_pact_cmbksznocib/"
-##
-#pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_cib_map_v1.1.0_joint.fits"
-#pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_cib_map_v1.1.0_joint.fits"
+pathOut = "./output/cmb_map/tilec_" + mapId + "/"
+pathFig = "./figures/cmb_map/tilec_" + mapId + "/"
 
-## Y
-#pathFig = "./figures/cmb_map/tilec_pact_y/"
-#pathout = "./output/cmb_map/tilec_pact_y/"
-##
-#pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_comptony_map_v1.1.0_joint.fits"
-#pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_comptony_map_v1.1.0_joint.fits"
-
-## Y no CIB
-#pathFig = "./figures/cmb_map/tilec_pact_ynocib/"
-#pathout = "./output/cmb_map/tilec_pact_ynocib/"
-##
-#pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_comptony_deprojects_cib_map_v1.1.0_joint.fits"
-#pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_comptony_deprojects_cib_map_v1.1.0_joint.fits"
+if mapId=="cmbksz":
+   pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_cmb_map_v1.1.0_joint.fits"
+   pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_cmb_map_v1.1.0_joint.fits"
+elif mapId=="cmbksznoy":
+   pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_comptony_map_v1.1.0_joint.fits"
+   pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_comptony_map_v1.1.0_joint.fits"
+elif mapId=="cmbksznocib":
+   pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_cib_map_v1.1.0_joint.fits"
+   pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_cib_map_v1.1.0_joint.fits"
+elif mapId=="y": 
+   pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_comptony_map_v1.1.0_joint.fits"
+   pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_comptony_map_v1.1.0_joint.fits"
+elif mapId=="ynocib":
+   pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_comptony_deprojects_cib_map_v1.1.0_joint.fits"
+   pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_comptony_deprojects_cib_map_v1.1.0_joint.fits"
 
 
 
@@ -129,6 +116,7 @@ plot=enplot.plot(tilecMap, grid=True)
 enplot.write(pathFig+"map", plot)
 
 # Save the map now, to clear memory
+print "saving map to " + pathOut + "tilec_maps.fits"
 enmap.write_map(pathOut+"tilec_map.fits", tilecMap)
 
 
