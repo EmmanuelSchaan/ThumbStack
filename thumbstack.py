@@ -82,7 +82,7 @@ class ThumbStack(object):
       self.loadMMaxBins()
       
 #!!!! remove
-      save = False
+#      save = False
 
       if save:
          self.saveOverlapFlag(nProc=self.nProc)
@@ -95,13 +95,14 @@ class ThumbStack(object):
       self.measureAllVarFromHitCount(plot=save)
 
 #!!!! remove
-      save = True
+#      save = True
 
       if save:
          self.saveAllStackedProfiles()
       self.loadAllStackedProfiles()
 
 #!!!! remove
+      #save = True
       #self.plotAllStackedProfiles()
       #self.plotTszKszContaminationMMax()
 
@@ -544,6 +545,7 @@ class ThumbStack(object):
       '''
       if mVir is None:
          mVir = [self.mMin, self.mMax]
+
       # Here mask is 1 for objects we want to keep
       mask = np.ones_like(self.Catalog.RA)
       #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
@@ -582,7 +584,7 @@ class ThumbStack(object):
       To be used for noise weighting in the stacking.
       """
       # keep only objects that overlap, and mask point sources
-      mask = self.catalogMask(overlap=True, psMask=True, filterType=filterType)
+      mask = self.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=(self.Catalog.Mvir.min(), self.Catalog.Mvir.max()))
       # This array contains the true variances for each object and aperture 
       filtVarTrue = np.zeros((self.Catalog.nObj, self.nRAp))
 
@@ -772,7 +774,6 @@ class ThumbStack(object):
          weights = m[:,np.newaxis] * v[:,np.newaxis] / s2Full
          norm = np.mean(m) * np.std(v) / np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2 / s2Full, axis=0)
 
-
       # return the stacked profiles
       if not stackedMap:
          stack = norm * np.sum(t * weights, axis=0)
@@ -940,6 +941,7 @@ class ThumbStack(object):
                dataKsz = data.copy()
                for iMMax in range(self.nMMax):
                   mMax = self.MMax[iMMax]
+
                   # measured stacked profile
                   data[:,1+2*iMMax], data[:,1+2*iMMax+1] = self.computeStackedProfile(filterType, est, mVir=[1.e6, mMax]) # [map unit * sr]
                   # expcted from tSZ
@@ -1129,7 +1131,7 @@ class ThumbStack(object):
             self.plotTszKszContaminationMMax()
 
             for iEst in range(len(self.EstMBins)):
-               est = self.Est[iEst]
+               est = self.EstMBins[iEst]
                # measured stacked profiles
                estArr = [est+"_mmax"+str(iMMax) for iMMax in range(self.nMMax)] + [est]
                self.plotStackedProfile(filterType, estArr, name=filterType+"_"+est+"_mmax", theory=False, legend=False)
@@ -1148,20 +1150,13 @@ class ThumbStack(object):
       compare bias to signal and error bar,
       as a function of maximum mass in the galaxy sample.
       '''
-
       print "Plotting contamination as a function of MMax"
-      print self.filterTypes
-      print self.EstMBins
 
       for iFilterType in range(len(self.filterTypes)):
          filterType = self.filterTypes[iFilterType]
 
-         print filterType
-
          for iEst in range(len(self.EstMBins)):
             est = self.EstMBins[iEst]
-
-            print est
 
             TszToKsz = np.zeros(self.nMMax)
             KszToTsz = np.zeros(self.nMMax)
