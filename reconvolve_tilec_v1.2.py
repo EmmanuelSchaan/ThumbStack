@@ -29,8 +29,8 @@ import rotfuncs
 
 mapId = sys.argv[1]
 
-pathOut = "./output/cmb_map/tilec_" + mapId + "_v1.2.0/"
-pathFig = "./figures/cmb_map/tilec_" + mapId + "_v1.2.0/"
+pathOut = "./output/cmb_map/tilec_pact_" + mapId + "_v1.2.0/"
+pathFig = "./figures/cmb_map/tilec_pact_" + mapId + "_v1.2.0/"
 
 
 # CMB
@@ -38,10 +38,10 @@ if mapId=="cmbksz":
    pathMap = pathOut+"tilec_map.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_foot_planck_ps_car.fits"
 elif mapId=="cmbksz_d56":
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_cmb_map_v1.1.0_joint.fits"
+   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_foot_planck_ps_car.fits"
 elif mapId=="cmbksz_boss":
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_cmb_map_v1.1.0_joint.fits"
+   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_foot_planck_ps_car.fits"
 
 # CMB no y
@@ -49,10 +49,10 @@ elif mapId=="cmbksznoy":
    pathMap = pathOut+"tilec_map.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_foot_planck_ps_car.fits"
 elif mapId=="cmbksznoy_d56":
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_comptony_map_v1.1.0_joint.fits"
+   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_comptony_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_foot_planck_ps_car.fits"
 elif mapId=="cmbksznoy_boss":
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_comptony_map_v1.1.0_joint.fits"
+   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_comptony_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_foot_planck_ps_car.fits"
 
 # CMB no CIB
@@ -60,10 +60,10 @@ elif mapId=="cmbksznocib":
    pathMap = pathOut+"tilec_map.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_foot_planck_ps_car.fits"
 elif mapId=="cmbksznocib_d56":
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_cib_map_v1.1.0_joint.fits"
+   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_cib_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_foot_planck_ps_car.fits"
 elif mapId=="cmbksznoy_boss":
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_cib_map_v1.1.0_joint.fits"
+   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_cib_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_foot_planck_ps_car.fits"
 
 # y
@@ -71,10 +71,10 @@ elif mapId=="y":
    pathMap = pathOut+"tilec_map.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_foot_planck_ps_car.fits"
 elif mapId=="y_d56":
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_comptony_map_v1.1.0_joint.fits"
+   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_comptony_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_foot_planck_ps_car.fits"
 elif mapId=="y_boss":
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.1.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_comptony_map_v1.1.0_joint.fits"
+   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_comptony_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_foot_planck_ps_car.fits"
 
 # y no CIB
@@ -82,10 +82,10 @@ elif mapId=="ynocib":
    pathMap = pathOut+"tilec_map.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_foot_planck_ps_car.fits"
 elif mapId=="ynocib_d56":
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_20191127/map_v1.1.0_joint_deep56/tilec_single_tile_deep56_comptony_deprojects_cib_map_v1.1.0_joint.fits"
+   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_comptony_deprojects_cib_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_foot_planck_ps_car.fits"
 elif mapId=="ynocib_boss":
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.0.0_20191127/map_v1.1.0_joint_boss/tilec_single_tile_boss_comptony_deprojects_cib_map_v1.1.0_joint.fits"
+   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_comptony_deprojects_cib_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_foot_planck_ps_car.fits"
 
 

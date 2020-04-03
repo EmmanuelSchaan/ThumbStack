@@ -1,7 +1,13 @@
 #!/bin/bash
 
 
-## combine D56+BN into single maps
+
+# generate the masks for TileC BOSS N and D56
+#python read_map_tilec_pact_v1.2.py 'cmbksz_d56'
+#python read_map_tilec_pact_v1.2.py 'cmbksz_boss'
+
+
+# combine D56+BN into single maps
 #python combine_tilec_maps_v1.2.py "cmbksz"
 #python combine_tilec_maps_v1.2.py "cmbksznoy"
 #python combine_tilec_maps_v1.2.py "cmbksznocib"
