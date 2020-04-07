@@ -81,9 +81,6 @@ class ThumbStack(object):
       self.loadAPRadii()
       self.loadMMaxBins()
       
-#!!!! remove
-#      save = False
-
       if save:
          self.saveOverlapFlag(nProc=self.nProc)
       self.loadOverlapFlag()
@@ -94,17 +91,9 @@ class ThumbStack(object):
       
       self.measureAllVarFromHitCount(plot=save)
 
-#!!!! remove
-#      save = True
-
       if save:
          self.saveAllStackedProfiles()
       self.loadAllStackedProfiles()
-
-#!!!! remove
-      #save = True
-      #self.plotAllStackedProfiles()
-      #self.plotTszKszContaminationMMax()
 
       if save:
          self.plotAllStackedProfiles()

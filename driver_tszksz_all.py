@@ -58,10 +58,10 @@ catalogs = {
       #
       #"cmass_s_kendrick": Catalog(u, massConversion, name="cmass_s_kendrick", nameLong="CMASS S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_S_kendrick.txt", save=False),
       #"cmass_n_kendrick": Catalog(u, massConversion, name="cmass_n_kendrick", nameLong="CMASS N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_N_kendrick.txt", save=False),
-#      "cmass_kendrick": Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False),
+      "cmass_kendrick": Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False),
       #"lowz_s_kendrick": Catalog(u, massConversion, name="lowz_s_kendrick", nameLong="LOWZ S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_S_kendrick.txt", save=False),
       #"lowz_n_kendrick": Catalog(u, massConversion, name="lowz_n_kendrick", nameLong="LOWZ N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_N_kendrick.txt", save=False),
-#      "lowz_kendrick": Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False),
+      "lowz_kendrick": Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False),
       #"boss_kendrick": Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False)
       }
 
@@ -115,7 +115,15 @@ cmbMaps = {
          "./output/cmb_map/coadd/" + "coadd_hitmap_weighted_ivar.fits",
          name="coaddcmb20200228"),
       #
-      # TileC maps, reconvolved to 1.4' beam, combining BOSS N and D56
+      # TileC v1.2, reconvolved to 1.4' beam, combining BOSS N and D56
+      "tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_foot_planck_ps_car.fits",
+      name="tilecpactcmbksz"),
+      "tilecpactcmbksznoy": cmbMap("./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_foot_planck_ps_car.fits",
+      name="tilecpactcmbksznoy"),
+      #
+      # TileC v1.1, reconvolved to 1.4' beam, combining BOSS N and D56
 #      "tilecpactcmbksz_14": cmbMap("./output/cmb_map/tilec_pact_cmbksz/" + "tilec_reconv14_map.fits",
 #      "./output/cmb_map/tilec_pact_cmbksz/" + "mask_foot_planck_ps_car.fits",
 #      name="tilecpactcmbksz_14"),
@@ -207,7 +215,7 @@ reload(thumbstack)
 from thumbstack import *
 
 
-save = True
+save = False
 
 
 for cmbMapKey in cmbMaps.keys():

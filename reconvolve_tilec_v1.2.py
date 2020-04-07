@@ -118,8 +118,9 @@ carFullMask = enmap.read_map(pathCarFullMask)
 
 
 # beam sigmas in radians
-s14 = 1.4 * np.pi/(180.*60.)
-s16 = 1.4 * np.pi/(180.*60.)
+# convert from fwhm to sigma
+s14 = 1.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+s16 = 1.6 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
 
 # do the reconvolution in Fourier space
 tilecReconvF = enmap.fft(tilec)
