@@ -26,11 +26,11 @@ import rotfuncs
 
 
 # to use matplotlib and latex with jupyter
-from matplotlib import rc
-rc('text', usetex=True)
-rc('font', family='serif')
-get_ipython().run_line_magic('matplotlib', 'inline')
-import matplotlib.pyplot as plt
+#from matplotlib import rc
+#rc('text', usetex=True)
+#rc('font', family='serif')
+#get_ipython().run_line_magic('matplotlib', 'inline')
+#import matplotlib.pyplot as plt
 
 
 # In[17]:
@@ -152,11 +152,11 @@ if not os.path.exists(pathFig):
 
 
 # hit count at 150
-pathHit150 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_night_ivar.fits"
+pathHit150 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits"
 hit150 = enmap.read_map(pathHit150)[0]
 
 # hit count at 90
-pathHit90 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_night_ivar.fits"
+pathHit90 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits"
 hit90 = enmap.read_map(pathHit90)[0]
 
 

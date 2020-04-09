@@ -110,23 +110,35 @@ tStart = time()
 
 cmbMaps = {
       # Coadded PACT maps, daynight, 20200228
-      "coaddcmb20200228": cmbMap("./output/cmb_map/coadd/" + "coadd_hitmap_weighted.fits",
+#      "coaddcmb20200228": cmbMap("./output/cmb_map/coadd/" + "coadd_hitmap_weighted.fits",
+#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
+#         "./output/cmb_map/coadd/" + "coadd_hitmap_weighted_ivar.fits",
+#         name="coaddcmb20200228"),
+#      "coaddcmb20200228lmax9e3": cmbMap("./output/cmb_map/coadd/" + "coadd_hitmap_weighted_lmax9000.fits",
+#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
+#         "./output/cmb_map/coadd/" + "coadd_hitmap_weighted_lmax9000_ivar.fits",
+#         name="coaddcmb20200228lmax9e3"),
+#      "pactf150daynight20200228": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits",
+#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
+#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
+#         name="pactf150daynight20200228"),
+      "pactf90daynight20200228": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits",
          "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
-         "./output/cmb_map/coadd/" + "coadd_hitmap_weighted_ivar.fits",
-         name="coaddcmb20200228"),
+         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits",
+         name="pactf90daynight20200228"),
       #
       # TileC v1.2, reconvolved to 1.4' beam, combining BOSS N and D56
-      "tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv14_map.fits",
-      "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_foot_planck_ps_car.fits",
-      name="tilecpactcmbksz"),
-      "tilecpactcmbksznoy": cmbMap("./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "tilec_reconv14_map.fits",
-      "./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_foot_planck_ps_car.fits",
-      name="tilecpactcmbksznoy"),
+#      "tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv14_map.fits",
+#      "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_foot_planck_ps_car.fits",
+#      name="tilecpactcmbksz"),
+#      "tilecpactcmbksznoy": cmbMap("./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "tilec_reconv14_map.fits",
+#      "./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_foot_planck_ps_car.fits",
+#      name="tilecpactcmbksznoy"),
       #
-      # TileC v1.1, reconvolved to 1.4' beam, combining BOSS N and D56
-#      "tilecpactcmbksz_14": cmbMap("./output/cmb_map/tilec_pact_cmbksz/" + "tilec_reconv14_map.fits",
-#      "./output/cmb_map/tilec_pact_cmbksz/" + "mask_foot_planck_ps_car.fits",
-#      name="tilecpactcmbksz_14"),
+      ## TileC v1.1, reconvolved to 1.4' beam, combining BOSS N and D56
+      #"tilecpactcmbksz_14": cmbMap("./output/cmb_map/tilec_pact_cmbksz/" + "tilec_reconv14_map.fits",
+      #"./output/cmb_map/tilec_pact_cmbksz/" + "mask_foot_planck_ps_car.fits",
+      #name="tilecpactcmbksz_14"),
       #
       #
       ## PACT maps, night only, 20200228
@@ -215,7 +227,7 @@ reload(thumbstack)
 from thumbstack import *
 
 
-save = False
+save = True
 
 
 for cmbMapKey in cmbMaps.keys():
