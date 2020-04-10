@@ -170,6 +170,6 @@ enplot.write(pathFig+"foot_planck_ps_mask", plot)
 enmap.write_map(pathOut+"mask_foot_car.fits", tilecMask)
 enmap.write_map(pathOut+"mask_ps_car.fits", psMask)
 enmap.write_map(pathOut+"mask_planck_car.fits", planckMask)
-enmap.write_map(pathOut+"mask_foot_planck_ps_car.fits", carFullMask)
+enmap.write_map(pathOut+"mask_full_foot_gal_ps.fits", carFullMask)
 
 

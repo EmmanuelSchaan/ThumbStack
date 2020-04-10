@@ -1026,6 +1026,7 @@ class ThumbStack(object):
       np.savetxt(self.pathOut+"/cov_"+filterType+"_"+est+"_bootstrap.txt", covStack)
       
 
+
    def SaveCovBootstrapTwoStackedProfiles(self, ts2, filterType, est, mVir=None, z=[0., 100.], nSamples=100, nProc=1):
       """Estimate the full covariance for two stacked profiles.
       These may have the same/different catalogs, on the same/different temperature maps.
@@ -1040,11 +1041,9 @@ class ThumbStack(object):
          prof1 = self.computeStackedProfile(filterType, est, iBootstrap=iSample, mVir=mVir, z=z)
          prof2 = self.computeStackedProfile(filterType, est, iBootstrap=iSample, mVir=mVir, z=z, ts=ts2)
          # concatenate the 2 profiles
-         jointProf = np.concatenate((prof1[0,:], prof2[0,:]))
+         jointProf = np.concatenate((prof1[0], prof2[0]))
          return jointProf
          
-
-
       with sharedmem.MapReduce(np=nProc) as pool:
          stackSamples = np.array(pool.map(f, range(nSamples)))
          #result = np.array(map(f, range(nSamples)))
@@ -1053,7 +1052,10 @@ class ThumbStack(object):
       # estimate cov
       covStack = np.cov(stackSamples, rowvar=False)
       # save it to file
-      np.savetxt(self.pathOut+"/cov_"+filterType+"_"+est+"joint_"+self.name+"_"+ts2.name+"_bootstrap.txt", covStack)
+      path = self.pathOut+"/cov_"+filterType+"_"+est+"_joint_"+self.name+"_"+ts2.name+"_bootstrap.txt"
+      print "saving to:"
+      print path
+      np.savetxt(path, covStack)
       
 
       
@@ -1135,6 +1137,18 @@ class ThumbStack(object):
             data[:,1], data[:,2] = self.computeStackedProfile(filterType, est, tTh='ksz') # [map unit * sr]
             np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_theory_ksz.txt", data)
 
+         # covariance matrices from bootstrap,
+         # only for a few select estimators
+         for iEst in range(len(self.EstBootstrap)):
+            est = self.EstBootstrap[iEst]
+            self.SaveCovBootstrapStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
+
+         # covariance matrices from shuffling velocities,
+         # for ksz only
+         for iEst in range(len(self.EstVShuffle)):
+            est = self.EstVShuffle[iEst]
+            self.SaveCovVShuffleStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
+
 
       # Stacked profiles in mass bins, to check for contamination
       if self.doMBins:
@@ -1162,17 +1176,20 @@ class ThumbStack(object):
                np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_mmax_theory_ksz.txt", dataKsz)
 
 
+   def saveAllCovBootstrapTwoStackedProfiles(self, ts2):
+      print "- compute full joint cov between stacked profiles from:"
+      print self.name
+      print ts2.name
+      
+      # Compute all filter types
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+
          # covariance matrices from bootstrap,
          # only for a few select estimators
          for iEst in range(len(self.EstBootstrap)):
             est = self.EstBootstrap[iEst]
-            self.SaveCovBootstrapStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
-
-         # covariance matrices from shuffling velocities,
-         # for ksz only
-         for iEst in range(len(self.EstVShuffle)):
-            est = self.EstVShuffle[iEst]
-            self.SaveCovVShuffleStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
+            self.SaveCovBootstrapTwoStackedProfiles(ts2, filterType, est, nSamples=100, nProc=min(8,self.nProc))
 
 
    def loadAllStackedProfiles(self):
@@ -1234,6 +1251,7 @@ class ThumbStack(object):
          for iEst in range(len(self.EstVShuffle)):
             est = self.EstVShuffle[iEst]
             self.covVShuffle[filterType+"_"+est] = np.genfromtxt(self.pathOut+"/cov_"+filterType+"_"+est+"_vshuffle.txt")
+
 
 
    ##################################################################################

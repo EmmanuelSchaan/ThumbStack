@@ -36,57 +36,57 @@ pathFig = "./figures/cmb_map/tilec_pact_" + mapId + "_v1.2.0/"
 # CMB
 if mapId=="cmbksz":
    pathMap = pathOut+"tilec_map.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_full_foot_gal_ps.fits"
 elif mapId=="cmbksz_d56":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_map_v1.2.0_joint.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 elif mapId=="cmbksz_boss":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_map_v1.2.0_joint.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 
 # CMB no y
 elif mapId=="cmbksznoy":
    pathMap = pathOut+"tilec_map.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_full_foot_gal_ps.fits"
 elif mapId=="cmbksznoy_d56":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_comptony_map_v1.2.0_joint.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 elif mapId=="cmbksznoy_boss":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_comptony_map_v1.2.0_joint.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 
 # CMB no CIB
 elif mapId=="cmbksznocib":
    pathMap = pathOut+"tilec_map.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_full_foot_gal_ps.fits"
 elif mapId=="cmbksznocib_d56":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_cib_map_v1.2.0_joint.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 elif mapId=="cmbksznoy_boss":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_cib_map_v1.2.0_joint.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 
 # y
 elif mapId=="y":
    pathMap = pathOut+"tilec_map.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_full_foot_gal_ps.fits"
 elif mapId=="y_d56":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_comptony_map_v1.2.0_joint.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 elif mapId=="y_boss":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_comptony_map_v1.2.0_joint.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 
 # y no CIB
 elif mapId=="ynocib":
    pathMap = pathOut+"tilec_map.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_full_foot_gal_ps.fits"
 elif mapId=="ynocib_d56":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_comptony_deprojects_cib_map_v1.2.0_joint.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 elif mapId=="ynocib_boss":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_comptony_deprojects_cib_map_v1.2.0_joint.fits"
-   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_foot_planck_ps_car.fits"
+   pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 
 
 
