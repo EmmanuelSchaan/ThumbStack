@@ -585,14 +585,17 @@ class ThumbStack(object):
             y = self.filtMap[filterType][mask, iRAp].copy()
             y = (y - np.mean(y))**2
 
-#            # define bins of hit count values
-#            nBins = 11
-#            BinsX = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
+            # define bins of hit count values
+            nBins = 21
+            binEdges = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
 
-            # define bins of hit count values,
-            # with an equal number of objects in each bin
-            nBins = 10
-            binEdges = splitBins(x, nBins)
+#            # define bins of hit count values,
+#            # with an equal number of objects in each bin
+#            nBins = 10
+#            binEdges = splitBins(x, nBins)
+#            print "bin edges"
+#            print binEdges
+#            print np.min(x), np.max(x)
             
             # compute histograms
             binCenters, binEdges, binIndices = stats.binned_statistic(x, x, statistic='mean', bins=binEdges)
@@ -600,6 +603,20 @@ class ThumbStack(object):
             binnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.mean, bins=binEdges)
             sBinnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.std, bins=binEdges)
             sBinnedVar /= np.sqrt(binCounts)
+
+#            # get rid of nan from empty bins
+#            binCenters = np.nan_to_num(binCenters)
+#            binCounts = np.nan_to_num(binCounts)
+#            binnedVar = np.nan_to_num(binnedVar)
+#            sBinnedVar = np.nan_to_num(sBinnedVar)
+
+            # exclude the empty bins, which did not contain data
+            I = np.where(np.isfinite(binCenters * binCounts * binnedVar * sBinnedVar))[0]
+            binCenters = binCenters[I]
+            binCounts = binCounts[I]
+            binnedVar = binnedVar[I]
+            sBinnedVar = sBinnedVar[I]
+            
             
             # interpolate, to use as noise weighting
             fVarFromHitCount[iRAp] = interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) 

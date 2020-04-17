@@ -264,6 +264,7 @@ import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
+#ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 
 save = True
 
@@ -281,16 +282,18 @@ for catalogKey in catalogs.keys():
       print("Analyzing map "+cmbName)
       name = catalog.name + "_" + cmbName
 
-      try:
-         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
-      except:
-         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
+      ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
+
+#      try:
+#         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
+#      except:
+#         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
 
 
    # compute the joint cov
    if save:
       ts['150'].saveAllCovBootstrapTwoStackedProfiles(ts['90'])
-   if True:
+   if save:
       ts['150'].plotAllCovTwoStackedProfiles(ts['90'])
 
 
