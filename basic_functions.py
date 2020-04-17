@@ -220,3 +220,30 @@ def my2dHistogram(X, Y, nBins=(71, 71), limx=None, limy=None, limc=None, fTheory
    else:
       fig.clf()
 
+
+def splitBins(x, nBins):
+   '''Give the nBins+1 edges of the nBins bins,
+   such that there is an equal number of elements of x
+   in each bin.
+   '''
+   nBins = np.int(nBins)
+   # sort the x values
+   xSorted = np.sort(x)
+   # corresponding probability
+   proba = 1. * np.arange(len(x)) / (len(x) - 1)
+   # interpolate the CDF
+   # scipy is smart: even if twice the same x appears,
+   # it will know to give the interpolating function the right jump
+   cdf = interp1d(xSorted, proba, kind='linear', bounds_error=False, fill_value=(0., 1.))
+
+   # fill an array with the z-bounds of the bins
+   binEdges = np.zeros(nBins+1)
+   binEdges[0] = np.min(x)
+   binEdges[-1] = np.max(x)
+   for iBin in range(nBins-1):
+      # force equal number of objects per bins
+      f = lambda xMax: cdf(xMax) - (iBin+1.)/nBins
+      binEdges[iBin+1] = optimize.brentq(f , binEdges[0], binEdges[-1])
+   return binEdges
+
+

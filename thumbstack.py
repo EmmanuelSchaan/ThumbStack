@@ -585,15 +585,20 @@ class ThumbStack(object):
             y = self.filtMap[filterType][mask, iRAp].copy()
             y = (y - np.mean(y))**2
 
-            # define bins of hit count values
-            nBins = 11
-            BinsX = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
+#            # define bins of hit count values
+#            nBins = 11
+#            BinsX = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
+
+            # define bins of hit count values,
+            # with an equal number of objects in each bin
+            nBins = 10
+            binEdges = splitBins(x, nBins)
             
             # compute histograms
-            binCenters, binEdges, binIndices = stats.binned_statistic(x, x, statistic='mean', bins=BinsX)
-            binCounts, binEdges, binIndices = stats.binned_statistic(x, x, statistic='count', bins=BinsX)
-            binnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.mean, bins=BinsX)
-            sBinnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.std, bins=BinsX)
+            binCenters, binEdges, binIndices = stats.binned_statistic(x, x, statistic='mean', bins=binEdges)
+            binCounts, binEdges, binIndices = stats.binned_statistic(x, x, statistic='count', bins=binEdges)
+            binnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.mean, bins=binEdges)
+            sBinnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.std, bins=binEdges)
             sBinnedVar /= np.sqrt(binCounts)
             
             # interpolate, to use as noise weighting
@@ -1584,6 +1589,110 @@ class ThumbStack(object):
             self.plotCov(self.covVShuffle[filterType+"_"+est], filterType+"_"+est+"_vshuffle")
 
 
+   ##################################################################################
+
+
+   def plotCovTwoStackedProfiles(self, cov, name="", show=False):
+
+      RApArcmin = np.concatenate((self.RApArcmin, self.RApArcmin))
+      X, Y = np.meshgrid(RApArcmin, RApArcmin, indexing='ij')
+      #
+      # corresponding indices (for masks)
+      I = np.arange(len(RApArcmin))
+      II, JJ = np.meshgrid(I, I, indexing='ij')
+
+
+      # Covariance matrix
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # Covariance  matrix
+      covLower = np.ma.masked_where(II<JJ, cov)
+      cp=ax.imshow(covLower, cmap='YlOrRd')#vmin=0., vmax=1.
+      plt.colorbar(cp)
+      #
+      ax.axhline(0.5 * I[-1], c='k')
+      ax.axvline(0.5 * I[-1], c='k')
+      #
+      ax.set_xticks(np.arange(len(RApArcmin)))
+      ax.set_yticks(np.arange(len(RApArcmin)))
+      ax.set_xticklabels(RApArcmin, fontdict={'fontsize': 10}, rotation=45)
+      ax.set_yticklabels(RApArcmin, fontdict={'fontsize': 10})
+      ax.set_aspect('equal')
+      ax.set_xlabel(r'R [arcmin]')
+      ax.set_ylabel(r'R [arcmin]')
+      #
+      path = self.pathFig+"/cov_joint_"+name+".pdf"
+      print "Saving cov plot to:"
+      print path
+      fig.savefig(path, bbox_inches='tight')
+      if show:
+         plt.show()
+      else:
+         fig.clf()
+
+      # Correlation coefficients
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # Correlation coefficients
+      sigma = np.sqrt(np.diag(cov))
+      cor = np.array([[cov[i1, i2] / (sigma[i1]*sigma[i2]) for i2 in I] for i1 in I])
+      corLower = np.ma.masked_where(II<JJ, cor)
+      cp=ax.imshow(corLower, cmap='YlGnBu', vmin=0., vmax=1.)
+      cb=plt.colorbar(cp)
+      #
+      ax.axhline(0.5 * I[-1], c='k')
+      ax.axvline(0.5 * I[-1], c='k')
+      #
+      ax.set_xticks(np.arange(len(RApArcmin)))
+      ax.set_yticks(np.arange(len(RApArcmin)))
+      ax.set_xticklabels(RApArcmin, fontdict={'fontsize': 10}, rotation=45)
+      ax.set_yticklabels(RApArcmin, fontdict={'fontsize': 10})
+      ax.set_aspect('equal')
+      ax.set_xlabel(r'R [arcmin]')
+      ax.set_ylabel(r'R [arcmin]')
+      #
+      path = self.pathFig+"/cor_joint_"+name+".pdf"
+      print "Saving cor plot to:"
+      print path
+      fig.savefig(path, bbox_inches='tight')
+      if show:
+         plt.show()
+      else:
+         fig.clf()
+
+
+
+   def plotAllCovTwoStackedProfiles(self, ts2):
+      print "- plot all full joint cov between stacked profiles from:"
+      print self.name
+      print ts2.name
+      
+      # Compute all filter types
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+
+         # covariance matrices from bootstrap,
+         # only for a few select estimators
+         for iEst in range(len(self.EstBootstrap)):
+            est = self.EstBootstrap[iEst]
+
+            # read cov from file
+            pathCov = self.pathOut+"/cov_"+filterType+"_"+est+"_joint_"+self.name+"_"+ts2.name+"_bootstrap.txt"
+            print "Reading joint cov from:"
+            print pathCov
+            cov = np.genfromtxt(pathCov)
+            name = filterType+"_"+est+"_"+self.name+"_"+ts2.name+"_bootstrap"
+            self.plotCovTwoStackedProfiles(cov, name=name, show=False)
+
+
+
+
+
+
+
+   
    ##################################################################################
 
    def ftheoryGaussianProfile(self, sigma_cluster, filterType='diskring'):

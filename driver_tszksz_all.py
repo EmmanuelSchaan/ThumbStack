@@ -286,7 +286,28 @@ for catalogKey in catalogs.keys():
       except:
          ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
 
-   ts['150'].saveAllCovBootstrapTwoStackedProfiles(ts['90'])
+
+   # compute the joint cov
+   if save:
+      ts['150'].saveAllCovBootstrapTwoStackedProfiles(ts['90'])
+   if True:
+      ts['150'].plotAllCovTwoStackedProfiles(ts['90'])
+
+
+###################################################################################
+# Create summary plots
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
