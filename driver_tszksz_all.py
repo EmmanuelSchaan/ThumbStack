@@ -23,7 +23,7 @@ from cmb import *
 #salloc -N 1 --qos=interactive -C haswell -t 04:00:00 -L SCRATCH
 
 # for cori
-plt.switch_backend('Agg')
+#plt.switch_backend('Agg')
 
 
 ##################################################################################
@@ -283,26 +283,137 @@ for catalogKey in catalogs.keys():
       name = catalog.name + "_" + cmbName
 
       ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
-
 #      try:
 #         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 #      except:
 #         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
 
 
+   ###################################################################################
+   # Joint covariance between 150 and 90
+
    # compute the joint cov
    if save:
       ts['150'].saveAllCovBootstrapTwoStackedProfiles(ts['90'])
-   if save:
-      ts['150'].plotAllCovTwoStackedProfiles(ts['90'])
+
+   ts['150'].plotAllCovTwoStackedProfiles(ts['90'])
+
+
+   ###################################################################################
+   # Summary kSZ and tSZ at 150 and 90
+
+
+   # kSZ plot at 150 and 90
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   # convert from sr to arcmin^2
+   factor = (180.*60./np.pi)**2
+   #
+   ax.axhline(0., c='k', lw=1)
+   #
+   ax.errorbar(ts['150'].RApArcmin, factor * ts['150'].stackedProfile["diskring_ksz_varweight"], factor * ts['150'].sStackedProfile["diskring_ksz_varweight"], fmt='-', c='royalblue', label='150GHz')
+   ax.errorbar(ts['150'].RApArcmin + 0.05, factor * ts['90'].stackedProfile["diskring_ksz_varweight"], factor * ts['90'].sStackedProfile["diskring_ksz_varweight"], fmt='-', c='darkviolet', label='90GHz')
+   #
+   ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_title(r'kSZ profile')
+   ax.set_ylim((0., 10.))
+   #
+   path = ts['150'].pathFig+"/summary_ksz_150_90_"+catalogKey+".pdf"
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
+
+
+   # tSZ plot at 150 and 90
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   # convert from sr to arcmin^2
+   factor = (180.*60./np.pi)**2
+   #
+   ax.axhline(0., c='k', lw=1)
+   #
+   ax.errorbar(ts['150'].RApArcmin, factor * ts['150'].stackedProfile["diskring_tsz_varweight"], factor * ts['150'].sStackedProfile["diskring_tsz_varweight"], fmt='-', c='royalblue', label='150GHz')
+   ax.errorbar(ts['90'].RApArcmin + 0.05, factor * ts['90'].stackedProfile["diskring_tsz_varweight"], factor * ts['90'].sStackedProfile["diskring_tsz_varweight"], fmt='-', c='darkviolet', label='90GHz')
+   #
+   ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_title(r'tSZ profile')
+   #ax.set_ylim((0., 2.))
+   #
+   path = ts['150'].pathFig+"/summary_tsz_150_90"+catalogKey+".pdf"
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
 
 
 ###################################################################################
-# Create summary plots
+###################################################################################
+# Null tests
+
+# read the stacks on mock GRFs, to compare
+pathMockGRF = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
+iMock0 = 0
+nMocks = 800
+est = 'ksz_varweight'
+#
+meanStackedGRF = np.genfromtxt(pathMockGRF+"mean_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
+covStackedGRF = np.genfromtxt(pathMockGRF+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
+sStackedGRF = np.sqrt(np.diag(covStackedProfile['diskring_'+est])) / np.sqrt(nMocks)
+
+
+      
+for freq in ['90', '150']:
+   cmbMapKey = "pactf"+freq+"daynight20200228maskgal60"
+   cmbMap = cmbMaps[cmbMapKey].map()
+   cmbMask = cmbMaps[cmbMapKey].mask()
+   cmbHit = cmbMaps[cmbMapKey].hit()
+   cmbName = cmbMaps[cmbMapKey].name
+   print("Analyzing map "+cmbName)
+   name = catalog.name + "_" + cmbName
+
+   ts = {}
+   for catalogKey in ['cmass_mariana', 'cmass_kendrick']:#catalogs.keys():
+      catalog = catalogs[catalogKey]
+      print("Analyzing catalog "+catalog.name)
+      ts[catalogKey] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 
 
 
-
+   # kSZ plot
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   # convert from sr to arcmin^2
+   factor = (180.*60./np.pi)**2
+   #
+   ax.axhline(0., c='k', lw=1)
+   #
+   # Uncertainty band
+   ax.fill_between(ts['cmass_mariana'].RApArcmin, - factor * ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight"], factor * ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight"], edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+   #
+   # V-shuffle mean
+   ax.errorbar(ts['cmass_mariana'].RApArcmin, factor * ts['cmass_mariana'].stackedProfile["diskring_ksz_varweight_vshufflemean"], factor * ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight_vshufflemean"], fmt='-', c='b', label='shuffled v')
+   #
+   # Mariana - Kendrick
+   ax.plot(ts['cmass_mariana'].RApArcmin, factor * (ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight"] - ts['cmass_kendrick'].sStackedProfile["diskring_ksz_varweight"]), 'b-', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
+   #
+   # Average of many mocks
+   ax.errorbar(ts['cmass_mariana'], factor * meanStackedGRF, yerr=factor*sStackedGRF, fmt='-', c='g', label=r'mean of '+str(nMocks)+' mocks')
+   #
+   ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_ylim((0., 10.))
+   #
+   path = ts['150'].pathFig+"/nulltests_ksz_"+freq+"_cmass.pdf"
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
 
 
 

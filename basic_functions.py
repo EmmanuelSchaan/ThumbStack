@@ -137,6 +137,13 @@ def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=False, nameL
       histGaussFit = np.array(map(g, range(nBins-1)))
       histGaussFit *= len(X)
       ax.step(Bins[:-1], histGaussFit, color='g', lw=3, where='post', label=r'Gaussian')
+      #
+      ax.axvline(1.*std, c='g', ls='--')
+      ax.axvline(3.*std, c='g', ls='--')
+      ax.axvline(5.*std, c='g', ls='--')
+      ax.axvline(-1.*std, c='g', ls='--')
+      ax.axvline(-3.*std, c='g', ls='--')
+      ax.axvline(-5.*std, c='g', ls='--')
    #
    # Theory histogram
    for s2Theory in S2Theory:
@@ -153,7 +160,14 @@ def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=False, nameL
       ax.set_xscale('log', nonposx='clip')
    if semilogy:
       ax.set_yscale('log', nonposy='clip')
-   ax.set_ylim((0.5*np.min(histX[histX>0]), 2.*np.max(histX)))
+   #
+   if doGauss:
+      yMin = min(histGaussFit.min(), 0.5*np.min(histX[histX>0]))
+      yMax = max(histGaussFit.max(), 2.*np.max(histX))
+   else:
+      yMin = 0.5*np.min(histX[histX>0])
+      yMax = 2.*np.max(histX)
+   ax.set_ylim((yMin, yMax))
    ax.set_xlabel(nameLatex)
    ax.set_ylabel(r'number of objects')
    if path is not None:

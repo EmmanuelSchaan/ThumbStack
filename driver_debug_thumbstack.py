@@ -146,3 +146,42 @@ ts = tsVelDiracVShuffleSmall
 #ts.plotTszKszContaminationMMax()
 #mMax = 1.e15
 #prof, sprof  = ts.computeStackedProfile('diskring', 'ksz_varweight', mVir=[1.e6, mMax]) # [map unit * sr]
+
+
+
+
+'''
+def checkFilterHistograms(filterType, est, mVir=None, z=[0., 100.], ts=None):
+   if ts is None:
+      ts = ts
+   if mVir is None:
+      mVir = [ts.mMin, ts.mMax]
+
+   # select objects that overlap, and reject point sources
+   mask = ts.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=mVir, z=z)
+
+   # aperture photometry filters
+   t = ts.filtMap[filterType].copy() # [muK * sr]
+   t = t[mask, :]
+   # convert from sr to arcmin^2
+   factor = (180.*60./np.pi)**2
+   t *= factor
+
+   #true filter variance for each object and aperture,
+   # valid whether or not a hit count map is available
+   s2Full = ts.filtVarTrue[filterType][mask, :]
+   # Variance from hit count (if available)
+   s2Hit = ts.filtHitNoiseStdDev[filterType][mask, :]**2
+
+
+   for iRAp in range(ts.nRAp):
+
+      path = ts.pathFig + "/histogram_t_"+filterType+"_uniformweight_"+str(iRAp)+".pdf"
+      myHistogram(t[:,iRAp], nBins=101, lim=None, S2Theory=[], path=path, plot=False, nameLatex=r'$T_i$ [$\mu$K$\cdot$arcmin$^2$]', semilogx=False, semilogy=True, doGauss=True)
+
+      path = ts.pathFig + "/histogram_t_"+filterType+"_varweight_"+str(iRAp)+".pdf"
+      myHistogram(t[:,iRAp] / s2Full[:,iRAp], nBins=101, lim=None, S2Theory=[], path=path, plot=False, nameLatex=r'$T_i/\sigma_T^2_i$', semilogx=False, semilogy=True, doGauss=True)
+
+
+checkFilterHistograms('diskring', 'ksz_varweight', mVir=None, z=[0., 100.], ts=ts)
+'''

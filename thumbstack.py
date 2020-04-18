@@ -91,7 +91,7 @@ class ThumbStack(object):
       
       self.measureAllVarFromHitCount(plot=save)
 
-      if save:
+      if True:
          self.saveAllStackedProfiles()
       self.loadAllStackedProfiles()
 
@@ -586,7 +586,7 @@ class ThumbStack(object):
             y = (y - np.mean(y))**2
 
             # define bins of hit count values
-            nBins = 21
+            nBins = 10  #21
             binEdges = np.logspace(np.log10(np.min(x)), np.log10(np.max(x)), nBins, 10.)
 
 #            # define bins of hit count values,
@@ -604,19 +604,12 @@ class ThumbStack(object):
             sBinnedVar, binEdges, binIndices = stats.binned_statistic(x, y, statistic=np.std, bins=binEdges)
             sBinnedVar /= np.sqrt(binCounts)
 
-#            # get rid of nan from empty bins
-#            binCenters = np.nan_to_num(binCenters)
-#            binCounts = np.nan_to_num(binCounts)
-#            binnedVar = np.nan_to_num(binnedVar)
-#            sBinnedVar = np.nan_to_num(sBinnedVar)
-
             # exclude the empty bins, which did not contain data
             I = np.where(np.isfinite(binCenters * binCounts * binnedVar * sBinnedVar))[0]
             binCenters = binCenters[I]
             binCounts = binCounts[I]
             binnedVar = binnedVar[I]
             sBinnedVar = sBinnedVar[I]
-            
             
             # interpolate, to use as noise weighting
             fVarFromHitCount[iRAp] = interp1d(binCenters, binnedVar, kind='linear', bounds_error=False, fill_value=(binnedVar[0],binnedVar[-1])) 
@@ -1027,6 +1020,49 @@ class ThumbStack(object):
 
    ##################################################################################
 
+
+
+   def plotFilterHistograms(self, filterType, mVir=None, z=[0., 100.], ts=None):
+      '''Plot histograms of the AP filter values,
+      for each AP filter size,
+      and compare with the Gaussian expectation.
+      This enables checking for outliers.
+      '''
+      if ts is None:
+         ts = self
+      if mVir is None:
+         mVir = [ts.mMin, ts.mMax]
+
+      # select objects that overlap, and reject point sources
+      mask = ts.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=mVir, z=z)
+
+      # aperture photometry filters
+      t = ts.filtMap[filterType].copy() # [muK * sr]
+      t = t[mask, :]
+      # convert from sr to arcmin^2
+      factor = (180.*60./np.pi)**2
+      t *= factor
+
+      #true filter variance for each object and aperture,
+      # valid whether or not a hit count map is available
+      s2Full = ts.filtVarTrue[filterType][mask, :]
+      # Variance from hit count (if available)
+      s2Hit = ts.filtHitNoiseStdDev[filterType][mask, :]**2
+
+
+      for iRAp in range(ts.nRAp):
+         # Raw temperatures
+         path = ts.pathFig + "/histogram_t_"+filterType+"_uniformweight_"+str(iRAp)+".pdf"
+         myHistogram(t[:,iRAp], nBins=101, lim=None, S2Theory=[], path=path, plot=False, nameLatex=r'$T_i$ [$\mu$K$\cdot$arcmin$^2$]', semilogx=False, semilogy=True, doGauss=True)
+         
+         # inverse variance weighted temperatures
+         path = ts.pathFig + "/histogram_t_"+filterType+"_varweight_"+str(iRAp)+".pdf"
+         myHistogram(t[:,iRAp] / s2Full[:,iRAp], nBins=101, lim=None, S2Theory=[], path=path, plot=False, nameLatex=r'$T_i/\sigma_{T, i}^2$', semilogx=False, semilogy=True, doGauss=True)
+
+
+
+   ##################################################################################
+
    def SaveCovBootstrapStackedProfile(self, filterType, est, mVir=None, z=[0., 100.], nSamples=100, nProc=1):
       """Estimate covariance matrix for the stacked profile from bootstrap resampling
       """
@@ -1058,7 +1094,6 @@ class ThumbStack(object):
          mVir = [self.mMin, self.mMax]
       tStart = time()
       
-      
       def f(iSample):
          prof1 = self.computeStackedProfile(filterType, est, iBootstrap=iSample, mVir=mVir, z=z)
          prof2 = self.computeStackedProfile(filterType, est, iBootstrap=iSample, mVir=mVir, z=z, ts=ts2)
@@ -1080,7 +1115,18 @@ class ThumbStack(object):
       np.savetxt(path, covStack)
       
 
-      
+   def saveAllCovBootstrapTwoStackedProfiles(self, ts2):
+      print "- compute full joint cov between stacked profiles from:"
+      print self.name
+      print ts2.name
+      # Compute all filter types
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+         # covariance matrices from bootstrap,
+         # only for a few select estimators
+         for iEst in range(len(self.EstBootstrap)):
+            est = self.EstBootstrap[iEst]
+            self.SaveCovBootstrapTwoStackedProfiles(ts2, filterType, est, nSamples=100, nProc=min(8,self.nProc))
 
 
 
@@ -1102,6 +1148,13 @@ class ThumbStack(object):
       covStack = np.cov(stackSamples, rowvar=False)
       # save it to file
       np.savetxt(self.pathOut+"/cov_"+filterType+"_"+est+"_vshuffle.txt", covStack)
+
+      # Null test: measure mean
+      data = np.zeros((self.nRAp, 3))
+      data[:,0] = self.RApArcmin
+      data[:,1] = np.mean(stackSamples, axis=0) # mean of the shuffled stacks
+      data[:,2] = np.sqrt(np.diag(covStack)) / np.sqrt(nSamples) # uncertainty on the mean
+      np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_vshufflemean.txt", data)
 
 
    ##################################################################################
@@ -1145,6 +1198,10 @@ class ThumbStack(object):
       # Compute all filter types and estimators
       for iFilterType in range(len(self.filterTypes)):
          filterType = self.filterTypes[iFilterType]
+
+         # check AP filter histograms
+         self.plotFilterHistograms(filterType)
+
 
          # Estimators (tSZ, kSZ, various weightings...)
          for iEst in range(len(self.Est)):
@@ -1198,21 +1255,6 @@ class ThumbStack(object):
                np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_mmax_theory_ksz.txt", dataKsz)
 
 
-   def saveAllCovBootstrapTwoStackedProfiles(self, ts2):
-      print "- compute full joint cov between stacked profiles from:"
-      print self.name
-      print ts2.name
-      
-      # Compute all filter types
-      for iFilterType in range(len(self.filterTypes)):
-         filterType = self.filterTypes[iFilterType]
-
-         # covariance matrices from bootstrap,
-         # only for a few select estimators
-         for iEst in range(len(self.EstBootstrap)):
-            est = self.EstBootstrap[iEst]
-            self.SaveCovBootstrapTwoStackedProfiles(ts2, filterType, est, nSamples=100, nProc=min(8,self.nProc))
-
 
    def loadAllStackedProfiles(self):
       print "- load stacked profiles and their cov"
@@ -1239,6 +1281,16 @@ class ThumbStack(object):
             data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_theory_ksz.txt")
             self.stackedProfile[filterType+"_"+est+"_theory_ksz"] = data[:,1]
             self.sStackedProfile[filterType+"_"+est+"_theory_ksz"] = data[:,2]
+
+         # Null tests from shuffling velocities,
+         # for ksz only
+         for iEst in range(len(self.EstVShuffle)):
+            est = self.EstVShuffle[iEst]
+            # null test from shuffling the velocities
+            data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_vshufflemean.txt")
+            self.stackedProfile[filterType+"_"+est+"_vshufflemean"] = data[:,1]
+            self.sStackedProfile[filterType+"_"+est+"_vshufflemean"] = data[:,2]
+
 
 
          # stacked profiles in mass bins
@@ -1471,6 +1523,7 @@ class ThumbStack(object):
             ax.plot(self.MMax, -KszToKsz, 'b--')
             ax.plot(self.MMax, 0.1*KszToKsz, 'b', alpha=0.3)
             ax.plot(self.MMax, -0.1*KszToKsz, 'b--', alpha=0.3)
+            ax.plot([self.mMax], [1.], 'bo')
             #
             ax.plot(self.MMax, TszToKsz, 'r', label='tSZ bias to kSZ')
             ax.plot(self.MMax, -TszToKsz, 'r--')
@@ -1478,13 +1531,13 @@ class ThumbStack(object):
             ax.fill_between(self.MMax, sKsz, edgecolor='', facecolor='gray', alpha=0.5, label='kSZ error bar')
             ax.fill_between(self.MMax, 0.1*sKsz, edgecolor='', facecolor='gray', alpha=0.3)
             #
+            ax.set_xlim((self.MMax[1], self.MMax.max()))
             ax.set_ylim((1.e-3, 10.))
             ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
             ax.set_xscale('log', nonposx='clip')
             ax.set_yscale('log', nonposy='clip')
             ax.set_xlabel(r'$M_\text{vir max}$ [$M_\odot$]')
-            #ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
-            #ax.set_ylim((0., 2.))
+            ax.set_ylabel(r'Fraction of expected kSZ')
             #
             name = filterType+"_"+est+"_mmax_tsztoksz"
             path = self.pathFig+"/"+name+".pdf"
@@ -1504,6 +1557,7 @@ class ThumbStack(object):
             ax.plot(self.MMax, -TszToTsz, 'b--')
             ax.plot(self.MMax, 0.1*TszToTsz, 'b', alpha=0.3)
             ax.plot(self.MMax, -0.1*TszToTsz, 'b--', alpha=0.3)
+            ax.plot([self.mMax], [1.], 'bo')
             #
             ax.plot(self.MMax, KszToTsz, 'r', label='kSZ bias to tSZ')
             ax.plot(self.MMax, -KszToTsz, 'r--')
@@ -1511,13 +1565,13 @@ class ThumbStack(object):
             ax.fill_between(self.MMax, sTsz, edgecolor='', facecolor='gray', alpha=0.5, label='tSZ error bar')
             ax.fill_between(self.MMax, 0.1*sTsz, edgecolor='', facecolor='gray', alpha=0.3)
             #
+            ax.set_xlim((self.MMax[1], self.MMax.max()))
             ax.set_ylim((1.e-3, 10.))
             ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
             ax.set_xscale('log', nonposx='clip')
             ax.set_yscale('log', nonposy='clip')
             ax.set_xlabel(r'$M_\text{vir max}$ [$M_\odot$]')
-            #ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
-            #ax.set_ylim((0., 2.))
+            ax.set_ylabel(r'Fraction of expected tSZ')
             #
             name = filterType+"_"+est+"_mmax_ksztotsz"
             path = self.pathFig+"/"+name+".pdf"
@@ -1610,6 +1664,9 @@ class ThumbStack(object):
 
 
    def plotCovTwoStackedProfiles(self, cov, name="", show=False):
+      '''For the figure captions, it is assumed that the first stack
+      is at 150GHz, the second at 90GHz.
+      '''
 
       RApArcmin = np.concatenate((self.RApArcmin, self.RApArcmin))
       X, Y = np.meshgrid(RApArcmin, RApArcmin, indexing='ij')
@@ -1631,6 +1688,10 @@ class ThumbStack(object):
       ax.axhline(0.5 * I[-1], c='k')
       ax.axvline(0.5 * I[-1], c='k')
       #
+      ax.text(0.25, 0.9, r'150 GHz', ha='center', va='center', transform=ax.transAxes, fontsize=14)
+      ax.text(0.75, 0.75, r'150 GHz - 90 GHz', ha='center', va='center', transform=ax.transAxes, fontsize=14)
+      ax.text(0.75, 0.4, r'90 GHz', ha='center', va='center', transform=ax.transAxes, fontsize=14)
+      #
       ax.set_xticks(np.arange(len(RApArcmin)))
       ax.set_yticks(np.arange(len(RApArcmin)))
       ax.set_xticklabels(RApArcmin, fontdict={'fontsize': 10}, rotation=45)
@@ -1638,6 +1699,7 @@ class ThumbStack(object):
       ax.set_aspect('equal')
       ax.set_xlabel(r'R [arcmin]')
       ax.set_ylabel(r'R [arcmin]')
+      ax.set_title(r'Joint covariance matrix')
       #
       path = self.pathFig+"/cov_joint_"+name+".pdf"
       print "Saving cov plot to:"
@@ -1662,6 +1724,10 @@ class ThumbStack(object):
       ax.axhline(0.5 * I[-1], c='k')
       ax.axvline(0.5 * I[-1], c='k')
       #
+      ax.text(0.25, 0.9, r'150 GHz', ha='center', va='center', transform=ax.transAxes, fontsize=14)
+      ax.text(0.75, 0.75, r'150 GHz - 90 GHz', ha='center', va='center', transform=ax.transAxes, fontsize=14)
+      ax.text(0.75, 0.4, r'90 GHz', ha='center', va='center', transform=ax.transAxes, fontsize=14)
+      #
       ax.set_xticks(np.arange(len(RApArcmin)))
       ax.set_yticks(np.arange(len(RApArcmin)))
       ax.set_xticklabels(RApArcmin, fontdict={'fontsize': 10}, rotation=45)
@@ -1669,6 +1735,7 @@ class ThumbStack(object):
       ax.set_aspect('equal')
       ax.set_xlabel(r'R [arcmin]')
       ax.set_ylabel(r'R [arcmin]')
+      ax.set_title(r'Joint correlation matrix')
       #
       path = self.pathFig+"/cor_joint_"+name+".pdf"
       print "Saving cor plot to:"
