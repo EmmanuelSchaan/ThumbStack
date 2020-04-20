@@ -91,11 +91,11 @@ class ThumbStack(object):
       
       self.measureAllVarFromHitCount(plot=save)
 
-      if True:
+      if save:
          self.saveAllStackedProfiles()
       self.loadAllStackedProfiles()
 
-      if True:
+      if save:
          self.plotAllStackedProfiles()
          self.plotAllCov()
          self.computeAllSnr()
@@ -570,19 +570,18 @@ class ThumbStack(object):
          # Our threshold: n*p should correspond to a 5 sigma PTE, ie
          # n * p = erf(5/sqrt(2)) = 5.733e-7
          nObj = np.sum(mask)
-         f = lambda nSigmas: nObj * special.erfc(nSigmas / np.sqrt(2.)) - special.erfc(5. / np.sqrt(2.))
-         nSigmasCut = optimize.brentq(f , 0., 1.e2)
-         # ts has shape (nObj, nRAp)
-         # sigmas has shape  nRAp
-         sigmas = np.std(self.filtMap[filterType][mask,:], axis=0)
-         # shape is (nObj, nRAp)
-         newMask = (np.abs(self.filtMap[filterType][:,:]) <= nSigmasCut * sigmas[np.newaxis,:])
-         # take the intersection of the masks
-         mask *= np.prod(newMask, axis=1).astype(bool)
-
-         pass
-
-
+         print "test nObj =", nObj
+         if nObj<>0:
+            f = lambda nSigmas: nObj * special.erfc(nSigmas / np.sqrt(2.)) - special.erfc(5. / np.sqrt(2.))
+            nSigmasCut = optimize.brentq(f , 0., 1.e2)
+            # ts has shape (nObj, nRAp)
+            # sigmas has shape  nRAp
+            sigmas = np.std(self.filtMap[filterType][mask,:], axis=0)
+            # shape is (nObj, nRAp)
+            newMask = (np.abs(self.filtMap[filterType][:,:]) <= nSigmasCut * sigmas[np.newaxis,:])
+            # take the intersection of the masks
+            mask *= np.prod(newMask, axis=1).astype(bool)
+      # make sure the mask is boolean
       mask = mask.astype(bool)
       #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       return mask
@@ -1270,6 +1269,7 @@ class ThumbStack(object):
                   mMax = self.MMax[iMMax]
 
                   # measured stacked profile
+                  print "test Mmax", iMMax
                   data[:,1+2*iMMax], data[:,1+2*iMMax+1] = self.computeStackedProfile(filterType, est, mVir=[1.e6, mMax]) # [map unit * sr]
                   # expcted from tSZ
                   dataTsz[:,1+2*iMMax], dataTsz[:,1+2*iMMax+1] = self.computeStackedProfile(filterType, est, mVir=[1.e6, mMax], tTh='tsz') # [map unit * sr]
@@ -1537,6 +1537,12 @@ class ThumbStack(object):
                sTsz[iMMax] = np.abs(np.mean(ratio))
    
 
+            print "test"
+            print self.MMax
+            print KszToKsz
+            print TszToKsz
+            print sKsz
+
             fig=plt.figure(0)
             ax=fig.add_subplot(111)
             #
@@ -1558,7 +1564,10 @@ class ThumbStack(object):
             ax.fill_between(self.MMax, sKsz, edgecolor='', facecolor='gray', alpha=0.5, label='kSZ error bar')
             ax.fill_between(self.MMax, 0.1*sKsz, edgecolor='', facecolor='gray', alpha=0.3)
             #
-            ax.set_xlim((self.MMax[1], self.MMax.max()))
+            # ignore the first mMax values for which there is no object in the sample
+            xMin = np.min(self.MMax[np.isfinite(sKsz)])
+            xMax = np.max(self.MMax[np.isfinite(sKsz)])
+            ax.set_xlim((xMin, xMax))
             ax.set_ylim((1.e-3, 10.))
             ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
             ax.set_xscale('log', nonposx='clip')

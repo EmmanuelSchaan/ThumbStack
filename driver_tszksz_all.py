@@ -268,6 +268,7 @@ from thumbstack import *
 
 save = False
 
+
 for catalogKey in catalogs.keys():#[::-1]:
    catalog = catalogs[catalogKey]
    print("Analyzing catalog "+catalog.name)
@@ -288,7 +289,7 @@ for catalogKey in catalogs.keys():#[::-1]:
 #      except:
 #         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
 
-'''
+
    ###################################################################################
    # Joint covariance between 150 and 90
 
@@ -345,7 +346,7 @@ for catalogKey in catalogs.keys():#[::-1]:
    ax.set_title(r'tSZ profile')
    #ax.set_ylim((0., 2.))
    #
-   path = ts['150'].pathFig+"/summary_tsz_150_90"+catalogKey+".pdf"
+   path = ts['150'].pathFig+"/summary_tsz_150_90_"+catalogKey+".pdf"
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
@@ -374,12 +375,12 @@ for freq in ['90', '150']:
    cmbHit = cmbMaps[cmbMapKey].hit()
    cmbName = cmbMaps[cmbMapKey].name
    print("Analyzing map "+cmbName)
-   name = catalog.name + "_" + cmbName
 
    ts = {}
    for catalogKey in ['cmass_mariana', 'cmass_kendrick']:#catalogs.keys():
       catalog = catalogs[catalogKey]
       print("Analyzing catalog "+catalog.name)
+      name = catalog.name + "_" + cmbName
       ts[catalogKey] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 
 
@@ -397,80 +398,30 @@ for freq in ['90', '150']:
    ax.fill_between(ts['cmass_mariana'].RApArcmin, - factor * ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight"], factor * ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight"], edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
    #
    # V-shuffle mean
-   ax.errorbar(ts['cmass_mariana'].RApArcmin, factor * ts['cmass_mariana'].stackedProfile["diskring_ksz_varweight_vshufflemean"], factor * ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight_vshufflemean"], fmt='-', c='b', label='shuffled v')
+   ax.errorbar(ts['cmass_mariana'].RApArcmin, factor * ts['cmass_mariana'].stackedProfile["diskring_ksz_varweight_vshufflemean"], factor * ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight_vshufflemean"], fmt='-', c='b', label='mean of v-shuffles')
    #
    # Mariana - Kendrick
-   ax.plot(ts['cmass_mariana'].RApArcmin, factor * (ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight"] - ts['cmass_kendrick'].sStackedProfile["diskring_ksz_varweight"]), 'b-', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
+   ax.plot(ts['cmass_mariana'].RApArcmin, factor * (ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight"] - ts['cmass_kendrick'].sStackedProfile["diskring_ksz_varweight"]), 'b-', label=r'$v_\text{Mariana} - v_\text{Kendrick}$', c='r')
    #
    # Average of many mocks
-   ax.errorbar(ts['cmass_mariana'], factor * meanStackedGRF, yerr=factor*sStackedGRF, fmt='-', c='g', label=r'mean of '+str(nMocks)+' mocks')
+   ax.errorbar(ts['cmass_mariana'].RApArcmin + 0.05, factor * meanStackedGRF, yerr=factor*sStackedGRF, fmt='-', c='g', label=r'mean of '+str(nMocks)+' mocks')
    #
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_ylim((0., 10.))
+   ax.set_ylim((-2., 2.))
    #
-   path = ts['150'].pathFig+"/nulltests_ksz_"+freq+"_cmass.pdf"
+   path = ts['cmass_mariana'].pathFig+"/nulltests_ksz_"+freq+"_cmass.pdf"
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
 
-'''
 
 
 
 
 
 
-
-
-
-###################################################################################
-# Create summary plots
-
-"""
-# loop over maps
-for cmbMapKey in cmbMaps.keys():
-   cmbName = cmbMaps[cmbMapKey].name
-   print("Loading map "+cmbMaps[cmbMapKey].name)
-   cmbMap = cmbMaps[cmbMapKey].map()
-   cmbMask = cmbMaps[cmbMapKey].mask()
-   cmbHit = cmbMaps[cmbMapKey].hit()
-
-   # load stacking on all catalogs
-   print("Loading all catalogs stacked on this map:")
-   ts = {}
-   for catalogKey in catalogs.keys():
-      catalog = catalogs[catalogKey]
-      name = catalogs[catalogKey].name + "_" + cmbName
-      try:
-         ts[catalogKey] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc)
-      except:
-         print("Could not load stacking for catalog "+catalog.name)
-
-   print("Plotting all stacked profiles on map "+cmbMaps[cmbMapKey].name)
-   # loop over estimators 
-   # the estimators available depend only on the presence of a hit map
-   ts0 = ts[ts.keys()[0]]
-   for est in ts0.Est:
-      print("Estimator "+est)
-      
-      #plot CMASS Mariana: N, S, N+S
-      tsArr = [ts['cmass_n_mariana'], ts['cmass_s_mariana'], ts['cmass_mariana']]
-      ts0.plotStackedProfile('diskring', [est], name='diskring_'+est+'_'+cmbName+'_cmassm', pathDir=pathFig, theory=False, tsArr=tsArr, plot=False)
-
-      #plot CMASS Kendrick: N, S, N+S
-      tsArr = [ts['cmass_n_kendrick'], ts['cmass_s_kendrick'], ts['cmass_kendrick']]
-      ts0.plotStackedProfile('diskring', [est], name='diskring_'+est+'_'+cmbName+'_cmassk', pathDir=pathFig, theory=False, tsArr=tsArr, plot=False)
-
-      #plot LOWZ Kendrick: N, S, N+S
-      tsArr = [ts['lowz_n_kendrick'], ts['lowz_s_kendrick'], ts['lowz_kendrick']]
-      ts0.plotStackedProfile('diskring', [est], name='diskring_'+est+'_'+cmbName+'_lowzk', pathDir=pathFig, theory=False, tsArr=tsArr, plot=False)
-
-      #plot BOSS Kendrick: CMASS, LOWZ, CMASS+LOWZ
-      tsArr = [ts['cmass_kendrick'], ts['lowz_kendrick'], ts['boss_kendrick']]
-      ts0.plotStackedProfile('diskring', [est], name='diskring_'+est+'_'+cmbName+'_bossk', pathDir=pathFig, theory=False, tsArr=tsArr, plot=False)
-"""
 
 
 
