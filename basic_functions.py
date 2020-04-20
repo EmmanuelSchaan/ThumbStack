@@ -161,12 +161,14 @@ def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=False, nameL
    if semilogy:
       ax.set_yscale('log', nonposy='clip')
    #
-   if doGauss:
-      yMin = min(histGaussFit.min(), 0.5*np.min(histX[histX>0]))
-      yMax = max(histGaussFit.max(), 2.*np.max(histX))
-   else:
-      yMin = 0.5*np.min(histX[histX>0])
-      yMax = 2.*np.max(histX)
+#   if doGauss:
+#      yMin = min(histGaussFit.min(), 0.5*np.min(histX[histX>0]))
+#      yMax = max(histGaussFit.max(), 2.*np.max(histX))
+#   else:
+#      yMin = 0.5*np.min(histX[histX>0])
+#      yMax = 2.*np.max(histX)
+   yMin = 0.5*np.min(histX[histX>0])
+   yMax = 2.*np.max(histX)
    ax.set_ylim((yMin, yMax))
    ax.set_xlabel(nameLatex)
    ax.set_ylabel(r'number of objects')

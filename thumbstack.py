@@ -95,7 +95,7 @@ class ThumbStack(object):
          self.saveAllStackedProfiles()
       self.loadAllStackedProfiles()
 
-      if save:
+      if True:
          self.plotAllStackedProfiles()
          self.plotAllCov()
          self.computeAllSnr()
@@ -527,7 +527,7 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def catalogMask(self, overlap=True, psMask=True, mVir=None, z=[0., 100.], extraSelection=1., filterType=None):
+   def catalogMask(self, overlap=True, psMask=True, mVir=None, z=[0., 100.], extraSelection=1., filterType=None, outlierReject=True):
       '''Returns catalog mask: 1 for objects to keep, 0 for objects to discard.
       Use as:
       maskedQuantity = Quantity[mask]
@@ -555,6 +555,33 @@ class ThumbStack(object):
          #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       mask *= extraSelection
       #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
+      if outlierReject:
+         mask = mask.astype(bool)
+         # we reject objects whose filter values are such
+         # that the probability to have >=1 object with such a high absolute value
+         # in a sample of this size
+         # is equivalent to a 5sigma PTE = 5.73e-7.
+         # Sample of 1: proba that the value is found outside of [-n*sigma, +n*sigma]
+         # called PTE
+         # is p = erf( n / sqrt(2))
+         # Sample of N independent objects: the proba that at least one of them is outside [-n*sigma, +n*sigma]
+         # is 1 - (1-p)^n
+         # ie n * p  if p<<1
+         # Our threshold: n*p should correspond to a 5 sigma PTE, ie
+         # n * p = erf(5/sqrt(2)) = 5.733e-7
+         nObj = np.sum(mask)
+         f = lambda nSigmas: nObj * special.erfc(nSigmas / np.sqrt(2.)) - special.erfc(5. / np.sqrt(2.))
+         nSigmasCut = optimize.brentq(f , 0., 1.e2)
+         # ts has shape (nObj, nRAp)
+         # sigmas has shape  nRAp
+         sigmas = np.std(self.filtMap[filterType][mask,:], axis=0)
+         # shape is (nObj, nRAp)
+         newMask = (np.abs(self.filtMap[filterType][:,:]) <= nSigmasCut * sigmas[np.newaxis,:])
+         # take the intersection of the masks
+         mask *= np.prod(newMask, axis=1).astype(bool)
+
+         pass
+
 
       mask = mask.astype(bool)
       #print "keeping fraction", np.sum(mask)/len(mask), " of objects"

@@ -149,39 +149,20 @@ ts = tsVelDiracVShuffleSmall
 
 
 
-
-'''
-def checkFilterHistograms(filterType, est, mVir=None, z=[0., 100.], ts=None):
-   if ts is None:
-      ts = ts
-   if mVir is None:
-      mVir = [ts.mMin, ts.mMax]
-
-   # select objects that overlap, and reject point sources
-   mask = ts.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=mVir, z=z)
-
-   # aperture photometry filters
-   t = ts.filtMap[filterType].copy() # [muK * sr]
-   t = t[mask, :]
-   # convert from sr to arcmin^2
-   factor = (180.*60./np.pi)**2
-   t *= factor
-
-   #true filter variance for each object and aperture,
-   # valid whether or not a hit count map is available
-   s2Full = ts.filtVarTrue[filterType][mask, :]
-   # Variance from hit count (if available)
-   s2Hit = ts.filtHitNoiseStdDev[filterType][mask, :]**2
-
-
-   for iRAp in range(ts.nRAp):
-
-      path = ts.pathFig + "/histogram_t_"+filterType+"_uniformweight_"+str(iRAp)+".pdf"
-      myHistogram(t[:,iRAp], nBins=101, lim=None, S2Theory=[], path=path, plot=False, nameLatex=r'$T_i$ [$\mu$K$\cdot$arcmin$^2$]', semilogx=False, semilogy=True, doGauss=True)
-
-      path = ts.pathFig + "/histogram_t_"+filterType+"_varweight_"+str(iRAp)+".pdf"
-      myHistogram(t[:,iRAp] / s2Full[:,iRAp], nBins=101, lim=None, S2Theory=[], path=path, plot=False, nameLatex=r'$T_i/\sigma_T^2_i$', semilogx=False, semilogy=True, doGauss=True)
-
-
-checkFilterHistograms('diskring', 'ksz_varweight', mVir=None, z=[0., 100.], ts=ts)
-'''
+#mask = ts.catalogMask()
+#
+#filterType= 'diskring'
+#
+## ts has shape (nObj, nRAp)
+## sigmas has shape  nRAp
+#sigmas = np.std(ts.filtMap[filterType][mask,:], axis=0)
+#
+## find the cut for the typical number of objects
+#nObj = np.sum(mask)
+#f = lambda nSigmas: nObj * special.erfc(nSigmas / np.sqrt(2.)) - special.erfc(5. / np.sqrt(2.))
+#nSigmasCut = optimize.brentq(f , 0., 1.e2)
+#
+## shape is (nObj, nRAp)
+#newMask = (np.abs(ts.filtMap[filterType][mask,:]) <= nSigmasCut * sigmas[np.newaxis,:])
+## take the intersection of the masks
+#newMask = np.prod(newMask, axis=1)

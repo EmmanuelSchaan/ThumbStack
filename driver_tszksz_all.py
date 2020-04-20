@@ -266,9 +266,9 @@ from thumbstack import *
 
 #ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 
-save = True
+save = False
 
-for catalogKey in catalogs.keys():
+for catalogKey in catalogs.keys():#[::-1]:
    catalog = catalogs[catalogKey]
    print("Analyzing catalog "+catalog.name)
    
@@ -288,7 +288,7 @@ for catalogKey in catalogs.keys():
 #      except:
 #         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
 
-
+'''
    ###################################################################################
    # Joint covariance between 150 and 90
 
@@ -363,7 +363,7 @@ est = 'ksz_varweight'
 #
 meanStackedGRF = np.genfromtxt(pathMockGRF+"mean_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
 covStackedGRF = np.genfromtxt(pathMockGRF+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
-sStackedGRF = np.sqrt(np.diag(covStackedProfile['diskring_'+est])) / np.sqrt(nMocks)
+sStackedGRF = np.sqrt(np.diag(covStackedGRF)) / np.sqrt(nMocks)
 
 
       
@@ -415,7 +415,7 @@ for freq in ['90', '150']:
    #plt.show()
    fig.clf()
 
-
+'''
 
 
 
