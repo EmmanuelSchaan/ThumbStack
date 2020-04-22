@@ -570,7 +570,6 @@ class ThumbStack(object):
          # Our threshold: n*p should correspond to a 5 sigma PTE, ie
          # n * p = erf(5/sqrt(2)) = 5.733e-7
          nObj = np.sum(mask)
-         print "test nObj =", nObj
          if nObj<>0:
             f = lambda nSigmas: nObj * special.erfc(nSigmas / np.sqrt(2.)) - special.erfc(5. / np.sqrt(2.))
             nSigmasCut = optimize.brentq(f , 0., 1.e2)
@@ -1179,7 +1178,7 @@ class ThumbStack(object):
       data = np.zeros((self.nRAp, 3))
       data[:,0] = self.RApArcmin
       data[:,1] = np.mean(stackSamples, axis=0) # mean of the shuffled stacks
-      data[:,2] = np.sqrt(np.diag(covStack)) / np.sqrt(nSamples) # uncertainty on the mean
+      data[:,2] = np.sqrt(np.diag(covStack)) / nSamples # variance of the mean
       np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_vshufflemean.txt", data)
 
 
@@ -1269,7 +1268,6 @@ class ThumbStack(object):
                   mMax = self.MMax[iMMax]
 
                   # measured stacked profile
-                  print "test Mmax", iMMax
                   data[:,1+2*iMMax], data[:,1+2*iMMax+1] = self.computeStackedProfile(filterType, est, mVir=[1.e6, mMax]) # [map unit * sr]
                   # expcted from tSZ
                   dataTsz[:,1+2*iMMax], dataTsz[:,1+2*iMMax+1] = self.computeStackedProfile(filterType, est, mVir=[1.e6, mMax], tTh='tsz') # [map unit * sr]
@@ -1536,12 +1534,6 @@ class ThumbStack(object):
                # here the value at each aperture is equal to the mean
                sTsz[iMMax] = np.abs(np.mean(ratio))
    
-
-            print "test"
-            print self.MMax
-            print KszToKsz
-            print TszToKsz
-            print sKsz
 
             fig=plt.figure(0)
             ax=fig.add_subplot(111)

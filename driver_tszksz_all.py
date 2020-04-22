@@ -268,7 +268,7 @@ from thumbstack import *
 
 save = False
 
-
+'''
 for catalogKey in catalogs.keys():#[::-1]:
    catalog = catalogs[catalogKey]
    print("Analyzing catalog "+catalog.name)
@@ -296,7 +296,6 @@ for catalogKey in catalogs.keys():#[::-1]:
    # compute the joint cov
    if save:
       ts['150'].saveAllCovBootstrapTwoStackedProfiles(ts['90'])
-
    ts['150'].plotAllCovTwoStackedProfiles(ts['90'])
 
 
@@ -350,7 +349,7 @@ for catalogKey in catalogs.keys():#[::-1]:
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
-
+'''
 
 ###################################################################################
 ###################################################################################
@@ -363,7 +362,8 @@ nMocks = 800
 est = 'ksz_varweight'
 #
 meanStackedGRF = np.genfromtxt(pathMockGRF+"mean_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
-covStackedGRF = np.genfromtxt(pathMockGRF+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
+#covStackedGRF = np.genfromtxt(pathMockGRF+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
+covStackedGRF = np.genfromtxt(pathMockGRF+"mean_covbootstrap_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
 sStackedGRF = np.sqrt(np.diag(covStackedGRF)) / np.sqrt(nMocks)
 
 
@@ -404,7 +404,7 @@ for freq in ['90', '150']:
    ax.plot(ts['cmass_mariana'].RApArcmin, factor * (ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight"] - ts['cmass_kendrick'].sStackedProfile["diskring_ksz_varweight"]), 'b-', label=r'$v_\text{Mariana} - v_\text{Kendrick}$', c='r')
    #
    # Average of many mocks
-   ax.errorbar(ts['cmass_mariana'].RApArcmin + 0.05, factor * meanStackedGRF, yerr=factor*sStackedGRF, fmt='-', c='g', label=r'mean of '+str(nMocks)+' mocks')
+   ax.errorbar(ts['cmass_mariana'].RApArcmin + 0.05, factor*meanStackedGRF, yerr=factor*sStackedGRF, fmt='-', c='g', label=r'mean of '+str(nMocks)+' mocks')
    #
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')

@@ -768,6 +768,9 @@ class Catalog(object):
       velDirac /= np.std(self.vR / 3.e5)
 
       # save the maps
+      print "Saving maps to:"
+      print self.pathOut+"mock_count_dirac_car.fits"
+      print self.pathOut+"mock_vel_dirac_car.fits"
       enmap.write_map(self.pathOut+"mock_count_dirac_car.fits", countDirac)
       enmap.write_map(self.pathOut+"mock_vel_dirac_car.fits", velDirac)
       
@@ -808,6 +811,9 @@ class Catalog(object):
          # and will be easily comparable to the theory curve.
          velGauss /= np.std(self.vR / 3.e5)
          # save the maps
+         print "Saving maps to:"
+         print self.pathOut+"mock_count_gauss_car.fits"
+         print self.pathOut+"mock_vel_gauss_car.fits"
          enmap.write_map(self.pathOut+"mock_count_gauss_car.fits", countGauss)
          enmap.write_map(self.pathOut+"mock_vel_gauss_car.fits", velGauss)
 

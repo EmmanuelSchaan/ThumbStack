@@ -76,9 +76,8 @@ bossKendrick = Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K
 
 
 ###################################################################################
+###################################################################################
 # plot dn/dz
-
-
 
 # read overlap flags
 # for PACT maps

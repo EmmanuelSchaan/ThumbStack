@@ -152,7 +152,7 @@ class FlatMap(object):
    ###############################################################################
    # plots
 
-   def plot(self, data=None, save=False, path=None, cmap='viridis', vMin=None, vMax=None, figSize=None):
+   def plot(self, data=None, save=False, path=None, cmap='viridis', vMin=None, vMax=None, figSize=None, title=None, cbTitle=None):
       if data is None:
          data = self.data.copy()
       sigma = np.std(data.flatten())
@@ -177,13 +177,17 @@ class FlatMap(object):
       #cp.set_clim(0.,255.)
       #cp.set_clim(-3.*sigma, 3.*sigma)
       cp.set_clim(vMin, vMax)
-      fig.colorbar(cp)
+      cb=fig.colorbar(cp)
       #
       plt.axis('scaled')
       ax.set_xlim(np.min(x)*180./np.pi, np.max(x)*180./np.pi)
       ax.set_ylim(np.min(y)*180./np.pi, np.max(y)*180./np.pi)
       ax.set_xlabel('$x$ [deg]')
       ax.set_ylabel('$y$ [deg]')
+      if title is not None:
+         ax.set_title(title)
+      if cbTitle is not None:
+         cb.set_label(cbTitle)
       #
       if save==True:
          if path is None:
