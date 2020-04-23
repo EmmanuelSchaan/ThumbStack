@@ -178,7 +178,11 @@ path = "./output/thumbstack/cmass_mariana_pactf150daynight20200228maskgal60"+"/c
 sKsz = np.sqrt(np.diag(np.genfromtxt(path)))
 path = "./output/thumbstack/cmass_mariana_pactf150daynight20200228maskgal60"+"/cov_diskring_tsz_varweight_bootstrap.txt"
 sTsz = np.sqrt(np.diag(np.genfromtxt(path)))
-
+#
+# rescale the uncertainty on tSZ and kSZ
+# because the signals in the mocks asymptote to 1, not to the actual value in muK'
+sKsz /= 2. 
+sTsz /= 5.
 
 
 fig=plt.figure(0)
@@ -196,8 +200,8 @@ ax.plot(tsVelDiracVShuffle.RApArcmin, profile2, 'k-', lw=3, label=r'Theory 1h, G
 #ax.plot(tsVelDiracVShuffle.RApArcmin, profilePixPixwin3, 'm-', label=r'expected, pixelated, pixwin 3')
 #
 # Statistical uncertainty on tSZ and kSZ, from main analysis
-ax.fill_between(tsVelDirac.RApArcmin, factor * (tsVelGauss.stackedProfile['diskring_ksz_uniformweight'] - sKsz), factor * (tsVelGauss.stackedProfile['diskring_ksz_uniformweight'] + sKsz), facecolor='b', edgecolor='', alpha=0.1)
-ax.fill_between(tsVelDirac.RApArcmin, factor * (tsCountGauss.stackedProfile['diskring_tsz_uniformweight'] - sTsz), factor * (tsCountGauss.stackedProfile['diskring_tsz_uniformweight'] + sTsz), facecolor='r', edgecolor='', alpha=0.1)
+ax.fill_between(tsVelDirac.RApArcmin, factor * (tsVelGauss.stackedProfile['diskring_ksz_uniformweight'] - sKsz), factor * (tsVelGauss.stackedProfile['diskring_ksz_uniformweight'] + sKsz), facecolor='b', edgecolor='', alpha=0.05)
+ax.fill_between(tsVelDirac.RApArcmin, factor * (tsCountGauss.stackedProfile['diskring_tsz_uniformweight'] - sTsz), factor * (tsCountGauss.stackedProfile['diskring_tsz_uniformweight'] + sTsz), facecolor='r', edgecolor='', alpha=0.05)
 #
 # Measured 1h and 2h
 ax.plot(tsVelDiracVShuffle.RApArcmin, factor*tsVelDiracVShuffle.stackedProfile['diskring_ksz_uniformweight'], 'g--', label=r'1h only, Pointlike')

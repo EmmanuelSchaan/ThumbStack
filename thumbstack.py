@@ -719,7 +719,8 @@ class ThumbStack(object):
             """
             x = h*nu/(kB*Tcmb)
             return x*(np.exp(x)+1.)/(np.exp(x)-1.) -4.
-         t *= 2. * f(150.e9) * Tcmb * 1.e6  # [muK * sr]
+         #t *= 2. * f(150.e9) * Tcmb * 1.e6  # [muK * sr]
+         t *= f(150.e9) * Tcmb * 1.e6  # [muK * sr]
       elif tTh=='ksz':
          # expected kSZ signal
          # AP profile shape, between 0 and 1
