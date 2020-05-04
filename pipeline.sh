@@ -41,3 +41,9 @@ python generate_mask_pact20200228.py '70'
 #python reconvolve_tilec_v1.2.py "ynocib_d56"
 #python reconvolve_tilec_v1.2.py "ynocib_boss"
 
+############################################################
+# Make output readable by everyone
+
+#chmod o+x ./output/thumbstack/*
+#chmod o+r -R ./output/thumbstack/*
+

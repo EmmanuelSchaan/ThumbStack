@@ -128,7 +128,7 @@ class ThumbStack(object):
       self.RApArcmin = np.linspace(self.rApMinArcmin, self.rApMaxArcmin, self.nRAp)
 
 
-   def cutoutGeometry(self):
+   def cutoutGeometry(self, test=False):
       '''Create enmap for the cutouts to be extracted.
       Returns a null enmap object with the right shape and wcs.
       '''
@@ -144,6 +144,13 @@ class ThumbStack(object):
       # define geometry of small square maps to be extracted
       shape, wcs = enmap.geometry(np.array([[-0.5*dxDeg,-0.5*dyDeg],[0.5*dxDeg,0.5*dyDeg]])*utils.degree, res=self.resCutoutArcmin*utils.arcmin, proj=self.projCutout)
       cutoutMap = enmap.zeros(shape, wcs)
+
+      if test:
+         print "cutout sides are dx, dy =", dxDeg*60., ",", dyDeg*60. , "arcmin"
+         print "cutout pixel dimensions are", shape
+         print "hence a cutout resolution of", dxDeg*60./shape[0], ",", dyDeg*60./shape[1], "arcmin per pixel"
+         print "(requested", self.resCutoutArcmin, "arcmin per pixel)"
+
       return cutoutMap
 
 
@@ -400,7 +407,9 @@ class ThumbStack(object):
          print "- plot the filter"
          filterMap = stampMap.copy()
          filterMap[:,:] = filterW.copy()
-         plots=enplot.plot(filterMap,grid=True)
+
+         vmax = np.max(np.abs(filterW))
+         plots=enplot.plot(filterMap,grid=True, min=-vmax, max=vmax)#, color='hotcold')
          enplot.write(self.pathTestFig+"/stampfilter_r0"+floatExpForm(r0)+"_r1"+floatExpForm(r1), plots)
 
       return filtMap, filtMask, filtHitNoiseStdDev, diskArea

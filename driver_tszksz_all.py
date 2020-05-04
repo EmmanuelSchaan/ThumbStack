@@ -109,42 +109,52 @@ print("Read CMB maps")
 tStart = time()
 
 cmbMaps = {
-      # PACT day+night, 20200228
-      "pactf150daynight20200228maskgal60": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits",
-         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
-         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
-         name="pactf150daynight20200228maskgal60"),
-      "pactf90daynight20200228maskgal60": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits",
-         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
-         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits",
-         name="pactf90daynight20200228maskgal60"),
-      #
-#      # PACT day+night, 20200228, old masks
-#      "pactf150daynight20200228": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits",
-#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
+      # PACT day+night, 20200228, Planck Galactic masks 60%
+#      "pactf150daynight20200228maskgal60": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits",
+#         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
 #         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
-#         name="pactf150daynight20200228"),
-#      "pactf90daynight20200228": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits",
-#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
+#         name="pactf150daynight20200228maskgal60"),
+#      "pactf90daynight20200228maskgal60": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits",
+#         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
 #         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits",
-#         name="pactf90daynight20200228"),
-#      # Coadded PACT maps, daynight, 20200228
-#      "coaddcmb20200228": cmbMap("./output/cmb_map/coadd/" + "coadd_hitmap_weighted.fits",
-#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
-#         "./output/cmb_map/coadd/" + "coadd_hitmap_weighted_ivar.fits",
-#         name="coaddcmb20200228"),
-#      "coaddcmb20200228lmax9e3": cmbMap("./output/cmb_map/coadd/" + "coadd_hitmap_weighted_lmax9000.fits",
-#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
-#         "./output/cmb_map/coadd/" + "coadd_hitmap_weighted_lmax9000_ivar.fits",
-#         name="coaddcmb20200228lmax9e3"),
+#         name="pactf90daynight20200228maskgal60"),
+#      "pactf150daynight20200228maskgal60reconvto90": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvto90.fits",
+#         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
+#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
+#         name="pactf150daynight20200228maskgal60reconvto90"),
+      #
+      ## PACT day+night, 20200228, Planck Galactic masks 70%
+      #"pactf150daynight20200228": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits",
+      #   "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
+      #   "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
+      #   name="pactf150daynight20200228"),
+      #"pactf90daynight20200228": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits",
+      #   "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
+      #   "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits",
+      #   name="pactf90daynight20200228"),
+      ## Coadded PACT maps, daynight, 20200228, Planck Galactic mask 70%
+      #"coaddcmb20200228": cmbMap("./output/cmb_map/coadd/" + "coadd_hitmap_weighted.fits",
+      #   "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
+      #   "./output/cmb_map/coadd/" + "coadd_hitmap_weighted_ivar.fits",
+      #   name="coaddcmb20200228"),
+      #"coaddcmb20200228lmax9e3": cmbMap("./output/cmb_map/coadd/" + "coadd_hitmap_weighted_lmax9000.fits",
+      #   "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2019_03_11/" + "f150_mask_foot_planck_ps_car.fits",
+      #   "./output/cmb_map/coadd/" + "coadd_hitmap_weighted_lmax9000_ivar.fits",
+      #   name="coaddcmb20200228lmax9e3"),
       #
       # TileC v1.2, reconvolved to 1.4' beam, combining BOSS N and D56
-#      "tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv14_map.fits",
-#      "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-#      name="tilecpactcmbksz"),
-#      "tilecpactcmbksznoy": cmbMap("./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "tilec_reconv14_map.fits",
-#      "./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-#      name="tilecpactcmbksznoy"),
+      "tilecpacty": cmbMap("./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      name="tilecpacty"),
+      "tilecpactynocib": cmbMap("./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      name="tilecpactynocib"),
+      "tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      name="tilecpactcmbksz"),
+      "tilecpactcmbksznoy": cmbMap("./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      name="tilecpactcmbksznoy"),
       #
       ## TileC v1.1, reconvolved to 1.4' beam, combining BOSS N and D56
       #"tilecpactcmbksz_14": cmbMap("./output/cmb_map/tilec_pact_cmbksz/" + "tilec_reconv14_map.fits",
@@ -232,7 +242,7 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 ###################################################################################
 # Do the stacking
 
-'''
+
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -251,11 +261,13 @@ for cmbMapKey in cmbMaps.keys():
       catalog = catalogs[catalogKey]
       print("Analyzing catalog "+catalog.name)
       name = catalog.name + "_" + cmbName
-      try:
-         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
-      except:
-         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
-'''
+
+      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
+#      try:
+#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
+#      except:
+#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
+
 
 ###################################################################################
 # PACT 90 and 150: stacks and joint cov
@@ -354,7 +366,7 @@ for catalogKey in catalogs.keys():#[::-1]:
 ###################################################################################
 ###################################################################################
 # Null tests
-
+'''
 # read the stacks on mock GRFs, to compare
 pathMockGRF = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
 iMock0 = 0
@@ -363,8 +375,10 @@ est = 'ksz_varweight'
 #
 meanStackedGRF = np.genfromtxt(pathMockGRF+"mean_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
 #covStackedGRF = np.genfromtxt(pathMockGRF+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
-covStackedGRF = np.genfromtxt(pathMockGRF+"mean_covbootstrap_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
+#covStackedGRF = np.genfromtxt(pathMockGRF+"mean_covbootstrap_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
+covStackedGRF = np.genfromtxt(pathMockGRF+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt")
 sStackedGRF = np.sqrt(np.diag(covStackedGRF)) / np.sqrt(nMocks)
+
 
 
       
@@ -416,7 +430,7 @@ for freq in ['90', '150']:
    #plt.show()
    fig.clf()
 
-
+'''
 
 
 

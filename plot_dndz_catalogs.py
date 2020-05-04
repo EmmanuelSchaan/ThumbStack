@@ -88,6 +88,11 @@ overlapCmassK = np.genfromtxt(path).astype(bool)
 path = "./output/thumbstack/lowz_kendrick_pactf150daynight20200228/overlap_flag.txt"
 overlapLowzK = np.genfromtxt(path).astype(bool)
 
+print "CMASS M:", np.sum(overlapCmassM), "galaxies overlap out of", len(overlapCmassM), "ie", 1.*np.sum(overlapCmassM)/len(overlapCmassM),"%"
+print "CMASS K:", np.sum(overlapCmassK), "galaxies overlap out of", len(overlapCmassK), "ie", 1.*np.sum(overlapCmassK)/len(overlapCmassK),"%"
+print "LOWZ K:", np.sum(overlapLowzK), "galaxies overlap out of", len(overlapLowzK), "ie", 1.*np.sum(overlapLowzK)/len(overlapLowzK),"%"
+
+
 # Bins for histograms
 nBins = 51
 Bins = np.linspace(0., 0.7, nBins)

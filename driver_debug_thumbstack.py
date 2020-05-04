@@ -143,7 +143,7 @@ tsVelDiracVShuffleSmall = ThumbStack(u, cmassMarianaVShuffleSmall, boxMap, boxMa
 
 ts = tsVelDiracVShuffleSmall
 
-ts.plotTszKszContaminationMMax()
+#ts.plotTszKszContaminationMMax()
 #mMax = 1.e15
 #prof, sprof  = ts.computeStackedProfile('diskring', 'ksz_varweight', mVir=[1.e6, mMax]) # [map unit * sr]
 

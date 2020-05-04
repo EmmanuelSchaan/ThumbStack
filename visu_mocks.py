@@ -230,6 +230,51 @@ cutVelDiracShuffled = np.genfromtxt(pathOut + "vel_dirac_vshuffled.txt")
 cutVelGaussShuffled = np.genfromtxt(pathOut + "vel_gauss_vshuffled.txt")
 
 
+###################################################################################
+# Renormalize the mocks to give them reasonable units amplitudes in muK
+
+# get the expected integrated tSZ and kSZ in [muK*arcmin^2]
+
+# get the expected integrated y in [muK*arcmin^2]
+# expected integrated y in sr
+tSZ = np.mean(cmassMariana.integratedY[np.where(cmassMariana.hasM)[0]])
+# convert from y profile to dT profile
+Tcmb = 2.726   # K
+h = 6.63e-34   # SI
+kB = 1.38e-23  # SI
+def f(nu):
+   """frequency dependence for tSZ temperature
+   """
+   x = h*nu/(kB*Tcmb)
+   return x*(np.exp(x)+1.)/(np.exp(x)-1.) -4.
+tSZ *= f(150.e9) * Tcmb * 1.e6  # [muK * sr]
+# convert to [muK*arcmin^2]
+tSZ *= (180.*60./np.pi)**2
+
+# get the expected integrated kSZ in [muK*arcmin^2]
+# expected integrated kSZ in muK*sr
+kSZ = np.std(cmassMariana.integratedKSZ[np.where(cmassMariana.hasM)[0]])
+# convert to [muK*arcmin^2]
+kSZ *= (180.*60./np.pi)**2
+
+print "EXpected kSZ and tSZ in [muK*arcmin^2] at 150GHz:"
+print kSZ, tSZ
+
+
+# Count maps are normalized to integrate to 1 arcmin^2
+# simply multiply them by the expected integrated tSZ
+cutCountDirac *= tSZ 
+cutCountGauss *= tSZ 
+
+# Vel maps are normalized to integrate to (v/c) * sigma(v/c) arcmin^2
+# (this was so that the stacking estimator integrates to 1)
+# multiply kSZ, then divide by sigma^2(v/c)
+cutVelDirac *= kSZ #/ np.var(cmassMariana.vR / 3.e5)
+cutVelGauss *= kSZ #/ np.var(cmassMariana.vR / 3.e5)
+cutVelDiracShuffled *= kSZ #/ np.var(cmassMariana.vR / 3.e5)
+cutVelGaussShuffled *= kSZ #/ np.var(cmassMariana.vR / 3.e5)
+
+
 
 ###################################################################################
 # Visualize small cutouts of the maps
@@ -237,28 +282,28 @@ cutVelGaussShuffled = np.genfromtxt(pathOut + "vel_gauss_vshuffled.txt")
 
 
 path = pathFig + "grf_cmb.pdf"
-baseMap.plot(cutGRFCMB, save=True, path=path, cmap='seismic', vMin=-300., vMax=300., figSize=None, title=r'Lensed CMB', cbTitle=r'$\mu$K')
+baseMap.plot(cutGRFCMB, save=True, path=path, cmap='seismic_r', vMin=-300., vMax=300., figSize=None, title=r'Lensed CMB', cbTitle=r'$\mu$K')
 #
 path = pathFig + "grf_full.pdf"
-baseMap.plot(cutGRFFull, save=True, path=path, cmap='seismic', vMin=-300., vMax=300., figSize=None, title=r'Mock ACT', cbTitle=r'$\mu$K')
+baseMap.plot(cutGRFFull, save=True, path=path, cmap='seismic_r', vMin=-300., vMax=300., figSize=None, title=r'Mock ACT', cbTitle=r'$\mu$K')
 #
 path = pathFig + "count_dirac.pdf"
-baseMap.plot(cutCountDirac, save=True, path=path, cmap='Reds', vMin=0., vMax=2., figSize=None, title=r'tSZ, Pointlike', cbTitle=r'$\mu$K')
+baseMap.plot(cutCountDirac, save=True, path=path, cmap='Reds_r', vMin=-25., vMax=0., figSize=None, title=r'tSZ, Pointlike', cbTitle=r'$\mu$K')
 #
 path = pathFig + "count_gauss.pdf"
-baseMap.plot(cutCountGauss, save=True, path=path, cmap='Reds', vMin=0., vMax=0.5, figSize=None, title=r'tSZ, Gaussian', cbTitle=r'$\mu$K')
+baseMap.plot(cutCountGauss, save=True, path=path, cmap='Reds_r', vMin=-2., vMax=0., figSize=None, title=r'tSZ', cbTitle=r'$\mu$K')
 #
 path = pathFig + "vel_dirac.pdf"
-baseMap.plot(cutVelDirac, save=True, path=path, cmap='seismic', vMin=-0.2, vMax=0.2, figSize=None, title=r'kSZ, pointlike', cbTitle=r'$\mu$K')
+baseMap.plot(cutVelDirac, save=True, path=path, cmap='seismic_r', vMin=-60., vMax=60., figSize=None, title=r'kSZ, pointlike', cbTitle=r'$\mu$K')
 #
 path = pathFig + "vel_gauss.pdf"
-baseMap.plot(cutVelGauss, save=True, path=path, cmap='seismic', vMin=-0.2, vMax=0.2, figSize=None, title=r'kSZ, Gaussian', cbTitle=r'$\mu$K')
+baseMap.plot(cutVelGauss, save=True, path=path, cmap='seismic_r', vMin=-2., vMax=2., figSize=None, title=r'kSZ', cbTitle=r'$\mu$K')
 #
 path = pathFig + "vel_dirac_shuffled.pdf"
-baseMap.plot(cutVelDiracShuffled, save=True, path=path, cmap='seismic', vMin=-0.2, vMax=0.2, figSize=None, title=r'kSZ, Pointlike, v-shuffled', cbTitle=r'$\mu$K')
+baseMap.plot(cutVelDiracShuffled, save=True, path=path, cmap='seismic_r',)# vMin=-0.2, vMax=0.2, figSize=None, title=r'kSZ, Pointlike, v-shuffled', cbTitle=r'arbitrary')
 #
 path = pathFig + "vel_gauss_shuffled.pdf"
-baseMap.plot(cutVelGaussShuffled, save=True, path=path, cmap='seismic', vMin=-0.2, vMax=0.2, figSize=None, title=r'kSZ, Gaussian, v-shuffled', cbTitle=r'$\mu$K')
+baseMap.plot(cutVelGaussShuffled, save=True, path=path, cmap='seismic_r', vMin=-2., vMax=2., figSize=None, title=r'kSZ, v-shuffled', cbTitle=r'$\mu$K')
 
 
 

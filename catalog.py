@@ -189,7 +189,7 @@ class Catalog(object):
    
    def addIntegratedKSZ(self):
       """Integrated kSZ signal: int d^2theta n_e sigma_T (-v/c) Tcmb
-      in muK * sr
+      in [muK * sr]
       """
       print "- add integrated kSZ"
       self.integratedKSZ = - self.integratedTau * (self.vR/3.e5) * 2.726e6
@@ -197,7 +197,7 @@ class Catalog(object):
    
    def addIntegratedY(self, nu=150.e9):
       """Integrated tSZ signal: int d^2theta n_e sigma_T (k_B T_e / m_e c^2)
-      in sr.
+      in [sr].
       To get dT in muK*sr, multiply by Tcmb * f(nu).
       Simple power-law fit to Greco et al 2014, fig4.
       """
@@ -757,7 +757,7 @@ class Catalog(object):
              
       # normalize the mock maps, such that:
       # int dOmega count = 1 [muK*arcmin^2]
-      # int dOmega vel = -(v/c) * sigma(v/c) [muK*arcmin^2]
+      # int dOmega vel = -(v/c) / sigma(v/c) [muK*arcmin^2]
       # the reason for the vel normalization is that the kSZ estimator correlates with v/c,
       # then divides by sigma^2(v/c), then re-multiplies by sigma(v/c),
       # so that the estimated kSZ has the right amplitude.
@@ -803,7 +803,7 @@ class Catalog(object):
          velGauss /= 2. * np.pi * sigma**2   #(sigma * np.pi / (180. * 60.))**2
          # normalize the mock maps, such that:
          # int dOmega count = 1 [muK*arcmin^2]
-         # int dOmega vel = -(v/c) * sigma(v/c) [muK*arcmin^2]
+         # int dOmega vel = -(v/c) / sigma(v/c) [muK*arcmin^2]
          # the reason for the vel normalization is that the kSZ estimator correlates with v/c,
          # then divides by sigma^2(v/c), then re-multiplies by sigma(v/c),
          # so that the estimated kSZ has the right amplitude.

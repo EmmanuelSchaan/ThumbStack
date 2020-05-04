@@ -156,6 +156,7 @@ tsVelGaussVShuffle = ThumbStack(u, cmassMarianaVShuffle, pactMap, pactMask, pact
 
 
 ###################################################################################
+###################################################################################
 
 filterType = 'diskring'
 
@@ -172,17 +173,54 @@ profile2 = tsVelDiracVShuffle.ftheoryGaussianProfile(sigma_cluster=s2, filterTyp
 #profilePixPixwin1 = tsVelDiracVShuffle.ftheoryGaussianProfilePixelated(sigma_cluster=1.5, resArcmin=0.5, pixwin=1) # 1.5
 #profilePixPixwin3 = tsVelDiracVShuffle.ftheoryGaussianProfilePixelated(sigma_cluster=1.5, resArcmin=0.5, pixwin=3) # 1.5
 
+
+
+###################################################################################
 # Get statistical uncertainty on kSZ and tSZ,
 # from the main analysis
+
 path = "./output/thumbstack/cmass_mariana_pactf150daynight20200228maskgal60"+"/cov_diskring_ksz_varweight_bootstrap.txt"
 sKsz = np.sqrt(np.diag(np.genfromtxt(path)))
 path = "./output/thumbstack/cmass_mariana_pactf150daynight20200228maskgal60"+"/cov_diskring_tsz_varweight_bootstrap.txt"
 sTsz = np.sqrt(np.diag(np.genfromtxt(path)))
-#
-# rescale the uncertainty on tSZ and kSZ
-# because the signals in the mocks asymptote to 1, not to the actual value in muK'
-sKsz /= 2. 
-sTsz /= 5.
+
+
+
+# get the expected integrated tSZ and kSZ in [muK*arcmin^2]
+
+# get the expected integrated y in [muK*arcmin^2]
+# expected integrated y in sr
+tSZ = np.mean(cmassMariana.integratedY[np.where(cmassMariana.hasM)[0]])
+# convert from y profile to dT profile
+Tcmb = 2.726   # K
+h = 6.63e-34   # SI
+kB = 1.38e-23  # SI
+def f(nu):
+   """frequency dependence for tSZ temperature
+   """
+   x = h*nu/(kB*Tcmb)
+   return x*(np.exp(x)+1.)/(np.exp(x)-1.) -4.
+tSZ *= f(150.e9) * Tcmb * 1.e6  # [muK * sr]
+# convert to [muK*arcmin^2]
+tSZ *= (180.*60./np.pi)**2
+
+# get the expected integrated kSZ in [muK*arcmin^2]
+# expected integrated kSZ in muK*sr
+kSZ = np.std(cmassMariana.integratedKSZ[np.where(cmassMariana.hasM)[0]])
+# convert to [muK*arcmin^2]
+kSZ *= (180.*60./np.pi)**2
+
+print "EXpected kSZ and tSZ in [muK*arcmin^2] at 150GHz:"
+print kSZ, tSZ
+
+
+# Rescale the error bars to be relevant for the mocks
+# where the kSZ and tSZ integrate to 1 muK*arcmin^2
+sKsz /= kSZ
+sTsz /= tSZ
+
+###################################################################################
+
 
 
 fig=plt.figure(0)
@@ -215,7 +253,7 @@ ax.plot(tsVelGauss.RApArcmin, factor*tsVelGauss.stackedProfile['diskring_ksz_uni
 ax.legend(loc=4, fontsize='x-small', labelspacing=0.1, handlelength=1.)
 ax.set_ylim((0., 1.3))
 ax.set_xlabel(r'$R$ [arcmin]')
-ax.set_ylabel(r'$T$')
+ax.set_ylabel(r'$T$ [normalized to unity]')
 #
 print "saving figure to:"
 print tsCountDirac.pathFig+"/test_mean_stacked_temperature_diskring_full.pdf"
