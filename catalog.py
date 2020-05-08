@@ -400,6 +400,56 @@ class Catalog(object):
 
    ##################################################################################
    ##################################################################################
+
+
+   def intersectCatalog(self, newCat, save=False, vDiff=False):
+      '''Take the intersection of the two catalogs.
+      Keep the galaxy properties from the first catalog (self).
+      If vDiff is True, use the difference of the two velocities, 
+      for a null test.
+      '''
+
+      # find the intersection
+      hasMatch = np.zeros(self.nObj, dtype=bool)
+      for iObj in range(self.nObj):
+         if iObj%10000==0:
+            print "matching object", iObj
+         ra = self.RA[iObj]
+         dec = self.DEC[iObj]
+         z = self.Z[iObj]
+
+         diff = (newCat.RA - ra)**2 / (1.e-3)**2   # accuracy of Mariana's RA (3.6 arcsec)
+         diff += (newCat.DEC - dec)**2 / (1.e-4)**2   # accuracy of Mariana's DEC (0.36 arcsec)
+         diff += (newCat.Z - z) **2 / (1.e-4)**2   # accuracy of Mariana's redshifts 
+         diff = np.sqrt(diff)
+
+         minDiff = np.min(diff)
+         #print "min diff", minDiff
+         if (minDiff<1.):
+            IMatch = np.where(diff==minDiff)[0]
+            if len(IMatch) > 1:
+               print "Problem: got", len(IMatch), "matches"
+            hasMatch[iObj] = True
+            iMatch = IMatch[0]
+            #print iObj, minDiff
+
+            if vDiff:
+               self.vR[iObj] -= newCat.vR[iMatch]
+               self.vTheta[iObj] -= newCat.vTheta[iMatch]
+               self.vPhi[iObj] -= newCat.vPhi[iMatch]
+
+      print "First catalog has", self.nObj, "objects"
+      print "Second catalog has", newCat.nObj, "objects"
+      print "Intersection has", np.sum(hasMatch), "objects"
+
+
+      # Write the full catalog to the output path, if needed
+      if save:
+         self.writeCatalog()
+
+
+   ##################################################################################
+   ##################################################################################
    
    def plotFootprint(self):
       """Overlay a scatter plot of the catalog positions on top of a healpix map,

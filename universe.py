@@ -592,6 +592,15 @@ class Universe(object):
       result = np.sqrt(result)
       return result
 
+   def v1dRms(self, R, z, W3d):
+      """RMS of the 1d velocity: |v^{1d}|_{RMS} in km/s.
+      Input R in Mpc/h comoving.
+      Assumes linear (Zel'dovich) relation between velocity and density:
+      v = a H(a) f(a) delta(k) / k
+      Uses the linear matter power spectrum.
+      """
+      return self.v3dRms(R, z, W3d) / np.sqrt(3.)
+
 
    def disp3dRms(self, R, z, W3d):
       """RMS of the 3d Lagrangian displacement: |\psi^{3d}|_{RMS} in Mpc/h.

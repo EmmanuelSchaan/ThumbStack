@@ -741,6 +741,12 @@ class ThumbStack(object):
       # -v/c [dimless]
       v = -ts.Catalog.vR[mask] / 3.e5
       v -= np.mean(v)
+      # expected sigma_{v_{true}}, for the normalization
+      z = ts.Catalog.z[mask]
+      f = lambda z: self.U.v1dRms(0., z, W3d_sth)**2
+      sVTrue = np.sqrt(np.mean(np.array(f, z)))
+      print "sigma_v_true =", sVTrue
+      print "at z=0.57, expect", np.sqrt(f(0.57))
       #true filter variance for each object and aperture,
       # valid whether or not a hit count map is available
       s2Full = ts.filtVarTrue[filterType][mask, :]
@@ -796,25 +802,25 @@ class ThumbStack(object):
          # remove mean temperature
          t -= np.mean(t, axis=0)
          weights = v[:,np.newaxis] * np.ones_like(s2Hit)
-         norm = np.std(v) / np.sum(v[:,np.newaxis]*weights, axis=0)
+         norm = sVTrue / np.sum(v[:,np.newaxis]*weights, axis=0)
       # kSZ: detector-noise weighted (hit count)
       elif est=='ksz_hitweight':
          # remove mean temperature
          t -= np.mean(t, axis=0)
          weights = v[:,np.newaxis] / s2Hit
-         norm = np.std(v) / np.sum(v[:,np.newaxis]*weights, axis=0)
+         norm = sVTrue / np.sum(v[:,np.newaxis]*weights, axis=0)
       # kSZ: full noise weighted (detector noise + CMB)
       elif est=='ksz_varweight':
          # remove mean temperature
          t -= np.mean(t, axis=0)
          weights = v[:,np.newaxis] / s2Full
-         norm = np.std(v) / np.sum(v[:,np.newaxis]*weights, axis=0)
+         norm = sVTrue / np.sum(v[:,np.newaxis]*weights, axis=0)
       # kSZ: full noise weighted (detector noise + CMB)
       elif est=='ksz_massvarweight':
          # remove mean temperature
          t -= np.mean(t, axis=0)
          weights = m[:,np.newaxis] * v[:,np.newaxis] / s2Full
-         norm = np.mean(m) * np.std(v) / np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2 / s2Full, axis=0)
+         norm = np.mean(m) * sVTrue / np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2 / s2Full, axis=0)
 
       # return the stacked profiles
       if not stackedMap:

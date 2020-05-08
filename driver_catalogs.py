@@ -111,4 +111,12 @@ bossKendrick = Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K
 #bossKendrick.plotFootprint()
 
 
+###################################################################################
+# Null test: vMariana - vKendrick
+# get the intersection of the catalogs
+
+
+cmassMKDiff = cmassMariana.copy(name="cmass_mk_diff", nameLong="CMASS M-K")
+cmassMKDiff.intersectCatalog(cmassKendrick, vDiff=True, save=True)
+cmassMKDiff = Catalog(u, massConversion, name="cmass_mk_diff", nameLong="CMASS M-K", save=False)
 

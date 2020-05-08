@@ -63,6 +63,7 @@ catalogs = {
       #"lowz_n_kendrick": Catalog(u, massConversion, name="lowz_n_kendrick", nameLong="LOWZ N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_N_kendrick.txt", save=False),
       "lowz_kendrick": Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False),
       #"boss_kendrick": Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False)
+      #"cmass_mk_diff": Catalog(u, massConversion, name="cmass_mk_diff", nameLong="CMASS M-K", save=False)
       }
 
 tStop = time()
@@ -118,10 +119,17 @@ cmbMaps = {
          "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
          "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits",
          name="pactf90daynight20200228maskgal60"),
-      "pactf150daynight20200228maskgal60reconvto90": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvto90.fits",
+      "pactf150reconvto90minus90daynight20200228maskgal60": cmbMap("./output/cmb_map/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150reconvto90_minus_f090_daynight_map.fits",
          "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
          "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
-         name="pactf150daynight20200228maskgal60reconvto90"),
+         name="pactf150reconvto90minus90daynight20200228maskgal60"),
+      #
+      #
+      #"pactf150daynight20200228maskgal60reconvto90": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvto90.fits",
+      #   "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
+      #   "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
+      #   name="pactf150daynight20200228maskgal60reconvto90"),
+      #
       #
       ## PACT day+night, 20200228, Planck Galactic masks 70%
       #"pactf150daynight20200228": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits",
@@ -143,18 +151,24 @@ cmbMaps = {
       #   name="coaddcmb20200228lmax9e3"),
       #
       # TileC v1.2, reconvolved to 1.4' beam, combining BOSS N and D56
-      "tilecpacty": cmbMap("./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv14_map.fits",
-      "./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      name="tilecpacty"),
-      "tilecpactynocib": cmbMap("./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_reconv14_map.fits",
-      "./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      name="tilecpactynocib"),
-      "tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv14_map.fits",
-      "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      name="tilecpactcmbksz"),
-      "tilecpactcmbksznoy": cmbMap("./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "tilec_reconv14_map.fits",
-      "./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      name="tilecpactcmbksznoy"),
+      #"tilecpacty": cmbMap("./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv14_map.fits",
+      #"./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      #name="tilecpacty"),
+      #"tilecpactynocib": cmbMap("./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_reconv14_map.fits",
+      #"./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      #name="tilecpactynocib"),
+      "tilecpactynocmb": cmbMap("./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      name="tilecpactynocmb"),
+      "tilecpactyminusynocib": cmbMap("./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      name="tilecpactynocmb"),
+      #"tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv14_map.fits",
+      #"./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      #name="tilecpactcmbksz"),
+      #"tilecpactcmbksznoy": cmbMap("./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "tilec_reconv14_map.fits",
+      #"./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      #name="tilecpactcmbksznoy"),
       #
       ## TileC v1.1, reconvolved to 1.4' beam, combining BOSS N and D56
       #"tilecpactcmbksz_14": cmbMap("./output/cmb_map/tilec_pact_cmbksz/" + "tilec_reconv14_map.fits",
@@ -242,13 +256,13 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 ###################################################################################
 # Do the stacking
 
-'''
+
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
 
-save = False
+save = True
 
 for cmbMapKey in cmbMaps.keys():
    cmbMap = cmbMaps[cmbMapKey].map()
@@ -267,7 +281,7 @@ for cmbMapKey in cmbMaps.keys():
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 #      except:
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
-'''
+
 
 ###################################################################################
 # PACT 90 and 150: stacks and joint cov
@@ -366,7 +380,7 @@ for catalogKey in catalogs.keys():#[::-1]:
 ###################################################################################
 ###################################################################################
 # Null tests
-
+'''
 # read the stacks on mock GRFs, to compare
 pathMockGRF = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
 iMock0 = 0
@@ -512,7 +526,7 @@ path = pathThumb + "cmass_mariana_pactf150daynight20200228maskgal60" + "/nulltes
 #fig.savefig(path, bbox_inches='tight')
 plt.show()
 fig.clf()
-
+'''
 
 
 
