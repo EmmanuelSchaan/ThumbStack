@@ -256,7 +256,7 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 ###################################################################################
 # Do the stacking
 
-
+'''
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -281,7 +281,7 @@ for cmbMapKey in cmbMaps.keys():
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 #      except:
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
-
+'''
 
 ###################################################################################
 # PACT 90 and 150: stacks and joint cov
@@ -380,7 +380,7 @@ for catalogKey in catalogs.keys():#[::-1]:
 ###################################################################################
 ###################################################################################
 # Null tests
-'''
+
 # read the stacks on mock GRFs, to compare
 pathMockGRF = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
 iMock0 = 0
@@ -424,6 +424,23 @@ tszY = data[:,1] * yTomuK
 sTszY = data[:,2] * yTomuK
 
 
+# read kSZ and tSZ on TileC y-no-CMB map
+# and convert to muK at 150 GHz
+pathThumb = "./output/thumbstack/"
+# kSZ
+data = np.genfromtxt(pathThumb + "cmass_mariana_tilecpactynocmb/" + "diskring_ksz_uniformweight_measured.txt")
+rKszYNoCmb = data[:,0]
+kszYNoCmb = data[:,1] * yTomuK
+sKszYNoCmb = data[:,2] * yTomuK
+# tSZ
+pathThumb = "./output/thumbstack/"
+data = np.genfromtxt(pathThumb + "cmass_mariana_tilecpactynocmb/" + "diskring_tsz_uniformweight_measured.txt")
+rTszYNoCmb = data[:,0]
+tszYNoCmb = data[:,1] * yTomuK
+sTszYNoCmb = data[:,2] * yTomuK
+
+
+
 # read tSZ on TileC y-no-CIB map
 # and convert to muK at 150 GHz
 pathThumb = "./output/thumbstack/"
@@ -431,6 +448,17 @@ data = np.genfromtxt(pathThumb + "cmass_mariana_tilecpactynocib/" + "diskring_ts
 rTszYNoCib = data[:,0]
 tszYNoCib = data[:,1] * yTomuK
 sTszYNoCib = data[:,2] * yTomuK
+
+
+# read tSZ on TileC y minus y-no-CIB map
+# and convert to muK at 150 GHz
+pathThumb = "./output/thumbstack/"
+data = np.genfromtxt(pathThumb + "cmass_mariana_tilecpactyminusynocib/" + "diskring_tsz_uniformweight_measured.txt")
+rTszYMinusYNoCib = data[:,0]
+tszYMinusYNoCib = data[:,1] * yTomuK
+sTszYMinusYNoCib = data[:,2] * yTomuK
+
+
 
 
 # read tSZ and kSZ on 150 reconvolved to the 90 beam
@@ -445,6 +473,21 @@ data = np.genfromtxt(pathThumb + "cmass_mariana_pactf150daynight20200228maskgal6
 rTsz150Rec90 = data[:,0]
 tsz150Rec90 = data[:,1]
 sTsz150Rec90 = data[:,2]
+
+
+# read tSZ and kSZ on 150 reconvolved to the 90 beam minus 90
+pathThumb = "./output/thumbstack/"
+# kSZ
+data = np.genfromtxt(pathThumb + "cmass_mariana_pactf150reconvto90minus90daynight20200228maskgal60/" + "diskring_ksz_varweight_measured.txt")
+rKsz150Rec90Minus90 = data[:,0]
+ksz150Rec90Minus90 = data[:,1]
+sKsz150Rec90Minus90 = data[:,2]
+# tSZ
+data = np.genfromtxt(pathThumb + "cmass_mariana_pactf150reconvto90minus90daynight20200228maskgal60reconvto90/" + "diskring_tsz_varweight_measured.txt")
+rTsz150Rec90 = data[:,0]
+tsz150Rec90 = data[:,1]
+sTsz150Rec90 = data[:,2]
+
 
 
 # read tSZ and kSZ on 150
@@ -500,10 +543,11 @@ ax.axhline(0., c='k', lw=1)
 ax.fill_between(rKsz150, - factor * sKsz150, factor * sKsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
 #
 # V-shuffle mean
-ax.errorbar(rKsz150VShuffleMean, factor * ksz150VShuffleMean, yerr= factor * sKsz150VShuffleMean, fmt='-', c='b', label='mean of v-shuffles')
+ax.errorbar(rKsz150VShuffleMean, factor * ksz150VShuffleMean, yerr=factor * sKsz150VShuffleMean, fmt='-', c='b', label='mean of v-shuffles')
 #
 # Mariana - Kendrick
-ax.plot(rKsz150, factor * (ksz150 - ksz150Kendrick), 'r-', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
+ax.errorbar(rKsz150Rec90Minus90, factor * ksz150Rec90Minus90, yerr=factor * sKsz150Rec90Minus90, fmt='-', c='r', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
+#ax.plot(rKsz150, factor * (ksz150 - ksz150Kendrick), 'r-', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
 #ax.plot(rKsz150, factor * ksz150, '-', label=r'$v_\text{Mariana}$', c='r')
 #ax.plot(rKsz150, factor * ksz150Kendrick, '-', label=r'$v_\text{Kendrick}$')
 #
@@ -511,10 +555,14 @@ ax.plot(rKsz150, factor * (ksz150 - ksz150Kendrick), 'r-', label=r'$v_\text{Mari
 ax.errorbar(rKsz150 + 0.025, factor*meanStackedGRF, yerr=factor*sStackedGRF, fmt='-', c='g', label=r'mean of '+str(nMocks)+' mocks')
 #
 # kSZ estimator on TileC y map
-ax.errorbar(rKszY + 0.05, factor * kszY, yerr=factor * sKszY, label=r'TileC y map')
+ax.errorbar(rKszY + 0.05, factor * kszY, yerr=factor * sKszY, label=r'TileC y')
+#
+# kSZ on TileC y no CMB map
+ax.errorbar(rKszY + 0.05, factor * kszYNoCmb, yerr=factor * sKszYNoCmb, label=r'TileC y no CMB')
 #
 # Comparison between 150 (reconv to 90 beam) and 90
-ax.plot(rKsz150Rec90 + 0.075, factor * (ksz150Rec90 - ksz90), label=r'150GHz\' - 90GHz')
+#ax.plot(rKsz150Rec90 + 0.075, factor * (ksz150Rec90 - ksz90), label=r'150GHz\' - 90GHz')
+ax.errorbar(rKsz150Rec90iMinus90 + 0.075, factor * ksz150Rec90Minus90, yerr=factor * sKsz150Rec90Minus90, fmt='-', label=r'150GHz\' - 90GHz')
 #
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')
@@ -526,7 +574,43 @@ path = pathThumb + "cmass_mariana_pactf150daynight20200228maskgal60" + "/nulltes
 #fig.savefig(path, bbox_inches='tight')
 plt.show()
 fig.clf()
-'''
+
+
+
+
+# tSZ plot
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+# convert from sr to arcmin^2
+factor = (180.*60./np.pi)**2
+#
+ax.axhline(0., c='k', lw=1)
+#
+# Uncertainty band
+ax.fill_between(rKsz150, - factor * sTsz150, factor * sTsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+#
+# tSZ estimator on TileC y map
+ax.errorbar(rTszY + 0.05, factor * tszY, yerr=factor * sTszY, label=r'TileC y')
+#
+# tSZ on TileC y minus y no CIB map
+ax.errorbar(rTszYMinusYNoCib + 0.05, factor * tszYNoCmbMinusYNoCib, yerr=factor * sTszYMinusYNoCib, label=r'TileC y - y no CIB')
+#
+# Comparison between 150 (reconv to 90 beam) and 90
+ax.errorbar(rTsz150Rec90iMinus90 + 0.075, factor * tsz150Rec90Minus90, yerr=factor * sTsz150Rec90Minus90, fmt='-', label=r'150GHz\' - 90GHz')
+#
+ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+ax.set_xlabel(r'$R$ [arcmin]')
+ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+ax.set_title(r'tSZ null tests')
+#ax.set_ylim((-2., 2.))
+#
+path = pathThumb + "cmass_mariana_pactf150daynight20200228maskgal60" + "/nulltests_tsz_cmass.pdf"
+#fig.savefig(path, bbox_inches='tight')
+plt.show()
+fig.clf()
+
+
 
 
 
