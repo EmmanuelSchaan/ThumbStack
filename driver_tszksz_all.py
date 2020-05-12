@@ -256,7 +256,7 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 ###################################################################################
 # Do the stacking
 
-'''
+
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -281,7 +281,7 @@ for cmbMapKey in cmbMaps.keys():
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 #      except:
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
-'''
+
 
 ###################################################################################
 # PACT 90 and 150: stacks and joint cov
@@ -380,7 +380,7 @@ for catalogKey in catalogs.keys():#[::-1]:
 ###################################################################################
 ###################################################################################
 # Null tests
-
+'''
 # read the stacks on mock GRFs, to compare
 pathMockGRF = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
 iMock0 = 0
@@ -609,7 +609,7 @@ path = pathThumb + "cmass_mariana_pactf150daynight20200228maskgal60" + "/nulltes
 #fig.savefig(path, bbox_inches='tight')
 plt.show()
 fig.clf()
-
+'''
 
 
 

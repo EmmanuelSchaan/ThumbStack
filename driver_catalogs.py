@@ -45,7 +45,7 @@ massConversion = MassConversionKravtsov14()
 
 ###################################################################################
 # Mariana
-
+'''
 # CMASS
 cmassSMariana = Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=True)
 #cmassSMariana.plotHistograms()
@@ -109,14 +109,20 @@ bossKendrick.addCatalog(lowzNKendrick, save=True)
 bossKendrick = Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False)
 #bossKendrick.plotHistograms()
 #bossKendrick.plotFootprint()
-
+'''
 
 ###################################################################################
 # Null test: vMariana - vKendrick
 # get the intersection of the catalogs
 
+#cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False)
+#cmassKendrick = Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False)
 
 cmassMKDiff = cmassMariana.copy(name="cmass_mk_diff", nameLong="CMASS M-K")
-cmassMKDiff.intersectCatalog(cmassKendrick, vDiff=True, save=True)
+cmassMKDiff.intersectCatalog(cmassKendrick, vDiff=True, save=True, nProc=32)
 cmassMKDiff = Catalog(u, massConversion, name="cmass_mk_diff", nameLong="CMASS M-K", save=False)
+
+
+
+
 

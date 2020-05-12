@@ -742,11 +742,11 @@ class ThumbStack(object):
       v = -ts.Catalog.vR[mask] / 3.e5
       v -= np.mean(v)
       # expected sigma_{v_{true}}, for the normalization
-      z = ts.Catalog.z[mask]
-      f = lambda z: self.U.v1dRms(0., z, W3d_sth)**2
-      sVTrue = np.sqrt(np.mean(np.array(f, z)))
-      print "sigma_v_true =", sVTrue
-      print "at z=0.57, expect", np.sqrt(f(0.57))
+      z = ts.Catalog.Z[mask]
+      f = lambda z: ts.U.v1dRms(0., z, W3d_sth)**2
+      sVTrue = np.sqrt(np.mean(np.array(map(f, z))))
+      #print "sigma_v_true =", sVTrue
+      #print "at z=0.57, expect", np.sqrt(f(0.57))
       #true filter variance for each object and aperture,
       # valid whether or not a hit count map is available
       s2Full = ts.filtVarTrue[filterType][mask, :]
