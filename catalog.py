@@ -512,22 +512,33 @@ class Catalog(object):
    ##################################################################################
    ##################################################################################
    
-   def plotFootprint(self):
+   def plotFootprint(self, hMap=None):
       """Overlay a scatter plot of the catalog positions on top of a healpix map,
       here the AdvACT hit count map.
       """
+
+      if hMap is None:
+         #pathMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
+         pathMask = "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits"
+         pathHit = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits"
+         #
+         #hMap = enmap.read_map(pathMap)[0] * enmap.read_map(pathMask)
+         hMap = enmap.read_map(pathHit)[0] 
+         hMap *= enmap.read_map(pathMask)[0]
+         hMap = np.log(np.abs(hMap)+1.e-5)
+         hMap = enmap.to_healpix(hMap)
+
       fig=plt.figure(0)
       #
       # hit count map for AdvACT
-      path = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/healpix_f150_daynight_all_div_mono.fits"
-      hHitMap = hp.read_map(path)
-      hp.mollview(np.log(np.abs(hHitMap)+1.e-5), fig=0, title="", coord=None, cbar=False, unit='')
+      hp.mollview(hMap, fig=0, title="", coord=None, cbar=False, unit='')
       #
       # scatter plot of the catalog
       hp.projscatter(self.RA, self.DEC, alpha=0.01, lonlat=True, marker='.', c='r', rasterized=True)
       #
-      fig.savefig(self.pathFig+"/footprint_"+self.name+".pdf", dpi=1200)
+      fig.savefig(self.pathFig+"/footprint_"+self.name+".pdf", dpi=1200, bbox_inches='tight')
       fig.clf()
+
 
    ##################################################################################
    ##################################################################################
@@ -598,22 +609,22 @@ class Catalog(object):
    ##################################################################################
    ##################################################################################
    
-   def plotFootprint(self):
-      """Overlay a scatter plot of the catalog positions on top of a healpix map,
-      here the AdvACT hit count map.
-      """
-      fig=plt.figure(0)
-      #
-      # hit count map for AdvACT
-      path = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/healpix_f150_daynight_all_div_mono.fits"
-      hHitMap = hp.read_map(path)
-      hp.mollview(np.log(np.abs(hHitMap)+1.e-5), fig=0, title="", coord=None, cbar=False, unit='')
-      #
-      # scatter plot of the catalog
-      hp.projscatter(self.RA, self.DEC, alpha=0.01, lonlat=True, marker='.', c='r', rasterized=True)
-      #
-      fig.savefig(self.pathFig+"/footprint_"+self.name+".pdf", dpi=1200)
-      fig.clf()
+#   def plotFootprint(self):
+#      """Overlay a scatter plot of the catalog positions on top of a healpix map,
+#      here the AdvACT hit count map.
+#      """
+#      fig=plt.figure(0)
+#      #
+#      # hit count map for AdvACT
+#      path = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/healpix_f150_daynight_all_div_mono.fits"
+#      hHitMap = hp.read_map(path)
+#      hp.mollview(np.log(np.abs(hHitMap)+1.e-5), fig=0, title="", coord=None, cbar=False, unit='')
+#      #
+#      # scatter plot of the catalog
+#      hp.projscatter(self.RA, self.DEC, alpha=0.01, lonlat=True, marker='.', c='r', rasterized=True)
+#      #
+#      fig.savefig(self.pathFig+"/footprint_"+self.name+".pdf", dpi=1200)
+#      fig.clf()
 
 
    ##################################################################################

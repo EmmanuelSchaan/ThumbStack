@@ -63,7 +63,7 @@ catalogs = {
       #"lowz_n_kendrick": Catalog(u, massConversion, name="lowz_n_kendrick", nameLong="LOWZ N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_N_kendrick.txt", save=False),
       "lowz_kendrick": Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False),
       #"boss_kendrick": Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False)
-      #"cmass_mk_diff": Catalog(u, massConversion, name="cmass_mk_diff", nameLong="CMASS M-K", save=False)
+      "cmass_mk_diff": Catalog(u, massConversion, name="cmass_mk_diff", nameLong="CMASS M-K", save=False)
       }
 
 tStop = time()
@@ -256,7 +256,7 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 ###################################################################################
 # Do the stacking
 
-
+'''
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -276,26 +276,29 @@ for cmbMapKey in cmbMaps.keys():
       print("Analyzing catalog "+catalog.name)
       name = catalog.name + "_" + cmbName
 
-      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
-#      try:
-#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
-#      except:
-#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
-
+#      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
+      try:
+         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True)
+      except:
+         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
+'''
 
 ###################################################################################
 # PACT 90 and 150: stacks and joint cov
-'''
+
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
 #ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 
-save = False
+save = True
 
 
-for catalogKey in catalogs.keys():#[::-1]:
+for catalogKey in ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick']:
+#for catalogKey in ['cmass_mariana']:
+#for catalogKey in ['cmass_kendrick']:
+#for catalogKey in ['lowz_kendrick']:
    catalog = catalogs[catalogKey]
    print("Analyzing catalog "+catalog.name)
    
@@ -320,10 +323,11 @@ for catalogKey in catalogs.keys():#[::-1]:
    # Joint covariance between 150 and 90
 
    # compute the joint cov
+   #save = True
    if save:
       ts['150'].saveAllCovBootstrapTwoStackedProfiles(ts['90'])
    ts['150'].plotAllCovTwoStackedProfiles(ts['90'])
-
+   #save = False
 
    ###################################################################################
    # Summary kSZ and tSZ at 150 and 90
@@ -375,7 +379,7 @@ for catalogKey in catalogs.keys():#[::-1]:
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
-'''
+
 
 ###################################################################################
 ###################################################################################

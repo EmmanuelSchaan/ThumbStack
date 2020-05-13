@@ -700,6 +700,10 @@ class ThumbStack(object):
       tTh: to replace measured temperatures by a theory expectation
       ts: option to specify another thumbstack object
       """
+
+      #tStart = time()
+
+
       # compute stacked profile from another thumbstack object
       if ts is None:
          ts = self
@@ -741,12 +745,19 @@ class ThumbStack(object):
       # -v/c [dimless]
       v = -ts.Catalog.vR[mask] / 3.e5
       v -= np.mean(v)
+
       # expected sigma_{v_{true}}, for the normalization
+      #print "computing v1d norm"
+      #tStartV = time()
       z = ts.Catalog.Z[mask]
-      f = lambda z: ts.U.v1dRms(0., z, W3d_sth)**2
-      sVTrue = np.sqrt(np.mean(np.array(map(f, z))))
+      #f = lambda zGal: ts.U.v1dRms(0., zGal, W3d_sth)**2
+      #sVTrue = np.sqrt(np.mean(np.array(map(f, z))))
+      sVTrue = ts.U.v1dRms(0., np.mean(z), W3d_sth) / 3.e5  # (v^true_rms/c) [dimless]
       #print "sigma_v_true =", sVTrue
       #print "at z=0.57, expect", np.sqrt(f(0.57))
+      #tStopV = time()
+      #print "v1d norm took", tStopV - tStartV, "sec"
+      
       #true filter variance for each object and aperture,
       # valid whether or not a hit count map is available
       s2Full = ts.filtVarTrue[filterType][mask, :]
@@ -822,6 +833,10 @@ class ThumbStack(object):
          weights = m[:,np.newaxis] * v[:,np.newaxis] / s2Full
          norm = np.mean(m) * sVTrue / np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2 / s2Full, axis=0)
 
+      #tStop = time()
+      #print "stacked profile took", tStop-tStart, "sec"
+
+
       # return the stacked profiles
       if not stackedMap:
          stack = norm * np.sum(t * weights, axis=0)
@@ -875,6 +890,7 @@ class ThumbStack(object):
          resMap = np.sum(resMap, axis=0)
          # normalize by the proper sum of weights
          resMap *= norm
+
          return resMap
 
 
