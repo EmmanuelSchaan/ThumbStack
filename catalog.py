@@ -5,7 +5,9 @@ from headers import *
 
 class Catalog(object):
 
-   def __init__(self, U, MassConversion, name="test", nameLong=None, pathInCatalog="", save=False):
+   def __init__(self, U, MassConversion, name="test", nameLong=None, pathInCatalog="", save=False, nObj=None):
+      '''nObj: used to keep the first nObj objects of the catalog, useful for quick debugging
+      '''
 
       self.U = U
       self.MassConversion = MassConversion
@@ -37,7 +39,7 @@ class Catalog(object):
          self.addIntegratedY()
          self.writeCatalog()
 
-      self.loadCatalog()
+      self.loadCatalog(nObj=nObj)
    
 
    ##################################################################################
@@ -275,61 +277,61 @@ class Catalog(object):
       np.savetxt(self.pathOutCatalog, data)
 
 
-   def loadCatalog(self):
+   def loadCatalog(self, nObj=None):
       print "- load full catalog from "+self.pathOutCatalog
       data = np.genfromtxt(self.pathOutCatalog)
-      self.nObj = len(data[:,0])
+      self.nObj = len(data[:nObj,0])
       #
       # sky coordinates and redshift
-      self.RA = data[:,0] # [deg]
-      self.DEC = data[:,1]   # [deg]
-      self.Z = data[:,2]
+      self.RA = data[:nObj,0] # [deg]
+      self.DEC = data[:nObj,1]   # [deg]
+      self.Z = data[:nObj,2]
       #
       # observed cartesian coordinates
-      self.coordX = data[:,3]   # [Mpc/h]
-      self.coordY = data[:,4]   # [Mpc/h]
-      self.coordZ = data[:,5]   # [Mpc/h]
+      self.coordX = data[:nObj,3]   # [Mpc/h]
+      self.coordY = data[:nObj,4]   # [Mpc/h]
+      self.coordZ = data[:nObj,5]   # [Mpc/h]
       #
       # displacement from difference,
       # not including the Kaiser displacement,
       # from differences of the observed and reconstructed fields
-      self.dX = data[:,6]   # [Mpc/h]
-      self.dY = data[:,7]   # [Mpc/h]
-      self.dZ = data[:,8]   # [Mpc/h]
+      self.dX = data[:nObj,6]   # [Mpc/h]
+      self.dY = data[:nObj,7]   # [Mpc/h]
+      self.dZ = data[:nObj,8]   # [Mpc/h]
       #
       # Kaiser-only displacement
       # originally from differences of the observed and reconstructed fields
-      self.dXKaiser = data[:,9]   # [Mpc/h] from cartesian catalog difference
-      self.dYKaiser = data[:,10]   # [Mpc/h]
-      self.dZKaiser = data[:,11]   # [Mpc/h]
+      self.dXKaiser = data[:nObj,9]   # [Mpc/h] from cartesian catalog difference
+      self.dYKaiser = data[:nObj,10]   # [Mpc/h]
+      self.dZKaiser = data[:nObj,11]   # [Mpc/h]
       #
       # velocity in cartesian coordinates
-      self.vX = data[:,12]   #[km/s]
-      self.vY = data[:,13]   #[km/s]
-      self.vZ = data[:,14]   #[km/s]
+      self.vX = data[:nObj,12]   #[km/s]
+      self.vY = data[:nObj,13]   #[km/s]
+      self.vZ = data[:nObj,14]   #[km/s]
       #
       # velocity in spherical coordinates,
       # from catalog of spherical displacements
-      self.vR = data[:,15]  # [km/s]   from spherical catalog, >0 away from us
-      self.vTheta = data[:,16]   # [km/s]
-      self.vPhi = data[:,17]  # [km/s]
+      self.vR = data[:nObj,15]  # [km/s]   from spherical catalog, >0 away from us
+      self.vTheta = data[:nObj,16]   # [km/s]
+      self.vPhi = data[:nObj,17]  # [km/s]
       #
       # Stellar masses
-      self.Mstellar = data[:,18]   # [M_sun], from Maraston et al
+      self.Mstellar = data[:nObj,18]   # [M_sun], from Maraston et al
       #
       # Halo mass
-      self.hasM = data[:,19]
-      self.Mvir = data[:,20]  # [M_sun]
+      self.hasM = data[:nObj,19]
+      self.Mvir = data[:nObj,20]  # [M_sun]
       #
       # Integrated optical depth [dimless]: int d^2theta n_e^2d sigma_T = (total nb of electrons) * sigma_T / (a chi)^2
-      self.integratedTau = data[:,21]   # [dimless]
+      self.integratedTau = data[:nObj,21]   # [dimless]
       #
       # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T (-v/c) Tcmb
-      self.integratedKSZ = data[:, 22] # [muK * sr]
+      self.integratedKSZ = data[:nObj, 22] # [muK * sr]
       #
       # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
-      self.integratedY = data[:, 23] # [sr]
+      self.integratedY = data[:nObj, 23] # [sr]
 
 
    ##################################################################################

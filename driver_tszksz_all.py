@@ -51,19 +51,29 @@ massConversion = MassConversionKravtsov14()
 print("Read galaxy catalogs")
 tStart = time()
 
+
+# Mini CMASS Mariana, for debugging
+nObj = 50000
+cmassMarianaShort = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False, nObj=nObj)
+cmassMarianaShort.name = "cmass_mariana_short"
+
+
+
 catalogs = {
+      cmassMarianaShort,
       #"cmass_s_mariana": Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False),
       #"cmass_n_mariana": Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False),
-      "cmass_mariana": Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False),
+#      "cmass_mariana": Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False),
+      "cmass_mariana": cmassMarianaShort,
       #
       #"cmass_s_kendrick": Catalog(u, massConversion, name="cmass_s_kendrick", nameLong="CMASS S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_S_kendrick.txt", save=False),
       #"cmass_n_kendrick": Catalog(u, massConversion, name="cmass_n_kendrick", nameLong="CMASS N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_N_kendrick.txt", save=False),
-      "cmass_kendrick": Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False),
+#      "cmass_kendrick": Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False),
       #"lowz_s_kendrick": Catalog(u, massConversion, name="lowz_s_kendrick", nameLong="LOWZ S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_S_kendrick.txt", save=False),
       #"lowz_n_kendrick": Catalog(u, massConversion, name="lowz_n_kendrick", nameLong="LOWZ N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_N_kendrick.txt", save=False),
-      "lowz_kendrick": Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False),
-      #"boss_kendrick": Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False)
-      "cmass_mk_diff": Catalog(u, massConversion, name="cmass_mk_diff", nameLong="CMASS M-K", save=False)
+#      "lowz_kendrick": Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False),
+      #"boss_kendrick": Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False),
+#      "cmass_mk_diff": Catalog(u, massConversion, name="cmass_mk_diff", nameLong="CMASS M-K", save=False),
       }
 
 tStop = time()
@@ -252,9 +262,11 @@ tStop = time()
 print("took "+str(round((tStop-tStart)/60., 2))+" min")
 
 
+
+
 ###################################################################################
 ###################################################################################
-# Do the stacking
+# Do all the stacks
 
 '''
 import thumbstack
@@ -264,24 +276,68 @@ from thumbstack import *
 
 save = True
 
+
+catalogCombi = {
+      "pactf150daynight20200228maskgal60": ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick', 'cmass_mk_diff'],
+      "pactf90daynight20200228maskgal60": ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick'],
+      "pactf150reconvto90minus90daynight20200228maskgal60": ['cmass_mariana'],
+      #
+      "tilecpactynocmb": ['cmass_mariana'],
+      "tilecpactyminusynocib": ['cmass_mariana'],
+      }
+
+#catalogCombi = {
+      "pactf150daynight20200228maskgal60": ['cmass_mariana'],
+      "pactf90daynight20200228maskgal60": ['cmass_mariana'],
+      }
+
+
 for cmbMapKey in cmbMaps.keys():
+#for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228maskgal60']:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
    cmbName = cmbMaps[cmbMapKey].name
    print("Analyzing map "+cmbName)
 
-   for catalogKey in catalogs.keys():
+   for catalogKey in catalogCombi[cmbMap.key]:
       catalog = catalogs[catalogKey]
       print("Analyzing catalog "+catalog.name)
       name = catalog.name + "_" + cmbName
 
-#      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
-      try:
-         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True)
-      except:
-         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
+      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
+#      try:
+#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True)
+#      except:
+#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
 '''
+
+
+#import thumbstack
+#reload(thumbstack)
+#from thumbstack import *
+#
+#
+#save = True
+#
+#for cmbMapKey in cmbMaps.keys():
+#   cmbMap = cmbMaps[cmbMapKey].map()
+#   cmbMask = cmbMaps[cmbMapKey].mask()
+#   cmbHit = cmbMaps[cmbMapKey].hit()
+#   cmbName = cmbMaps[cmbMapKey].name
+#   print("Analyzing map "+cmbName)
+#
+#   for catalogKey in catalogs.keys():
+#      catalog = catalogs[catalogKey]
+#      print("Analyzing catalog "+catalog.name)
+#      name = catalog.name + "_" + cmbName
+#
+#      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
+##      try:
+##         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True)
+##      except:
+##         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
+
 
 ###################################################################################
 # PACT 90 and 150: stacks and joint cov
@@ -295,8 +351,8 @@ from thumbstack import *
 save = True
 
 
-for catalogKey in ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick']:
-#for catalogKey in ['cmass_mariana']:
+#for catalogKey in ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick']:
+for catalogKey in ['cmass_mariana']:
 #for catalogKey in ['cmass_kendrick']:
 #for catalogKey in ['lowz_kendrick']:
    catalog = catalogs[catalogKey]
@@ -323,11 +379,9 @@ for catalogKey in ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick']:
    # Joint covariance between 150 and 90
 
    # compute the joint cov
-   #save = True
-   if save:
+   if True:
       ts['150'].saveAllCovBootstrapTwoStackedProfiles(ts['90'])
    ts['150'].plotAllCovTwoStackedProfiles(ts['90'])
-   #save = False
 
    ###################################################################################
    # Summary kSZ and tSZ at 150 and 90
