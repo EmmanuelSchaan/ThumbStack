@@ -53,18 +53,18 @@ tStart = time()
 
 
 # Mini CMASS Mariana, for debugging
-nObj = 50000
+nObj = 10000#50000
 cmassMarianaShort = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False, nObj=nObj)
 cmassMarianaShort.name = "cmass_mariana_short"
 
 
 
 catalogs = {
-      cmassMarianaShort,
+      "cmass_mariana_short": cmassMarianaShort,
+      #
       #"cmass_s_mariana": Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False),
       #"cmass_n_mariana": Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False),
 #      "cmass_mariana": Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False),
-      "cmass_mariana": cmassMarianaShort,
       #
       #"cmass_s_kendrick": Catalog(u, massConversion, name="cmass_s_kendrick", nameLong="CMASS S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_S_kendrick.txt", save=False),
       #"cmass_n_kendrick": Catalog(u, massConversion, name="cmass_n_kendrick", nameLong="CMASS N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_N_kendrick.txt", save=False),
@@ -352,7 +352,7 @@ save = True
 
 
 #for catalogKey in ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick']:
-for catalogKey in ['cmass_mariana']:
+for catalogKey in ['cmass_mariana_short']:
 #for catalogKey in ['cmass_kendrick']:
 #for catalogKey in ['lowz_kendrick']:
    catalog = catalogs[catalogKey]

@@ -6,7 +6,7 @@ from headers import *
 class ThumbStack(object):
 
 #   def __init__(self, U, Catalog, pathMap="", pathMask="", pathHit="", name="test", nameLong=None, save=False, nProc=1):
-   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit=None, name="test", nameLong=None, save=False, nProc=1, filterTypes='diskring', doStackedMap=False, doMBins=False):
+   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit=None, name="test", nameLong=None, save=False, nProc=1, filterTypes='diskring', doStackedMap=False, doMBins=False, doVShuffle=False, doBootstrap=False):
       
       self.nProc = nProc
       self.U = U
@@ -20,6 +20,8 @@ class ThumbStack(object):
       self.cmbMask = cmbMask
       self.cmbHit = cmbHit
       self.doMBins = doMBins
+      self.doVShuffle = doVShuffle
+      self.doBootstrap = doBootstrap
 
       # aperture photometry filters to implement
       if filterTypes=='diskring':
@@ -95,10 +97,10 @@ class ThumbStack(object):
          self.saveAllStackedProfiles()
       self.loadAllStackedProfiles()
 
-      if save:
-         self.plotAllStackedProfiles()
-         self.plotAllCov()
-         self.computeAllSnr()
+#      if save:
+#         self.plotAllStackedProfiles()
+#         self.plotAllCov()
+#         self.computeAllSnr()
 
       if doStackedMap:
          # save all stacked maps
@@ -1249,6 +1251,7 @@ class ThumbStack(object):
 
    def saveAllStackedProfiles(self):
       print "- compute stacked profiles and their cov"
+      tStart = time()
       data = np.zeros((self.nRAp, 3))
       data[:,0] = self.RApArcmin # [arcmin]
       
@@ -1275,15 +1278,17 @@ class ThumbStack(object):
 
          # covariance matrices from bootstrap,
          # only for a few select estimators
-         for iEst in range(len(self.EstBootstrap)):
-            est = self.EstBootstrap[iEst]
-            self.SaveCovBootstrapStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
+         if self.doBootstrap: 
+            for iEst in range(len(self.EstBootstrap)):
+               est = self.EstBootstrap[iEst]
+               self.SaveCovBootstrapStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
 
          # covariance matrices from shuffling velocities,
          # for ksz only
-         for iEst in range(len(self.EstVShuffle)):
-            est = self.EstVShuffle[iEst]
-            self.SaveCovVShuffleStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
+         if self.doVShuffle:
+            for iEst in range(len(self.EstVShuffle)):
+               est = self.EstVShuffle[iEst]
+               self.SaveCovVShuffleStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
 
 
       # Stacked profiles in mass bins, to check for contamination
@@ -1311,6 +1316,8 @@ class ThumbStack(object):
                np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_mmax_theory_tsz.txt", dataTsz)
                np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_mmax_theory_ksz.txt", dataKsz)
 
+      tStop = time()
+      print "Computing all stacked profiles (and cov) took", (tStop-tStart)/60., "min"
 
 
    def loadAllStackedProfiles(self):
@@ -1341,12 +1348,13 @@ class ThumbStack(object):
 
          # Null tests from shuffling velocities,
          # for ksz only
-         for iEst in range(len(self.EstVShuffle)):
-            est = self.EstVShuffle[iEst]
-            # null test from shuffling the velocities
-            data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_vshufflemean.txt")
-            self.stackedProfile[filterType+"_"+est+"_vshufflemean"] = data[:,1]
-            self.sStackedProfile[filterType+"_"+est+"_vshufflemean"] = data[:,2]
+         if self.doVShuffle:
+            for iEst in range(len(self.EstVShuffle)):
+               est = self.EstVShuffle[iEst]
+               # null test from shuffling the velocities
+               data = np.genfromtxt(self.pathOut+"/"+filterType+"_"+est+"_vshufflemean.txt")
+               self.stackedProfile[filterType+"_"+est+"_vshufflemean"] = data[:,1]
+               self.sStackedProfile[filterType+"_"+est+"_vshufflemean"] = data[:,2]
 
 
 
@@ -1373,15 +1381,17 @@ class ThumbStack(object):
 
          # covariance matrices from bootstrap,
          # only for a few select estimators
-         for iEst in range(len(self.EstBootstrap)):
-            est = self.EstBootstrap[iEst]
-            self.covBootstrap[filterType+"_"+est] = np.genfromtxt(self.pathOut+"/cov_"+filterType+"_"+est+"_bootstrap.txt")
+         if self.doBootstrap:
+            for iEst in range(len(self.EstBootstrap)):
+               est = self.EstBootstrap[iEst]
+               self.covBootstrap[filterType+"_"+est] = np.genfromtxt(self.pathOut+"/cov_"+filterType+"_"+est+"_bootstrap.txt")
          
          # covariance matrices from shuffling velocities,
          # for ksz only
-         for iEst in range(len(self.EstVShuffle)):
-            est = self.EstVShuffle[iEst]
-            self.covVShuffle[filterType+"_"+est] = np.genfromtxt(self.pathOut+"/cov_"+filterType+"_"+est+"_vshuffle.txt")
+         if self.doVshuffle:
+            for iEst in range(len(self.EstVShuffle)):
+               est = self.EstVShuffle[iEst]
+               self.covVShuffle[filterType+"_"+est] = np.genfromtxt(self.pathOut+"/cov_"+filterType+"_"+est+"_vshuffle.txt")
 
 
 
@@ -1709,15 +1719,17 @@ class ThumbStack(object):
 
          # covariance matrices from bootstrap,
          # only for a few select estimators
-         for iEst in range(len(self.EstBootstrap)):
-            est = self.EstBootstrap[iEst]
-            self.plotCov(self.covBootstrap[filterType+"_"+est], filterType+"_"+est+"_bootstrap")
+         if self.doBootstrap:
+            for iEst in range(len(self.EstBootstrap)):
+               est = self.EstBootstrap[iEst]
+               self.plotCov(self.covBootstrap[filterType+"_"+est], filterType+"_"+est+"_bootstrap")
          
          # covariance matrices from shuffling velocities,
          # for ksz only
-         for iEst in range(len(self.EstVShuffle)):
-            est = self.EstVShuffle[iEst]
-            self.plotCov(self.covVShuffle[filterType+"_"+est], filterType+"_"+est+"_vshuffle")
+         if self.doVShuffle:
+            for iEst in range(len(self.EstVShuffle)):
+               est = self.EstVShuffle[iEst]
+               self.plotCov(self.covVShuffle[filterType+"_"+est], filterType+"_"+est+"_vshuffle")
 
 
    ##################################################################################
@@ -2005,11 +2017,12 @@ class ThumbStack(object):
 
    def computeAllSnr(self):
       print "- compute all SNR and significances"
-      for filterType in self.filterTypes:
-         for est in self.EstBootstrap:
-            self.computeSnrStack(filterType, est)
-            self.computeSnrStack(filterType, est, tTh='tsz')
-            self.computeSnrStack(filterType, est, tTh='ksz')
+      if self.doBootstrap:
+         for filterType in self.filterTypes:
+            for est in self.EstBootstrap:
+               self.computeSnrStack(filterType, est)
+               self.computeSnrStack(filterType, est, tTh='tsz')
+               self.computeSnrStack(filterType, est, tTh='ksz')
 
 
 
