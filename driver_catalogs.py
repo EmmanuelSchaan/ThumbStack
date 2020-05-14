@@ -144,3 +144,11 @@ hMap = enmap.to_healpix(hMap)
 
 cmassMariana.plotFootprint(hMap=hMap)
 '''
+
+###################################################################################
+# mini CMASS Mariana, for debugging
+'''
+nObj = 50000
+cmassMarianaShort = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False, nObj=nObj)
+cmassMarianaShort.name = "cmass_mariana_short"
+'''

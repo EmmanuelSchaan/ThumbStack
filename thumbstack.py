@@ -1150,8 +1150,9 @@ class ThumbStack(object):
    def SaveCovBootstrapTwoStackedProfiles(self, ts2, filterType, est, mVir=None, z=[0., 100.], nSamples=100, nProc=1):
       """Estimate the full covariance for two stacked profiles.
       These need to use the same galaxy catalog. The temperature maps can be different.
-      WARNING: currently assumes that the number of objects that overlap with one map
-      and not the other map is negligible.
+      Resamples only the objects in common, then rescales the cov assuming
+      that the objects that are not in common are not statistically different
+      from the objects in common.
       """
       # for each resample, compute both profiles, and concatenate, before taking the cov
       if mVir is None:
@@ -1168,6 +1169,12 @@ class ThumbStack(object):
       n2 = np.sum(mask2)
       n12 = np.sum(mask12)
       print "Objects that overlap with 1, 2, 1&2:", n1, n2, n12
+      # build the rescaling matrix for the cov
+      block = np.ones((self.nRAp, self.nRAp))
+      f11 = 1. * n12 / n1 * block
+      f12 = 1. * n12**2 / n1 / n2 * block
+      f22 = 1. * n12 / n2 * block
+      rescaleMat = np.block([[f11, f12], [f12, f22]])
       
       def f(iSample):
          #print "Joint Bootstrap", iSample
@@ -1184,6 +1191,9 @@ class ThumbStack(object):
       print "took", (tStop-tStart)/60., "min"
       # estimate cov
       covStack = np.cov(stackSamples, rowvar=False)
+      # rescale the cov mat, since only the galaxies in common for the two maps
+      # were sampled
+      covStack *= rescaleMat
       # save it to file
       path = self.pathOut+"/cov_"+filterType+"_"+est+"_joint_"+self.name+"_"+ts2.name+"_bootstrap.txt"
       print "saving to:"

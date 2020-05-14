@@ -60,20 +60,20 @@ cmassMarianaShort.name = "cmass_mariana_short"
 
 
 catalogs = {
-      "cmass_mariana_short": cmassMarianaShort,
+      #"cmass_mariana_short": cmassMarianaShort,
       #
       #"cmass_s_mariana": Catalog(u, massConversion, name="cmass_s_mariana", nameLong="CMASS S M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_S_mariana.txt", save=False),
       #"cmass_n_mariana": Catalog(u, massConversion, name="cmass_n_mariana", nameLong="CMASS N M", pathInCatalog="../../data/CMASS_DR12_mariana_20160200/output/cmass_dr12_N_mariana.txt", save=False),
-#      "cmass_mariana": Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False),
+      "cmass_mariana": Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False),
       #
       #"cmass_s_kendrick": Catalog(u, massConversion, name="cmass_s_kendrick", nameLong="CMASS S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_S_kendrick.txt", save=False),
       #"cmass_n_kendrick": Catalog(u, massConversion, name="cmass_n_kendrick", nameLong="CMASS N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/cmass_dr10_N_kendrick.txt", save=False),
-#      "cmass_kendrick": Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False),
+      "cmass_kendrick": Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False),
       #"lowz_s_kendrick": Catalog(u, massConversion, name="lowz_s_kendrick", nameLong="LOWZ S K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_S_kendrick.txt", save=False),
       #"lowz_n_kendrick": Catalog(u, massConversion, name="lowz_n_kendrick", nameLong="LOWZ N K", pathInCatalog="../../data/BOSS_DR10_kendrick_20150407/output/lowz_dr10_N_kendrick.txt", save=False),
-#      "lowz_kendrick": Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False),
+      "lowz_kendrick": Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False),
       #"boss_kendrick": Catalog(u, massConversion, name="boss_kendrick", nameLong="BOSS K", save=False),
-#      "cmass_mk_diff": Catalog(u, massConversion, name="cmass_mk_diff", nameLong="CMASS M-K", save=False),
+      "cmass_mk_diff": Catalog(u, massConversion, name="cmass_mk_diff", nameLong="CMASS M-K", save=False),
       }
 
 tStop = time()
@@ -161,24 +161,25 @@ cmbMaps = {
       #   name="coaddcmb20200228lmax9e3"),
       #
       # TileC v1.2, reconvolved to 1.4' beam, combining BOSS N and D56
-      #"tilecpacty": cmbMap("./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv14_map.fits",
-      #"./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      #name="tilecpacty"),
-      #"tilecpactynocib": cmbMap("./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_reconv14_map.fits",
-      #"./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      #name="tilecpactynocib"),
       "tilecpactynocmb": cmbMap("./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "tilec_reconv14_map.fits",
       "./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "mask_full_foot_gal_ps.fits",
       name="tilecpactynocmb"),
       "tilecpactyminusynocib": cmbMap("./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "tilec_reconv14_map.fits",
       "./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      name="tilecpactynocmb"),
-      #"tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv14_map.fits",
-      #"./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      #name="tilecpactcmbksz"),
-      #"tilecpactcmbksznoy": cmbMap("./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "tilec_reconv14_map.fits",
-      #"./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      #name="tilecpactcmbksznoy"),
+      name="tilecpactyminusynocib"),
+      #
+      "tilecpacty": cmbMap("./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      name="tilecpacty"),
+      "tilecpactynocib": cmbMap("./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      name="tilecpactynocib"),
+      "tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      name="tilecpactcmbksz"),
+      "tilecpactcmbksznoy": cmbMap("./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "tilec_reconv14_map.fits",
+      "./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      name="tilecpactcmbksznoy"),
       #
       ## TileC v1.1, reconvolved to 1.4' beam, combining BOSS N and D56
       #"tilecpactcmbksz_14": cmbMap("./output/cmb_map/tilec_pact_cmbksz/" + "tilec_reconv14_map.fits",
@@ -268,7 +269,7 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 ###################################################################################
 # Do all the stacks
 
-'''
+
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -284,6 +285,11 @@ catalogCombi = {
       #
       "tilecpactynocmb": ['cmass_mariana'],
       "tilecpactyminusynocib": ['cmass_mariana'],
+      #
+      "tilecpacty": ['cmass_mariana'],
+      "tilecpactynocib": ['cmass_mariana'],
+      "tilecpactcmbksz": ['cmass_mariana'],
+      "tilecpactcmbksznoy": ['cmass_mariana'],
       }
 
 #catalogCombi = {
@@ -292,25 +298,30 @@ catalogCombi = {
 #      }
 
 
-for cmbMapKey in cmbMaps.keys():
+#for cmbMapKey in cmbMaps.keys():
 #for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228maskgal60']:
+#for cmbMapKey in ['tilecpactynocmb', 'tilecpactyminusynocib', 'pactf150reconvto90minus90daynight20200228maskgal60']:
+#for cmbMapKey in ['pactf150reconvto90minus90daynight20200228maskgal60']:
+#for cmbMapKey in ['tilecpactyminusynocib']:
+#for cmbMapKey in ['tilecpacty', 'tilecpactynocib']:
+for cmbMapKey in ['tilecpactynocib', 'tilecpactcmbksz', 'tilecpactcmbksznoy']:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
    cmbName = cmbMaps[cmbMapKey].name
    print("Analyzing map "+cmbName)
 
-   for catalogKey in catalogCombi[cmbMap.key]:
+   for catalogKey in catalogCombi[cmbMapKey]:
       catalog = catalogs[catalogKey]
       print("Analyzing catalog "+catalog.name)
       name = catalog.name + "_" + cmbName
 
-      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
+      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
 #      try:
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
 #      except:
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
-'''
+
 
 
 
@@ -351,7 +362,7 @@ for cmbMapKey in cmbMaps.keys():
 
 ###################################################################################
 # PACT 90 and 150: stacks and joint cov
-
+'''
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -362,7 +373,7 @@ save = False
 
 
 #for catalogKey in ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick']:
-for catalogKey in ['cmass_mariana_short']:
+for catalogKey in ['cmass_mariana']:
 #for catalogKey in ['cmass_kendrick']:
 #for catalogKey in ['lowz_kendrick']:
    catalog = catalogs[catalogKey]
@@ -443,7 +454,7 @@ for catalogKey in ['cmass_mariana_short']:
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
-
+'''
 
 ###################################################################################
 ###################################################################################
@@ -509,13 +520,13 @@ sTszYNoCmb = data[:,2] * yTomuK
 
 
 
-# read tSZ on TileC y-no-CIB map
-# and convert to muK at 150 GHz
-pathThumb = "./output/thumbstack/"
-data = np.genfromtxt(pathThumb + "cmass_mariana_tilecpactynocib/" + "diskring_tsz_uniformweight_measured.txt")
-rTszYNoCib = data[:,0]
-tszYNoCib = data[:,1] * yTomuK
-sTszYNoCib = data[:,2] * yTomuK
+### read tSZ on TileC y-no-CIB map
+### and convert to muK at 150 GHz
+##pathThumb = "./output/thumbstack/"
+##data = np.genfromtxt(pathThumb + "cmass_mariana_tilecpactynocib/" + "diskring_tsz_uniformweight_measured.txt")
+##rTszYNoCib = data[:,0]
+##tszYNoCib = data[:,1] * yTomuK
+##sTszYNoCib = data[:,2] * yTomuK
 
 
 # read tSZ on TileC y minus y-no-CIB map
@@ -529,18 +540,18 @@ sTszYMinusYNoCib = data[:,2] * yTomuK
 
 
 
-# read tSZ and kSZ on 150 reconvolved to the 90 beam
-pathThumb = "./output/thumbstack/"
-# kSZ
-data = np.genfromtxt(pathThumb + "cmass_mariana_pactf150daynight20200228maskgal60reconvto90/" + "diskring_ksz_varweight_measured.txt")
-rKsz150Rec90 = data[:,0]
-ksz150Rec90 = data[:,1]
-sKsz150Rec90 = data[:,2]
-# tSZ
-data = np.genfromtxt(pathThumb + "cmass_mariana_pactf150daynight20200228maskgal60reconvto90/" + "diskring_tsz_varweight_measured.txt")
-rTsz150Rec90 = data[:,0]
-tsz150Rec90 = data[:,1]
-sTsz150Rec90 = data[:,2]
+### read tSZ and kSZ on 150 reconvolved to the 90 beam
+##pathThumb = "./output/thumbstack/"
+### kSZ
+##data = np.genfromtxt(pathThumb + "cmass_mariana_pactf150daynight20200228maskgal60reconvto90/" + "diskring_ksz_varweight_measured.txt")
+##rKsz150Rec90 = data[:,0]
+##ksz150Rec90 = data[:,1]
+##sKsz150Rec90 = data[:,2]
+### tSZ
+##data = np.genfromtxt(pathThumb + "cmass_mariana_pactf150daynight20200228maskgal60reconvto90/" + "diskring_tsz_varweight_measured.txt")
+##rTsz150Rec90 = data[:,0]
+##tsz150Rec90 = data[:,1]
+##sTsz150Rec90 = data[:,2]
 
 
 # read tSZ and kSZ on 150 reconvolved to the 90 beam minus 90
@@ -551,10 +562,10 @@ rKsz150Rec90Minus90 = data[:,0]
 ksz150Rec90Minus90 = data[:,1]
 sKsz150Rec90Minus90 = data[:,2]
 # tSZ
-data = np.genfromtxt(pathThumb + "cmass_mariana_pactf150reconvto90minus90daynight20200228maskgal60reconvto90/" + "diskring_tsz_varweight_measured.txt")
-rTsz150Rec90 = data[:,0]
-tsz150Rec90 = data[:,1]
-sTsz150Rec90 = data[:,2]
+data = np.genfromtxt(pathThumb + "cmass_mariana_pactf150reconvto90minus90daynight20200228maskgal60/" + "diskring_tsz_varweight_measured.txt")
+rTsz150Rec90Minus90 = data[:,0]
+tsz150Rec90Minus90 = data[:,1]
+sTsz150Rec90Minus90 = data[:,2]
 
 
 
@@ -580,6 +591,11 @@ data = np.genfromtxt(pathThumb + "cmass_kendrick_pactf150daynight20200228maskgal
 rKsz150Kendrick = data[:,0]
 ksz150Kendrick = data[:,1]
 sKsz150Kendrick = data[:,2]
+# CMASS MK Diff
+data = np.genfromtxt(pathThumb + "cmass_mk_diff_pactf150daynight20200228maskgal60/" + "diskring_ksz_varweight_measured.txt")
+rKsz150MKDiff = data[:,0]
+ksz150MKDiff = data[:,1]
+sKsz150MKDiff = data[:,2]
 
 
 
@@ -614,7 +630,7 @@ ax.fill_between(rKsz150, - factor * sKsz150, factor * sKsz150, edgecolor='', fac
 ax.errorbar(rKsz150VShuffleMean, factor * ksz150VShuffleMean, yerr=factor * sKsz150VShuffleMean, fmt='-', c='b', label='mean of v-shuffles')
 #
 # Mariana - Kendrick
-ax.errorbar(rKsz150Rec90Minus90, factor * ksz150Rec90Minus90, yerr=factor * sKsz150Rec90Minus90, fmt='-', c='r', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
+ax.errorbar(rKsz150MKDiff, factor * ksz150MKDiff, yerr=factor * sKsz150MKDiff, fmt='-', c='r', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
 #ax.plot(rKsz150, factor * (ksz150 - ksz150Kendrick), 'r-', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
 #ax.plot(rKsz150, factor * ksz150, '-', label=r'$v_\text{Mariana}$', c='r')
 #ax.plot(rKsz150, factor * ksz150Kendrick, '-', label=r'$v_\text{Kendrick}$')
@@ -626,11 +642,11 @@ ax.errorbar(rKsz150 + 0.025, factor*meanStackedGRF, yerr=factor*sStackedGRF, fmt
 ax.errorbar(rKszY + 0.05, factor * kszY, yerr=factor * sKszY, label=r'TileC y')
 #
 # kSZ on TileC y no CMB map
-ax.errorbar(rKszY + 0.05, factor * kszYNoCmb, yerr=factor * sKszYNoCmb, label=r'TileC y no CMB')
+ax.errorbar(rKszYNoCmb + 0.075, factor * kszYNoCmb, yerr=factor * sKszYNoCmb, label=r'TileC y no CMB')
 #
 # Comparison between 150 (reconv to 90 beam) and 90
+ax.errorbar(rKsz150Rec90Minus90 + 0.075, factor * ksz150Rec90Minus90, yerr=factor * sKsz150Rec90Minus90, fmt='-', label=r'150GHz\' - 90GHz')
 #ax.plot(rKsz150Rec90 + 0.075, factor * (ksz150Rec90 - ksz90), label=r'150GHz\' - 90GHz')
-ax.errorbar(rKsz150Rec90iMinus90 + 0.075, factor * ksz150Rec90Minus90, yerr=factor * sKsz150Rec90Minus90, fmt='-', label=r'150GHz\' - 90GHz')
 #
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')
@@ -662,10 +678,10 @@ ax.fill_between(rKsz150, - factor * sTsz150, factor * sTsz150, edgecolor='', fac
 ax.errorbar(rTszY + 0.05, factor * tszY, yerr=factor * sTszY, label=r'TileC y')
 #
 # tSZ on TileC y minus y no CIB map
-ax.errorbar(rTszYMinusYNoCib + 0.05, factor * tszYNoCmbMinusYNoCib, yerr=factor * sTszYMinusYNoCib, label=r'TileC y - y no CIB')
+ax.errorbar(rTszYMinusYNoCib + 0.05, factor * tszYMinusYNoCib, yerr=factor * sTszYMinusYNoCib, label=r'TileC y - y no CIB')
 #
 # Comparison between 150 (reconv to 90 beam) and 90
-ax.errorbar(rTsz150Rec90iMinus90 + 0.075, factor * tsz150Rec90Minus90, yerr=factor * sTsz150Rec90Minus90, fmt='-', label=r'150GHz\' - 90GHz')
+ax.errorbar(rTsz150Rec90Minus90 + 0.075, factor * tsz150Rec90Minus90, yerr=factor * sTsz150Rec90Minus90, fmt='-', label=r'150GHz\' - 90GHz')
 #
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')
