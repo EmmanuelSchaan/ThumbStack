@@ -694,7 +694,7 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def computeStackedProfile(self, filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=False, mVir=None, z=[0., 100.], ts=None):
+   def computeStackedProfile(self, filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=False, mVir=None, z=[0., 100.], ts=None, mask=None):
       """Returns the estimated profile and its uncertainty for each aperture.
       est: string to select the estimator
       iBootstrap: index for bootstrap resampling
@@ -713,7 +713,8 @@ class ThumbStack(object):
          mVir = [ts.mMin, ts.mMax]
 
       # select objects that overlap, and reject point sources
-      mask = ts.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=mVir, z=z)
+      if mask is None:
+         mask = ts.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=mVir, z=z)
 
       # temperatures [muK * sr]
       if tTh is None:
@@ -775,6 +776,7 @@ class ThumbStack(object):
          np.random.seed(iBootstrap)
          # list of overlapping objects
          nObj = np.sum(mask)
+         #print "sample "iBootstrap, ";", nObj, "objects overlap with", ts.name
          I = np.arange(nObj)
          # choose with replacement from this list
          J = np.random.choice(I, size=nObj, replace=True)
@@ -828,6 +830,7 @@ class ThumbStack(object):
          t -= np.mean(t, axis=0)
          weights = v[:,np.newaxis] / s2Full
          norm = sVTrue / np.sum(v[:,np.newaxis]*weights, axis=0)
+#         norm = np.std(v) / np.sum(v[:,np.newaxis]*weights, axis=0)
       # kSZ: full noise weighted (detector noise + CMB)
       elif est=='ksz_massvarweight':
          # remove mean temperature
@@ -1146,16 +1149,30 @@ class ThumbStack(object):
 
    def SaveCovBootstrapTwoStackedProfiles(self, ts2, filterType, est, mVir=None, z=[0., 100.], nSamples=100, nProc=1):
       """Estimate the full covariance for two stacked profiles.
-      These may have the same/different catalogs, on the same/different temperature maps.
+      These need to use the same galaxy catalog. The temperature maps can be different.
+      WARNING: currently assumes that the number of objects that overlap with one map
+      and not the other map is negligible.
       """
       # for each resample, compute both profiles, and concatenate, before taking the cov
       if mVir is None:
          mVir = [self.mMin, self.mMax]
       tStart = time()
+
+      # find the objects that overlap with both maps 
+      # bootstrap resample only these objects,
+      # then rescale the cov mat
+      mask1 = self.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=mVir, z=z)
+      mask2 = ts2.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=mVir, z=z)
+      mask12 = mask1 * mask2
+      n1 = np.sum(mask1)
+      n2 = np.sum(mask2)
+      n12 = np.sum(mask12)
+      print "Objects that overlap with 1, 2, 1&2:", n1, n2, n12
       
       def f(iSample):
-         prof1 = self.computeStackedProfile(filterType, est, iBootstrap=iSample, mVir=mVir, z=z)
-         prof2 = self.computeStackedProfile(filterType, est, iBootstrap=iSample, mVir=mVir, z=z, ts=ts2)
+         #print "Joint Bootstrap", iSample
+         prof1 = self.computeStackedProfile(filterType, est, iBootstrap=iSample, mVir=mVir, z=z, mask=mask12)
+         prof2 = self.computeStackedProfile(filterType, est, iBootstrap=iSample, mVir=mVir, z=z, ts=ts2, mask=mask12)
          # concatenate the 2 profiles
          jointProf = np.concatenate((prof1[0], prof2[0]))
          return jointProf
@@ -1388,7 +1405,7 @@ class ThumbStack(object):
          
          # covariance matrices from shuffling velocities,
          # for ksz only
-         if self.doVshuffle:
+         if self.doVShuffle:
             for iEst in range(len(self.EstVShuffle)):
                est = self.EstVShuffle[iEst]
                self.covVShuffle[filterType+"_"+est] = np.genfromtxt(self.pathOut+"/cov_"+filterType+"_"+est+"_vshuffle.txt")

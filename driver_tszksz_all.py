@@ -287,9 +287,9 @@ catalogCombi = {
       }
 
 #catalogCombi = {
-      "pactf150daynight20200228maskgal60": ['cmass_mariana'],
-      "pactf90daynight20200228maskgal60": ['cmass_mariana'],
-      }
+#      "pactf150daynight20200228maskgal60": ['cmass_mariana'],
+#      "pactf90daynight20200228maskgal60": ['cmass_mariana'],
+#      }
 
 
 for cmbMapKey in cmbMaps.keys():
@@ -305,12 +305,22 @@ for cmbMapKey in cmbMaps.keys():
       print("Analyzing catalog "+catalog.name)
       name = catalog.name + "_" + cmbName
 
-      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
+      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
 #      try:
-#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True)
+#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
 #      except:
-#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
+#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
 '''
+
+
+
+
+
+
+
+
+
+
 
 
 #import thumbstack
@@ -348,7 +358,7 @@ from thumbstack import *
 
 #ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 
-save = True
+save = False
 
 
 #for catalogKey in ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick']:
@@ -368,11 +378,11 @@ for catalogKey in ['cmass_mariana_short']:
       print("Analyzing map "+cmbName)
       name = catalog.name + "_" + cmbName
 
-      ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
+      ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
 #      try:
-#         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
+#         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
 #      except:
-#         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
+#         ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
 
 
    ###################################################################################
