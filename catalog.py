@@ -24,6 +24,8 @@ class Catalog(object):
          os.makedirs(self.pathOut)
       # catalog path
       self.pathOutCatalog = self.pathOut + "/catalog.txt"
+      # path for vtk file (to visualize with VisIt)
+      self.pathOutVtk = self.pathOut + "/catalog.vtk"
       
       # Figures path
       self.pathFig = "./figures/catalog/"+self.name
@@ -332,6 +334,106 @@ class Catalog(object):
       # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = data[:nObj, 23] # [sr]
+
+
+   ##################################################################################
+   ##################################################################################
+
+
+   def writeVtk(self):
+      print "- save catalog to vtk file:"
+      print self.pathOutVtk
+      # create vtk file
+      f = open(self.pathOutVtk,'w')
+      f.write('# vtk DataFile Version 3.0\n')
+      f.write('Catalog data for visualization\n')
+      f.write('ASCII\n')
+      f.write('\n')
+
+      # Cartesian coord
+      f.write('DATASET POLYDATA\n')
+      f.write('POINTS '+str(self.nObj)+' DOUBLE\n')
+      for iobj in range(self.nObj):
+         f.write(format(self.coordX[iobj], '.10f')+' '+format(self.coordY[iobj], '.10f')+' '+format(self.coordZ[iobj], '.10f')+'\n')
+      f.write('\n')
+      f.write('POINT_DATA '+str(self.nObj)+'\n')
+
+      # Velocity: cartesian
+      f.write('VECTORS vel DOUBLE\n')
+      for iobj in range(self.nObj):
+         f.write(format(self.vX[iobj], '.10e')+' '+format(self.vY[iobj], '.10e')+' '+format(self.vZ[iobj], '.10e')+'\n')
+      f.write('\n')
+
+      # Displacement: cartesian
+      f.write('VECTORS disp DOUBLE\n')
+      for iobj in range(self.nObj):
+         f.write(format(self.dX[iobj], '.10e')+' '+format(self.dY[iobj], '.10e')+' '+format(self.dZ[iobj], '.10e')+'\n')
+      f.write('\n')
+
+      # Kaiser displacement:cartesian
+      f.write('VECTORS dispKaiser DOUBLE\n')
+      for iobj in range(self.nObj):
+         f.write(format(self.dXKaiser[iobj], '.10e')+' '+format(self.dYKaiser[iobj], '.10e')+' '+format(self.dZKaiser[iobj], '.10e')+'\n')
+      f.write('\n')
+
+      # Velocity: spherical
+      f.write('VECTORS velSph DOUBLE\n')
+      for iobj in range(self.nObj):
+         f.write(format(self.vR[iobj], '.10e')+' '+format(self.vTheta[iobj], '.10e')+' '+format(self.vPhi[iobj], '.10e')+'\n')
+      f.write('\n')
+
+      # RA
+      f.write('SCALARS RA DOUBLE\n')
+      f.write('LOOKUP_TABLE default\n')
+      for iobj in range(self.nObj):
+         f.write(format(self.RA[iobj], '.10e')+'\n')
+      f.write('\n')
+
+      # DEC
+      f.write('SCALARS DEC DOUBLE\n')
+      f.write('LOOKUP_TABLE default\n')
+      for iobj in range(self.nObj):
+         f.write(format(self.DEC[iobj], '.10e')+'\n')
+      f.write('\n')
+
+      # Redshift
+      f.write('SCALARS Redshift DOUBLE\n')
+      f.write('LOOKUP_TABLE default\n')
+      for iobj in range(self.nObj):
+         f.write(format(self.Z[iobj], '.10e')+'\n')
+      f.write('\n')
+
+      # Stellar mass
+      f.write('SCALARS mStellar DOUBLE\n')
+      f.write('LOOKUP_TABLE default\n')
+      for iobj in range(self.nObj):
+         f.write(format(self.Mstellar[iobj], '.10e')+'\n')
+      f.write('\n')
+
+      ## output the virial mass, in Msun/h
+      #f.write('SCALARS mVir DOUBLE\n')
+      #f.write('LOOKUP_TABLE default\n')
+      #for iobj in range(self.nObj):
+      #   f.write(format(self.Mvir[iobj], '.10e')+'\n')
+      #f.write('\n')
+
+      ## output the expected kSZ, in muK
+      #f.write('SCALARS expKSZ DOUBLE\n')
+      #f.write('LOOKUP_TABLE default\n')
+      #for iobj in range(self.nObj):
+      #   f.write(format(self.ExpectedKSZ[iobj], '.10e')+'\n')
+      #f.write('\n')
+
+      ## output the expected tSZ, in muK
+      #f.write('SCALARS expTSZ DOUBLE\n')
+      #f.write('LOOKUP_TABLE default\n')
+      #for iobj in range(self.nObj):
+      #   f.write(format(self.ExpectedTSZ[iobj], '.10e')+'\n')
+      #f.write('\n')
+
+      f.close()
+
+
 
 
    ##################################################################################

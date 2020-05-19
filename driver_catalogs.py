@@ -152,3 +152,18 @@ nObj = 50000
 cmassMarianaShort = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False, nObj=nObj)
 cmassMarianaShort.name = "cmass_mariana_short"
 '''
+
+###################################################################################
+# Generate vtk files for visualization
+
+'''
+cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False)
+cmassMariana.writeVtk()
+cmassKendrick = Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False)
+cmassKendrick.writeVtk()
+lowzKendrick = Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False)
+lowzKendrick.writeVtk()
+cmassMKDiff = Catalog(u, massConversion, name="cmass_mk_diff", nameLong="CMASS M-K", save=False)
+cmassMKDiff.writeVtk()
+'''
+
