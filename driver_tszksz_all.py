@@ -31,7 +31,7 @@ from cmb import *
 nProc = 32 # 1 haswell node on cori
 
 
-pathFig = '/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/figures/thumbstack/summary_plots'
+pathFig = '/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/figures/thumbstack/summary_plots/'
 
 
 ##################################################################################
@@ -181,6 +181,21 @@ cmbMaps = {
       "./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_full_foot_gal_ps.fits",
       name="tilecpactcmbksznoy"),
       #
+      # kSZ pipeline check
+      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksz": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksz/" + "tilec_reconv14_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksz/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60_minus_tilecpactcmbksz"),
+      #
+      # kSZ dust contamination test
+      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksznocib/" + "tilec_reconv14_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksznocib/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib"),
+      #
+      # tSZ pipeline (map) check
+      "pactf150daynight20200228maskgal60_minus_tilecpactymuk": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_ymuk/" + "tilec_reconv14_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_ymuk/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60_minus_tilecpactymuk"),
+      #
+      # tSZ internal dust test
+      "pactf150reconvto90minus90noydaynight20200228maskgal60": cmbMap("./output/cmb_map/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150reconvto90_minus_f090_noy_daynight_map.fits",
+         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
+         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
+         name="pactf150reconvto90minus90noydaynight20200228maskgal60"),
+      #
       ## TileC v1.1, reconvolved to 1.4' beam, combining BOSS N and D56
       #"tilecpactcmbksz_14": cmbMap("./output/cmb_map/tilec_pact_cmbksz/" + "tilec_reconv14_map.fits",
       #"./output/cmb_map/tilec_pact_cmbksz/" + "mask_foot_planck_ps_car.fits",
@@ -264,18 +279,7 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 
 
 
-
 ###################################################################################
-###################################################################################
-# Do all the stacks
-
-
-import thumbstack
-reload(thumbstack)
-from thumbstack import *
-
-
-save = True
 
 
 catalogCombi = {
@@ -290,12 +294,26 @@ catalogCombi = {
       "tilecpactynocib": ['cmass_mariana'],
       "tilecpactcmbksz": ['cmass_mariana'],
       "tilecpactcmbksznoy": ['cmass_mariana'],
+      #
+      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksz": ['cmass_mariana'],
+      "pactf150daynight20200228maskgal60_minus_tilecpactymuk": ['cmass_mariana'],
+      "pactf150reconvto90minus90noydaynight20200228maskgal60": ['cmass_mariana'],
+      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib": ['cmass_mariana'],
       }
 
-#catalogCombi = {
-#      "pactf150daynight20200228maskgal60": ['cmass_mariana'],
-#      "pactf90daynight20200228maskgal60": ['cmass_mariana'],
-#      }
+
+
+###################################################################################
+###################################################################################
+# Do all the stacks
+
+'''
+import thumbstack
+reload(thumbstack)
+from thumbstack import *
+
+
+save = True
 
 
 #for cmbMapKey in cmbMaps.keys():
@@ -304,7 +322,9 @@ catalogCombi = {
 #for cmbMapKey in ['pactf150reconvto90minus90daynight20200228maskgal60']:
 #for cmbMapKey in ['tilecpactyminusynocib']:
 #for cmbMapKey in ['tilecpacty', 'tilecpactynocib']:
-for cmbMapKey in ['tilecpactynocib', 'tilecpactcmbksz', 'tilecpactcmbksznoy']:
+#for cmbMapKey in ['tilecpactynocib', 'tilecpactcmbksz', 'tilecpactcmbksznoy']:
+#for cmbMapKey in ['pactf150daynight20200228maskgal60_minus_tilecpactcmbksz', 'pactf150daynight20200228maskgal60_minus_tilecpactymuk', 'pactf150reconvto90minus90noydaynight20200228maskgal60']:
+for cmbMapKey in ["pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib"]:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
@@ -321,45 +341,10 @@ for cmbMapKey in ['tilecpactynocib', 'tilecpactcmbksz', 'tilecpactcmbksznoy']:
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
 #      except:
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
+'''
 
 
-
-
-
-
-
-
-
-
-
-
-
-#import thumbstack
-#reload(thumbstack)
-#from thumbstack import *
-#
-#
-#save = True
-#
-#for cmbMapKey in cmbMaps.keys():
-#   cmbMap = cmbMaps[cmbMapKey].map()
-#   cmbMask = cmbMaps[cmbMapKey].mask()
-#   cmbHit = cmbMaps[cmbMapKey].hit()
-#   cmbName = cmbMaps[cmbMapKey].name
-#   print("Analyzing map "+cmbName)
-#
-#   for catalogKey in catalogs.keys():
-#      catalog = catalogs[catalogKey]
-#      print("Analyzing catalog "+catalog.name)
-#      name = catalog.name + "_" + cmbName
-#
-#      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
-##      try:
-##         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True)
-##      except:
-##         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True)
-
-
+###################################################################################
 ###################################################################################
 # PACT 90 and 150: stacks and joint cov
 '''
@@ -426,7 +411,7 @@ for catalogKey in ['cmass_mariana']:
    ax.set_title(r'kSZ profile')
    ax.set_ylim((0., 10.))
    #
-   path = ts['150'].pathFig+"/summary_ksz_150_90_"+catalogKey+".pdf"
+   path = ts['150'].pathFig+"summary_ksz_150_90_"+catalogKey+".pdf"
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
@@ -450,15 +435,440 @@ for catalogKey in ['cmass_mariana']:
    ax.set_title(r'tSZ + dust profile')
    #ax.set_ylim((0., 2.))
    #
-   path = ts['150'].pathFig+"/summary_tsz_150_90_"+catalogKey+".pdf"
+   path = ts['150'].pathFig+"summary_tsz_150_90_"+catalogKey+".pdf"
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
 '''
 
+
+###################################################################################
+###################################################################################
+# Read all the stacked profiles
+
+# convert from sr to arcmin^2
+factor = (180.*60./np.pi)**2
+
+# conversion from y to muK at 150 GHz
+Tcmb = 2.726   # K
+h = 6.63e-34   # SI
+kB = 1.38e-23  # SI
+def f(nu):
+   """frequency dependence for tSZ temperature
+   """
+   x = h*nu/(kB*Tcmb)
+   return x*(np.exp(x)+1.)/(np.exp(x)-1.) -4.
+yTomuK150 = f(150.e9) * Tcmb * 1.e6  # [muK * sr]
+
+
+
+
+pathThumb = './output/thumbstack/'
+
+rKsz = {}
+ksz = {}
+sKsz = {}
+#
+rTsz = {}
+tsz = {}
+sTsz = {}
+
+for cmbMapKey in cmbMaps.keys():
+   cmbName = cmbMaps[cmbMapKey].name
+
+   for catalogKey in catalogCombi[cmbMapKey]:
+      catalog = catalogs[catalogKey]
+      name = catalog.name + "_" + cmbName
+
+      # read the stacked kSZ profile
+      try:
+         data = np.genfromtxt(pathThumb + name + "/diskring_ksz_varweight_measured.txt")
+      except:
+         data = np.genfromtxt(pathThumb + name + "/diskring_ksz_uniformweight_measured.txt")
+      rKsz[name] = data[:,0]
+      ksz[name] = data[:,1] * factor
+      sKsz[name] = data[:,2] * factor
+
+      # read the stacked tSZ profile
+      try:
+         data = np.genfromtxt(pathThumb + name + "/diskring_tsz_varweight_measured.txt")
+      except:
+         data = np.genfromtxt(pathThumb + name + "/diskring_tsz_uniformweight_measured.txt")
+      rTsz[name] = data[:,0]
+      tsz[name] = data[:,1] * factor
+      sTsz[name] = data[:,2] * factor
+
+
+
+
+# read the stacks on mock GRFs, to compare
+pathMockGRF = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
+iMock0 = 0
+nMocks = 800
+#
+est = 'ksz_varweight'
+meanStackedKszGRF = np.genfromtxt(pathMockGRF+"mean_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt") * factor
+covStackedKszGRF = np.genfromtxt(pathMockGRF+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt") * factor**2
+sStackedKszGRF = np.sqrt(np.diag(covStackedKszGRF)) / np.sqrt(nMocks) 
+#
+est = 'tsz_varweight'
+meanStackedTszGRF = np.genfromtxt(pathMockGRF+"mean_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt") * factor
+covStackedTszGRF = np.genfromtxt(pathMockGRF+"cov_diskring_"+est+"_mocks"+str(iMock0)+"-"+str(iMock0+nMocks)+".txt") * factor**2
+sStackedTszGRF = np.sqrt(np.diag(covStackedTszGRF)) / np.sqrt(nMocks)
+
+
+
+
+# kSZ: v-shuffle mean
+data = np.genfromtxt(pathThumb + "cmass_mariana_pactf150daynight20200228maskgal60/" + "diskring_ksz_varweight_vshufflemean.txt")
+rKsz150VShuffleMean = data[:,0]
+ksz150VShuffleMean = data[:,1] * factor
+sKsz150VShuffleMean = data[:,2] * factor
+
+
+
+###################################################################################
+###################################################################################
+# kSZ null tests
+
+rAp = rKsz['cmass_mariana_pactf150daynight20200228maskgal60']
+#
+# fiducial uncertainty
+sKsz150 = sKsz['cmass_mariana_pactf150daynight20200228maskgal60']
+#
+# 150 - tilec cmb, as a consistency check
+ksz150MinusTilecCmb = ksz['cmass_mariana_pactf150daynight20200228maskgal60_minus_tilecpactcmbksz']
+sKsz150MinusTilecCmb = sKsz['cmass_mariana_pactf150daynight20200228maskgal60_minus_tilecpactcmbksz']
+#
+# 150 reconv to 90 minus 90, to check consistency
+ksz150Reconv90Minus90 = ksz['cmass_mariana_pactf150reconvto90minus90daynight20200228maskgal60']
+sKsz150Reconv90Minus90 = sKsz['cmass_mariana_pactf150reconvto90minus90daynight20200228maskgal60']
+#
+# tilec y no cmb, to check for tSZ contamination
+kszYNoCmb = ksz['cmass_mariana_tilecpactynocmb'] * yTomuK150
+sKszYNoCmb = sKsz['cmass_mariana_tilecpactynocmb'] * yTomuK150
+#
+# 150 - tilec cmb no cib, to check for dust contamination
+ksz150MinusCmbNoCib = ksz['cmass_mariana_pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib']
+sKsz150MinusCmbNoCib = sKsz['cmass_mariana_pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib']
+
+
+
+
+# kSZ pipeline null tests
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+#
+ax.axhline(0., c='k', lw=1)
+#
+# Uncertainty band
+ax.fill_between(rAp, - sKsz150, sKsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+#
+# V-shuffle mean
+ax.errorbar(rAp, ksz150VShuffleMean, yerr=sKsz150VShuffleMean, fmt='--', label='mean of 100 v-shuffles')
+#
+# Average of many mocks
+ax.errorbar(rAp + 0.025, meanStackedKszGRF, yerr=sStackedKszGRF, fmt='--', label=r'mean of '+str(nMocks)+' mocks')
+#
+# Mariana - Kendrick
+#ax.errorbar(rAp, factor * ksz150MKDiff, yerr=factor * sKsz150MKDiff, fmt='-', c='r', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
+#ax.errorbar(rAp, factor * ksz150Kendrick, yerr=factor * sKsz150Kendrick, fmt='-', label='K')
+#ax.errorbar(rAp, factor * ksz150, yerr=factor * sKsz150, fmt='-', label='M')
+#
+# 150 - tilec cmb
+ax.errorbar(rAp + 0.025, ksz150MinusTilecCmb, yerr=sKsz150MinusTilecCmb, fmt='-', label='150 - TileC CMB/kSZ')
+#
+# 150 reconv to 90 minus 90
+ax.errorbar(rAp + 0.05, ksz150Reconv90Minus90, yerr=sKsz150Reconv90Minus90, fmt='-', label='150\' - 90')
+#
+ax.set_ylim((-10., 15.))
+ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+ax.set_xlabel(r'$R$ [arcmin]')
+ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+ax.set_title(r'kSZ pipeline null tests')
+ax.set_ylim((-6., 6.))
+#
+path = pathFig + "pipenulltests_ksz_150_cmass.pdf"
+fig.savefig(path, bbox_inches='tight')
+#plt.show()
+fig.clf()
+
+
+
+
+# kSZ foreground null tests
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+# convert from sr to arcmin^2
+factor = (180.*60./np.pi)**2
+#
+ax.axhline(0., c='k', lw=1)
+#
+# Uncertainty band
+ax.fill_between(rAp, - sKsz150, sKsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+#
+# kSZ on TileC y no CMB map
+ax.errorbar(rAp, kszYNoCmb, yerr=sKszYNoCmb, label=r'TileC y no CMB')
+#
+# cmbksz no cib, to check for dust
+ax.errorbar(rAp + 0.025, ksz150MinusCmbNoCib, yerr=sKsz150MinusCmbNoCib, fmt='-', label=r'150 - TileC CMB/kSZ no CIB')
+#
+ax.set_ylim((-10., 15.))
+ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+ax.set_xlabel(r'$R$ [arcmin]')
+ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+ax.set_title(r'kSZ foreground null tests')
+#ax.set_ylim((-2., 2.))
+#
+path = pathFig + "fgnulltests_ksz_150_cmass.pdf"
+fig.savefig(path, bbox_inches='tight')
+#plt.show()
+fig.clf()
+
+
+
+###################################################################################
+###################################################################################
+# tSZ null tests
+
+rAp = rTsz['cmass_mariana_pactf150daynight20200228maskgal60']
+#
+# fiducial uncertainty
+sTsz150 = sTsz['cmass_mariana_pactf150daynight20200228maskgal60'] 
+#
+# 150 - y, to check for map consistency
+tsz150MinusY = tsz['cmass_mariana_pactf150daynight20200228maskgal60_minus_tilecpactymuk']
+sTsz150MinusY = sTsz['cmass_mariana_pactf150daynight20200228maskgal60_minus_tilecpactymuk']
+#
+# y - y no CIB
+tszYMinusYNoCib = tsz['cmass_mariana_tilecpactyminusynocib'] * yTomuK150
+sTszYMinusYNoCib = sTsz['cmass_mariana_tilecpactyminusynocib'] * yTomuK150
+#
+# 150' - 90, after rescaling 90 to null tSZ
+# in order to check for the dust contamination
+tsz150Reconv90Minus90NoY = tsz['cmass_mariana_pactf150reconvto90minus90noydaynight20200228maskgal60']
+sTsz150Reconv90Minus90NoY = sTsz['cmass_mariana_pactf150reconvto90minus90noydaynight20200228maskgal60']
+
+
+
+# tSZ pipeline test
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+ax.axhline(0., c='k', lw=1)
+#
+# Uncertainty band
+ax.fill_between(rAp, - sTsz150, sTsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+#
+# mean of GRF mocks
+ax.errorbar(rAp, meanStackedTszGRF, yerr=sStackedTszGRF, fmt='--', label=r'mean of '+str(nMocks)+' mocks')
+#
+# 150 - tilec y
+ax.errorbar(rAp, tsz150MinusY, yerr=sTsz150MinusY, fmt='--', label=r'150 - TileC y ')
+#
+ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+ax.set_xlabel(r'$R$ [arcmin]')
+ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+ax.set_title(r'tSZ pipeline null tests')
+ax.set_ylim((-6., 6.))
+#
+path = pathFig + "pipenulltests_tsz_150_cmass.pdf"
+fig.savefig(path, bbox_inches='tight')
+#plt.show()
+fig.clf()
+
+
+
+# dust contamination to tSZ
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+ax.axhline(0., c='k', lw=1)
+#
+# Uncertainty band
+ax.fill_between(rAp, - sTsz150, sTsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+#
+# 150 - tilec y
+ax.errorbar(rAp, tsz150MinusY, yerr=sTsz150MinusY, fmt='--', label=r'150 - TileC y')
+#
+# y - y no CIB
+ax.errorbar(rAp, tszYMinusYNoCib, yerr=sTszYMinusYNoCib, fmt='--', label=r'TileC y - y no CIB')
+#
+# 150' - 90 rescaled to null y
+ax.errorbar(rAp, tsz150Reconv90Minus90NoY, yerr=sTsz150Reconv90Minus90NoY, fmt='--', label=r"150\' - 90 no y")
+#
+ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+ax.set_xlabel(r'$R$ [arcmin]')
+ax.set_ylabel(r'$T_\text{dust}$ [$\mu K\cdot\text{arcmin}^2$]')
+ax.set_title(r'Dust emission')
+ax.set_ylim((-6., 6.))
+#
+path = pathFig + "fgnulltests_tsz_150_cmass.pdf"
+fig.savefig(path, bbox_inches='tight')
+#plt.show()
+fig.clf()
+
+
+
+###################################################################################
+###################################################################################
+# summary tSZ plot
+
+
+rAp = rTsz['cmass_mariana_pactf150daynight20200228maskgal60']
+
+# PACT 150
+tsz150 = tsz['cmass_mariana_pactf150daynight20200228maskgal60']
+sTsz150 = sTsz['cmass_mariana_pactf150daynight20200228maskgal60']
+#
+# PACT 90
+tsz90 = tsz['cmass_mariana_pactf90daynight20200228maskgal60']
+sTsz90 = sTsz['cmass_mariana_pactf90daynight20200228maskgal60']
+#
+# TileC y no Cib
+tszYNoCib = tsz['cmass_mariana_tilecpactynocib'] * yTomuK150
+sTszYNoCib = sTsz['cmass_mariana_tilecpactynocib'] * yTomuK150
+
+
+
+# tSZ + dust plot at 150 and 90
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+# convert from sr to arcmin^2
+factor = (180.*60./np.pi)**2
+#
+ax.axhline(0., c='k', lw=1)
+#
+# PACT 150
+ax.errorbar(rAp, tsz150, yerr=sTsz150, fmt='-', c='royalblue', label='150GHz')
+# PACT 90
+ax.errorbar(rAp, tsz90, yerr=sTsz90, fmt='-', c='darkviolet', label='90GHz')
+# Tilec y no CIB
+ax.errorbar(rAp, tszYNoCib, yerr=sTszYNoCib, fmt='-', label='TileC y no CIB')
+#
+ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
+ax.set_xlabel(r'$R$ [arcmin]')
+ax.set_ylabel(r'$T_{\text{tSZ} + \text{dust}}$ [$\mu K\cdot\text{arcmin}^2$]')
+ax.set_title(r'tSZ + dust profile')
+#ax.set_ylim((0., 2.))
+#
+path = pathFig+"summary_tsz_150_90_"+catalogKey+".pdf"
+fig.savefig(path, bbox_inches='tight')
+#plt.show()
+fig.clf()
+
+
+
+
+###################################################################################
+###################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ###################################################################################
 ###################################################################################
 # Null tests
+
+
 '''
 # read the stacks on mock GRFs, to compare
 pathMockGRF = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
@@ -484,6 +894,22 @@ def f(nu):
    return x*(np.exp(x)+1.)/(np.exp(x)-1.) -4.
 yTomuK = f(150.e9) * Tcmb * 1.e6  # [muK * sr]
 
+
+# read kSZ on TileC cmbksz map
+pathThumb = "./output/thumbstack/"
+# kSZ
+data = np.genfromtxt(pathThumb + "cmass_mariana_tilecpactcmbksz/" + "diskring_ksz_uniformweight_measured.txt")
+rKszCmb = data[:,0]
+kszCmb = data[:,1]
+sKszCmb = data[:,2]
+
+# read kSZ on TileC cmbksz no y map
+pathThumb = "./output/thumbstack/"
+# kSZ
+data = np.genfromtxt(pathThumb + "cmass_mariana_tilecpactcmbksznoy/" + "diskring_ksz_uniformweight_measured.txt")
+rKszCmbNoY = data[:,0]
+kszCmbNoY = data[:,1]
+sKszCmbNoY = data[:,2]
 
 
 
@@ -520,13 +946,13 @@ sTszYNoCmb = data[:,2] * yTomuK
 
 
 
-### read tSZ on TileC y-no-CIB map
-### and convert to muK at 150 GHz
-##pathThumb = "./output/thumbstack/"
-##data = np.genfromtxt(pathThumb + "cmass_mariana_tilecpactynocib/" + "diskring_tsz_uniformweight_measured.txt")
-##rTszYNoCib = data[:,0]
-##tszYNoCib = data[:,1] * yTomuK
-##sTszYNoCib = data[:,2] * yTomuK
+# read tSZ on TileC y-no-CIB map
+# and convert to muK at 150 GHz
+pathThumb = "./output/thumbstack/"
+data = np.genfromtxt(pathThumb + "cmass_mariana_tilecpactynocib/" + "diskring_tsz_uniformweight_measured.txt")
+rTszYNoCib = data[:,0]
+tszYNoCib = data[:,1] * yTomuK
+sTszYNoCib = data[:,2] * yTomuK
 
 
 # read tSZ on TileC y minus y-no-CIB map
@@ -614,7 +1040,98 @@ sTsz90 = data[:,2]
 
 
 
-# kSZ plot
+###################################################################################
+
+
+
+# kSZ pipeline null tests
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+# convert from sr to arcmin^2
+factor = (180.*60./np.pi)**2
+#
+ax.axhline(0., c='k', lw=1)
+#
+# Uncertainty band
+ax.fill_between(rKsz150, - factor * sKsz150, factor * sKsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+#
+# V-shuffle mean
+ax.errorbar(rKsz150VShuffleMean, factor * ksz150VShuffleMean, yerr=factor * sKsz150VShuffleMean, fmt='-', c='b', label='mean of v-shuffles')
+#
+# Mariana - Kendrick
+#ax.errorbar(rKsz150MKDiff, factor * ksz150MKDiff, yerr=factor * sKsz150MKDiff, fmt='-', c='r', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
+#ax.errorbar(rKsz150Kendrick, factor * ksz150Kendrick, yerr=factor * sKsz150Kendrick, fmt='-', label='K')
+#ax.errorbar(rKsz150, factor * ksz150, yerr=factor * sKsz150, fmt='-', label='M')
+#
+# Average of many mocks
+ax.errorbar(rKsz150 + 0.025, factor*meanStackedGRF, yerr=factor*sStackedGRF, fmt='-', c='g', label=r'mean of '+str(nMocks)+' mocks')
+#
+# 150 - tilec cmb
+
+#
+ax.set_ylim((-10., 15.))
+ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+ax.set_xlabel(r'$R$ [arcmin]')
+ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+ax.set_title(r'kSZ pipeline null tests')
+#ax.set_ylim((-2., 2.))
+#
+path = pathFig + "pipenulltests_ksz_150_cmass.pdf"
+fig.savefig(path, bbox_inches='tight')
+plt.show()
+fig.clf()
+
+
+
+# kSZ foreground null tests
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+# convert from sr to arcmin^2
+factor = (180.*60./np.pi)**2
+#
+ax.axhline(0., c='k', lw=1)
+#
+# Uncertainty band
+ax.fill_between(rKsz150, - factor * sKsz150, factor * sKsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+#
+# kSZ on TileC y no CMB map
+ax.errorbar(rKszYNoCmb + 0.075, factor * kszYNoCmb, yerr=factor * sKszYNoCmb, label=r'TileC y no CMB')
+#
+# Comparison between 150 (reconv to 90 beam) and 90
+ax.errorbar(rKsz150Rec90Minus90 + 0.1, factor * ksz150Rec90Minus90, yerr=factor * sKsz150Rec90Minus90, fmt='-', label=r'150GHz\' - 90GHz')
+#
+# y - y no cib, to check for dust
+
+#
+ax.set_ylim((-10., 15.))
+ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+ax.set_xlabel(r'$R$ [arcmin]')
+ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+ax.set_title(r'kSZ foreground null tests')
+#ax.set_ylim((-2., 2.))
+#
+path = pathFig + "fgnulltests_ksz_150_cmass.pdf"
+fig.savefig(path, bbox_inches='tight')
+plt.show()
+fig.clf()
+'''
+
+
+
+
+
+
+
+
+
+
+
+###################################################################################
+
+'''
+# kSZ null tests
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 #
@@ -631,38 +1148,71 @@ ax.errorbar(rKsz150VShuffleMean, factor * ksz150VShuffleMean, yerr=factor * sKsz
 #
 # Mariana - Kendrick
 ax.errorbar(rKsz150MKDiff, factor * ksz150MKDiff, yerr=factor * sKsz150MKDiff, fmt='-', c='r', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
-#ax.plot(rKsz150, factor * (ksz150 - ksz150Kendrick), 'r-', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
-#ax.plot(rKsz150, factor * ksz150, '-', label=r'$v_\text{Mariana}$', c='r')
-#ax.plot(rKsz150, factor * ksz150Kendrick, '-', label=r'$v_\text{Kendrick}$')
+#ax.errorbar(rKsz150Kendrick, factor * ksz150Kendrick, yerr=factor * sKsz150Kendrick, fmt='-', label='K')
+#ax.errorbar(rKsz150, factor * ksz150, yerr=factor * sKsz150, fmt='-', label='M')
 #
 # Average of many mocks
 ax.errorbar(rKsz150 + 0.025, factor*meanStackedGRF, yerr=factor*sStackedGRF, fmt='-', c='g', label=r'mean of '+str(nMocks)+' mocks')
 #
 # kSZ estimator on TileC y map
-ax.errorbar(rKszY + 0.05, factor * kszY, yerr=factor * sKszY, label=r'TileC y')
+#ax.errorbar(rKszY + 0.05, factor * kszY, yerr=factor * sKszY, label=r'TileC y')
 #
 # kSZ on TileC y no CMB map
 ax.errorbar(rKszYNoCmb + 0.075, factor * kszYNoCmb, yerr=factor * sKszYNoCmb, label=r'TileC y no CMB')
 #
 # Comparison between 150 (reconv to 90 beam) and 90
-ax.errorbar(rKsz150Rec90Minus90 + 0.075, factor * ksz150Rec90Minus90, yerr=factor * sKsz150Rec90Minus90, fmt='-', label=r'150GHz\' - 90GHz')
+ax.errorbar(rKsz150Rec90Minus90 + 0.1, factor * ksz150Rec90Minus90, yerr=factor * sKsz150Rec90Minus90, fmt='-', label=r'150GHz\' - 90GHz')
 #ax.plot(rKsz150Rec90 + 0.075, factor * (ksz150Rec90 - ksz90), label=r'150GHz\' - 90GHz')
 #
+ax.set_ylim((-10., 15.))
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')
 ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
 ax.set_title(r'kSZ null tests')
 #ax.set_ylim((-2., 2.))
 #
-path = pathThumb + "cmass_mariana_pactf150daynight20200228maskgal60" + "/nulltests_ksz_cmass.pdf"
-#fig.savefig(path, bbox_inches='tight')
+path = pathFig + "nulltests_ksz_150_cmass.pdf"
+fig.savefig(path, bbox_inches='tight')
+plt.show()
+fig.clf()
+
+
+# kSZ consistency: between single freq and TileC
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+# convert from sr to arcmin^2
+factor = (180.*60./np.pi)**2
+#
+ax.axhline(0., c='k', lw=1)
+#
+# 150
+ax.errorbar(rKsz150, factor*ksz150, yerr=factor*sKsz150, fmt='-', label=r'150GHz')
+#
+# TileC cmbksz
+ax.errorbar(rKszCmb + 0.025, factor*kszCmb, yerr=factor*sKszCmb, fmt='-', label=r'TileC CMB/kSZ')
+#
+# Tilec cmbksznoy
+ax.errorbar(rKszCmbNoY + 0.05, factor*kszCmbNoY, yerr=factor*sKszCmbNoY, fmt='-', label=r'TileC CMB/kSZ no y')
+#
+ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+ax.set_xlabel(r'$R$ [arcmin]')
+ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+ax.set_title(r'kSZ consistency')
+#ax.set_ylim((-2., 2.))
+#
+path = pathFig + "consistency_ksz_150_cmass.pdf"
+fig.savefig(path, bbox_inches='tight')
 plt.show()
 fig.clf()
 
 
 
 
-# tSZ plot
+
+
+
+# tSZ null tests
 fig=plt.figure(0)
 ax=fig.add_subplot(111)
 #
@@ -675,13 +1225,13 @@ ax.axhline(0., c='k', lw=1)
 ax.fill_between(rKsz150, - factor * sTsz150, factor * sTsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
 #
 # tSZ estimator on TileC y map
-ax.errorbar(rTszY + 0.05, factor * tszY, yerr=factor * sTszY, label=r'TileC y')
+#ax.errorbar(rTszY + 0.025, factor * tszY, yerr=factor * sTszY, label=r'TileC y')
 #
 # tSZ on TileC y minus y no CIB map
 ax.errorbar(rTszYMinusYNoCib + 0.05, factor * tszYMinusYNoCib, yerr=factor * sTszYMinusYNoCib, label=r'TileC y - y no CIB')
 #
 # Comparison between 150 (reconv to 90 beam) and 90
-ax.errorbar(rTsz150Rec90Minus90 + 0.075, factor * tsz150Rec90Minus90, yerr=factor * sTsz150Rec90Minus90, fmt='-', label=r'150GHz\' - 90GHz')
+#ax.errorbar(rTsz150Rec90Minus90 + 0.075, factor * tsz150Rec90Minus90, yerr=factor * sTsz150Rec90Minus90, fmt='-', label=r'150GHz\' - 90GHz')
 #
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')
@@ -689,8 +1239,40 @@ ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
 ax.set_title(r'tSZ null tests')
 #ax.set_ylim((-2., 2.))
 #
-path = pathThumb + "cmass_mariana_pactf150daynight20200228maskgal60" + "/nulltests_tsz_cmass.pdf"
-#fig.savefig(path, bbox_inches='tight')
+path = pathFig + "nulltests_tsz_150_cmass.pdf"
+fig.savefig(path, bbox_inches='tight')
+plt.show()
+fig.clf()
+
+
+
+# tSZ consistency: between single freq and TileC
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+# convert from sr to arcmin^2
+factor = (180.*60./np.pi)**2
+#
+ax.axhline(0., c='k', lw=1)
+#
+# 150
+ax.errorbar(rTsz150, factor*tsz150, yerr=factor*sTsz150, fmt='-', label=r'150GHz')
+#
+# TileC y
+ax.errorbar(rTszY, factor*tszY, yerr=factor*sTszY, fmt='-', label=r'TileC y')
+#
+# Tilec y no CIB
+# TileC y
+ax.errorbar(rTszYNoCib, factor*tszYNoCib, yerr=factor*sTszYNoCib, fmt='-', label=r'TileC y no CIB')
+#
+ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
+ax.set_xlabel(r'$R$ [arcmin]')
+ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+ax.set_title(r'tSZ consistency')
+#ax.set_ylim((-2., 2.))
+#
+path = pathFig + "consistency_tsz_150_cmass.pdf"
+fig.savefig(path, bbox_inches='tight')
 plt.show()
 fig.clf()
 '''
@@ -715,69 +1297,6 @@ fig.clf()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-#save = False
-#
-#for freq in ['150']: #['90', '150']:
-#   cmbMapKey = "pactf"+freq+"daynight20200228maskgal60"
-#   cmbMap = cmbMaps[cmbMapKey].map()
-#   cmbMask = cmbMaps[cmbMapKey].mask()
-#   cmbHit = cmbMaps[cmbMapKey].hit()
-#   cmbName = cmbMaps[cmbMapKey].name
-#   print("Analyzing map "+cmbName)
-#
-#   ts = {}
-#   for catalogKey in ['cmass_mariana', 'cmass_kendrick']:#catalogs.keys():
-#      catalog = catalogs[catalogKey]
-#      print("Analyzing catalog "+catalog.name)
-#      name = catalog.name + "_" + cmbName
-#      ts[catalogKey] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
-#
-#
-#
-#   # kSZ plot
-#   fig=plt.figure(0)
-#   ax=fig.add_subplot(111)
-#   #
-#   # convert from sr to arcmin^2
-#   factor = (180.*60./np.pi)**2
-#   #
-#   ax.axhline(0., c='k', lw=1)
-#   #
-#   # Uncertainty band
-#   ax.fill_between(ts['cmass_mariana'].RApArcmin, - factor * ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight"], factor * ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight"], edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
-#   #
-#   # V-shuffle mean
-#   ax.errorbar(ts['cmass_mariana'].RApArcmin, factor * ts['cmass_mariana'].stackedProfile["diskring_ksz_varweight_vshufflemean"], factor * ts['cmass_mariana'].sStackedProfile["diskring_ksz_varweight_vshufflemean"], fmt='-', c='b', label='mean of v-shuffles')
-#   #
-#   # Mariana - Kendrick
-#   ax.plot(ts['cmass_mariana'].RApArcmin, factor * (ts['cmass_mariana'].stackedProfile["diskring_ksz_varweight"] - ts['cmass_kendrick'].stackedProfile["diskring_ksz_varweight"]), 'b-', label=r'$v_\text{Mariana} - v_\text{Kendrick}$', c='r')
-#   #
-#   # Average of many mocks
-#   ax.errorbar(ts['cmass_mariana'].RApArcmin + 0.025, factor*meanStackedGRF, yerr=factor*sStackedGRF, fmt='-', c='g', label=r'mean of '+str(nMocks)+' mocks')
-#   #
-#   ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
-#   ax.set_xlabel(r'$R$ [arcmin]')
-#   ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-#   ax.set_title(r'kSZ null tests')
-#   ax.set_ylim((-2., 2.))
-#   #
-#   path = ts['cmass_mariana'].pathFig+"/nulltests_ksz_"+freq+"_cmass.pdf"
-#   #fig.savefig(path, bbox_inches='tight')
-#   plt.show()
-#   fig.clf()
-#
 
 
 
