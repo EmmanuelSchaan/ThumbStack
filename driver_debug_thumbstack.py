@@ -166,3 +166,12 @@ ts = tsVelDiracVShuffleSmall
 #newMask = (np.abs(ts.filtMap[filterType][mask,:]) <= nSigmasCut * sigmas[np.newaxis,:])
 ## take the intersection of the masks
 #newMask = np.prod(newMask, axis=1)
+
+###################################################################################
+###################################################################################
+# test removing the mean temperature in redshift bins
+
+#ts.measureAllMeanTZBins(plot=True, test=False)
+
+
+

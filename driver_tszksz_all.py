@@ -301,13 +301,32 @@ catalogCombi = {
       "pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib": ['cmass_mariana'],
       }
 
+#catalogCombi = {
+#      "pactf150daynight20200228maskgal60": ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick', 'cmass_mk_diff'],
+#      "pactf90daynight20200228maskgal60": ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick'],
+#      "pactf150reconvto90minus90daynight20200228maskgal60": ['cmass_mariana'],
+#      #
+#      "tilecpactynocmb": ['cmass_kendrick'],
+#      "tilecpactyminusynocib": ['cmass_kendrick'],
+#      #
+#      "tilecpacty": ['cmass_kendrick'],
+#      "tilecpactynocib": ['cmass_kendrick'],
+#      "tilecpactcmbksz": ['cmass_kendrick'],
+#      "tilecpactcmbksznoy": ['cmass_kendrick'],
+#      #
+#      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksz": ['cmass_kendrick'],
+#      "pactf150daynight20200228maskgal60_minus_tilecpactymuk": ['cmass_kendrick'],
+#      "pactf150reconvto90minus90noydaynight20200228maskgal60": ['cmass_kendrick'],
+#      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib": ['cmass_kendrick'],
+#      }
+
 
 
 ###################################################################################
 ###################################################################################
 # Do all the stacks
 
-'''
+
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -316,7 +335,7 @@ from thumbstack import *
 save = True
 
 
-#for cmbMapKey in cmbMaps.keys():
+for cmbMapKey in cmbMaps.keys():
 #for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228maskgal60']:
 #for cmbMapKey in ['tilecpactynocmb', 'tilecpactyminusynocib', 'pactf150reconvto90minus90daynight20200228maskgal60']:
 #for cmbMapKey in ['pactf150reconvto90minus90daynight20200228maskgal60']:
@@ -324,7 +343,7 @@ save = True
 #for cmbMapKey in ['tilecpacty', 'tilecpactynocib']:
 #for cmbMapKey in ['tilecpactynocib', 'tilecpactcmbksz', 'tilecpactcmbksznoy']:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60_minus_tilecpactcmbksz', 'pactf150daynight20200228maskgal60_minus_tilecpactymuk', 'pactf150reconvto90minus90noydaynight20200228maskgal60']:
-for cmbMapKey in ["pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib"]:
+#for cmbMapKey in ["pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib"]:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
@@ -341,12 +360,12 @@ for cmbMapKey in ["pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib"
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
 #      except:
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
-'''
+
 
 
 ###################################################################################
 ###################################################################################
-# PACT 90 and 150: stacks and joint cov
+#  PACT 90 and 150: stacks and joint cov
 '''
 import thumbstack
 reload(thumbstack)
@@ -354,12 +373,12 @@ from thumbstack import *
 
 #ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 
-save = False
+save = True
 
 
 #for catalogKey in ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick']:
-for catalogKey in ['cmass_mariana']:
-#for catalogKey in ['cmass_kendrick']:
+#for catalogKey in ['cmass_mariana']:
+for catalogKey in ['cmass_kendrick']:
 #for catalogKey in ['lowz_kendrick']:
    catalog = catalogs[catalogKey]
    print("Analyzing catalog "+catalog.name)
@@ -439,13 +458,14 @@ for catalogKey in ['cmass_mariana']:
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
+
 '''
 
 
 ###################################################################################
 ###################################################################################
 # Read all the stacked profiles
-
+'''
 # convert from sr to arcmin^2
 factor = (180.*60./np.pi)**2
 
@@ -759,7 +779,7 @@ path = pathFig+"summary_tsz_150_90_"+catalogKey+".pdf"
 fig.savefig(path, bbox_inches='tight')
 #plt.show()
 fig.clf()
-
+'''
 
 
 
@@ -1276,6 +1296,7 @@ fig.savefig(path, bbox_inches='tight')
 plt.show()
 fig.clf()
 '''
+
 
 
 

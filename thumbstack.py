@@ -92,6 +92,9 @@ class ThumbStack(object):
       self.loadFiltering()
       
       self.measureAllVarFromHitCount(plot=save)
+      
+      self.measureAllMeanTZBins(plot=save, test=False)
+
 
       if save:
          self.saveAllStackedProfiles()
@@ -670,7 +673,7 @@ class ThumbStack(object):
                ax.set_xlabel(r'Det. noise var. from combined hit [arbitrary]')
                ax.set_ylabel(r'Measured var. [$\mu$K.arcmin$^2$]')
                #
-               path = self.pathFig+"/binned_noise_vs_hit"+str(iRAp)+".pdf"
+               path = self.pathFig+"/binned_noise_vs_hit_"+filterType+"_"+str(iRAp)+".pdf"
                fig.savefig(path, bbox_inches='tight')
                fig.clf()
 
@@ -689,6 +692,93 @@ class ThumbStack(object):
          filterType = self.filterTypes[iFilterType]
          print("For "+filterType+" filter:")
          self.filtVarTrue[filterType] = self.measureVarFromHitCount(filterType, plot=plot)
+
+
+   ##################################################################################
+
+
+   def measureMeanTZBins(self, filterType, plot=False, test=False):
+
+      '''Measure the mean filter temperatures in redshift bins,
+      in order to subtract it to make the kSZ estimator robust to dust evolution * mean velocities.
+      '''
+      print("Measure mean T in z-bins (to subtract for kSZ)")
+
+      # keep only objects that overlap, and mask point sources
+      mask = self.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=(self.Catalog.Mvir.min(), self.Catalog.Mvir.max()))
+
+      # redshift bins
+      nZBins = 10
+      zBinEdges = np.linspace(self.Catalog.Z.min(), self.Catalog.Z.max(), nZBins)
+
+      # array of mean t to fill
+      meanT = np.zeros((self.Catalog.nObj, self.nRAp))
+      fMeanT = np.empty(self.nRAp, dtype='object')
+      for iRAp in range(self.nRAp):
+         # quantities to be binned
+         z = self.Catalog.Z[mask].copy()
+         t = self.filtMap[filterType][mask, iRAp].copy()
+   #      s2 = self.filtVarTrue[filterType][mask, iRAp].copy()
+   #      # inverse-variance weight the temperatures
+   #      t  = t/s2 / np.mean(1./s2)
+         # compute histograms
+         zBinCenters, zBinEdges, zBinIndices = stats.binned_statistic(z, z, statistic='mean', bins=zBinEdges)
+         zBinCounts, zBinEdges, zBinIndices = stats.binned_statistic(z, z, statistic='count', bins=zBinEdges)
+         tMean, zBinEdges, zBinIndices = stats.binned_statistic(z, t, statistic=np.mean, bins=zBinEdges)
+         sTMean, zBinEdges, zBinIndices = stats.binned_statistic(z, t, statistic=np.std, bins=zBinEdges)
+         sTMean /= np.sqrt(zBinCounts)
+         # piecewise-constant interpolation
+         fMeanT[iRAp] = interp1d(zBinEdges[:-1], tMean, kind='previous', bounds_error=False, fill_value=(tMean[0], tMean[-1]))
+
+         # evaluate the interpolation at each object
+         meanT[mask,iRAp] = fMeanT[iRAp](z)
+
+         if plot:
+            fig=plt.figure(0)
+            ax=fig.add_subplot(111)
+            factor = (180.*60./np.pi)**2
+            #
+            ax.axhline(0., color='k')
+            # Measured
+            ax.errorbar(zBinCenters, factor*tMean, yerr=factor*sTMean, label=r'Measured')
+            # Check interpolation
+            z = np.linspace(self.Catalog.Z.min(), self.Catalog.Z.max(), 101)
+            ax.plot(z, factor*fMeanT[iRAp](z), '--', label=r'Interpolated')
+            #
+            ax.legend(loc=1, fontsize='x-small', labelspacing=0.1)
+            ax.set_xlabel(r'$z$ bins')
+            ax.set_ylabel(r'Mean T per $z$-bin [$\mu$K$\cdot$arcmin$^2$]')
+            #
+            path = self.pathFig+"/binned_mean_t_"+filterType+"_"+str(iRAp)+".pdf"
+            fig.savefig(path, bbox_inches='tight')
+            if test:
+               plt.show()
+            fig.clf()
+
+      return meanT
+
+
+
+   def measureAllMeanTZBins(self, plot=False, test=False):
+      self.meanT = {}
+      for iFilterType in range(len(self.filterTypes)):
+         filterType = self.filterTypes[iFilterType]
+         print("For "+filterType+" filter:")
+         self.meanT[filterType] = self.measureMeanTZBins(filterType, plot=plot, test=test)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
    ##################################################################################
@@ -715,6 +805,8 @@ class ThumbStack(object):
       # select objects that overlap, and reject point sources
       if mask is None:
          mask = ts.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=mVir, z=z)
+
+      tMean = ts.meanT[filterType].copy()
 
       # temperatures [muK * sr]
       if tTh is None:
@@ -745,6 +837,7 @@ class ThumbStack(object):
          # multiply by integrated kSZ to get kSZ profile [muK * sr]
          t = np.column_stack([ts.Catalog.integratedKSZ[:] * shape[iAp] for iAp in range(ts.nRAp)])   # [muK * sr]
       t = t[mask, :]
+      tMean = tMean[mask,:]
       # -v/c [dimless]
       v = -ts.Catalog.vR[mask] / 3.e5
       v -= np.mean(v)
@@ -782,6 +875,7 @@ class ThumbStack(object):
          J = np.random.choice(I, size=nObj, replace=True)
          #
          t = t[J,:]
+         tMean = tMean[J,:]
          v = v[J]
          s2Hit = s2Hit[J,:]
          s2Full = s2Full[J,:]
@@ -815,26 +909,30 @@ class ThumbStack(object):
       # kSZ: uniform weighting
       elif est=='ksz_uniformweight':
          # remove mean temperature
-         t -= np.mean(t, axis=0)
+         #t -= np.mean(t, axis=0)
+         t -= tMean
          weights = v[:,np.newaxis] * np.ones_like(s2Hit)
          norm = sVTrue / np.sum(v[:,np.newaxis]*weights, axis=0)
       # kSZ: detector-noise weighted (hit count)
       elif est=='ksz_hitweight':
          # remove mean temperature
-         t -= np.mean(t, axis=0)
+         #t -= np.mean(t, axis=0)
+         t -= tMean
          weights = v[:,np.newaxis] / s2Hit
          norm = sVTrue / np.sum(v[:,np.newaxis]*weights, axis=0)
       # kSZ: full noise weighted (detector noise + CMB)
       elif est=='ksz_varweight':
          # remove mean temperature
-         t -= np.mean(t, axis=0)
+         #t -= np.mean(t, axis=0)
+         t -= tMean
          weights = v[:,np.newaxis] / s2Full
          norm = sVTrue / np.sum(v[:,np.newaxis]*weights, axis=0)
 #         norm = np.std(v) / np.sum(v[:,np.newaxis]*weights, axis=0)
       # kSZ: full noise weighted (detector noise + CMB)
       elif est=='ksz_massvarweight':
          # remove mean temperature
-         t -= np.mean(t, axis=0)
+         #t -= np.mean(t, axis=0)
+         t -= tMean
          weights = m[:,np.newaxis] * v[:,np.newaxis] / s2Full
          norm = np.mean(m) * sVTrue / np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2 / s2Full, axis=0)
 
@@ -2054,6 +2152,7 @@ class ThumbStack(object):
 
 
    ##################################################################################
+
 
 
 
