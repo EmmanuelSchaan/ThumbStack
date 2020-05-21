@@ -283,22 +283,22 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 
 
 catalogCombi = {
-      "pactf150daynight20200228maskgal60": ['cmass_kendrick', 'lowz_kendrick', 'cmass_mariana'],
-      "pactf90daynight20200228maskgal60": ['cmass_kendrick', 'lowz_kendrick', 'cmass_mariana'],
-      "pactf150reconvto90minus90daynight20200228maskgal60": ['cmass_kendrick'],
+      "pactf150daynight20200228maskgal60": ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick', 'cmass_mk_diff'],
+      "pactf90daynight20200228maskgal60": ['cmass_mariana', 'cmass_kendrick', 'lowz_kendrick'],
+      "pactf150reconvto90minus90daynight20200228maskgal60": ['cmass_mariana'],
       #
-      "tilecpactynocmb": ['cmass_kendrick'],
-      "tilecpactyminusynocib": ['cmass_kendrick'],
+      "tilecpactynocmb": ['cmass_mariana'],
+      "tilecpactyminusynocib": ['cmass_mariana'],
       #
-      "tilecpacty": ['cmass_kendrick'],
-      "tilecpactynocib": ['cmass_kendrick', 'lowz_kendrick'],
-      "tilecpactcmbksz": ['cmass_kendrick'],
-      "tilecpactcmbksznoy": ['cmass_kendrick'],
+      "tilecpacty": ['cmass_mariana'],
+      "tilecpactynocib": ['cmass_mariana'],
+      "tilecpactcmbksz": ['cmass_mariana'],
+      "tilecpactcmbksznoy": ['cmass_mariana'],
       #
-      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksz": ['cmass_kendrick'],
-      "pactf150daynight20200228maskgal60_minus_tilecpactymuk": ['cmass_kendrick'],
-      "pactf150reconvto90minus90noydaynight20200228maskgal60": ['cmass_kendrick'],
-      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib": ['cmass_kendrick'],
+      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksz": ['cmass_mariana'],
+      "pactf150daynight20200228maskgal60_minus_tilecpactymuk": ['cmass_mariana'],
+      "pactf150reconvto90minus90noydaynight20200228maskgal60": ['cmass_mariana'],
+      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib": ['cmass_mariana'],
       }
 
 #catalogCombi = {
@@ -324,18 +324,27 @@ catalogCombi = {
 
 ###################################################################################
 ###################################################################################
-# Compute all the stacked profiles
+# Do all the stacks
 
+'''
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
 
-save = True
+save = False
 
 
 #for cmbMapKey in cmbMaps.keys():
-for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228maskgal60', 'tilecpactynocib']:
+#for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228maskgal60']:
+#for cmbMapKey in ['tilecpactynocmb', 'tilecpactyminusynocib', 'pactf150reconvto90minus90daynight20200228maskgal60']:
+#for cmbMapKey in ['pactf150reconvto90minus90daynight20200228maskgal60']:
+#for cmbMapKey in ['tilecpactyminusynocib']:
+#for cmbMapKey in ['tilecpacty', 'tilecpactynocib']:
+#for cmbMapKey in ['tilecpactynocib', 'tilecpactcmbksz', 'tilecpactcmbksznoy']:
+#for cmbMapKey in ['pactf150daynight20200228maskgal60_minus_tilecpactcmbksz', 'pactf150daynight20200228maskgal60_minus_tilecpactymuk', 'pactf150reconvto90minus90noydaynight20200228maskgal60']:
+#for cmbMapKey in ["pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib"]:
+for cmbMapKey in ['pactf150daynight20200228maskgal60']:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
@@ -354,8 +363,8 @@ for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228m
 #      except:
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
 
-      #ts.plotAllStackedProfiles()
-
+      ts.plotAllStackedProfiles()
+'''
 ###################################################################################
 ###################################################################################
 #  PACT 90 and 150: stacks and joint cov
