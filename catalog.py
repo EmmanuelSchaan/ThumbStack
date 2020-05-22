@@ -5,13 +5,14 @@ from headers import *
 
 class Catalog(object):
 
-   def __init__(self, U, MassConversion, name="test", nameLong=None, pathInCatalog="", save=False, nObj=None):
+   def __init__(self, U, MassConversion, name="test", nameLong=None, pathInCatalog="", rV=1.,  save=False, nObj=None):
       '''nObj: used to keep the first nObj objects of the catalog, useful for quick debugging
       '''
 
       self.U = U
       self.MassConversion = MassConversion
       self.name = name
+      self.rV = rV   # velocity real-space correlation coefficient
       if nameLong is None:
          self.nameLong = self.name
       else:

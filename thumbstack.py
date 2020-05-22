@@ -93,7 +93,7 @@ class ThumbStack(object):
       
       self.measureAllVarFromHitCount(plot=save)
       
-      self.measureAllMeanTZBins(plot=save, test=False)
+#      self.measureAllMeanTZBins(plot=save, test=False)
 
 
       if save:
@@ -793,7 +793,7 @@ class ThumbStack(object):
       if mask is None:
          mask = ts.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=mVir, z=z)
 
-      tMean = ts.meanT[filterType].copy()
+#      tMean = ts.meanT[filterType].copy()
 
       # temperatures [muK * sr]
       if tTh is None:
@@ -824,7 +824,7 @@ class ThumbStack(object):
          # multiply by integrated kSZ to get kSZ profile [muK * sr]
          t = np.column_stack([ts.Catalog.integratedKSZ[:] * shape[iAp] for iAp in range(ts.nRAp)])   # [muK * sr]
       t = t[mask, :]
-      tMean = tMean[mask,:]
+ #     tMean = tMean[mask,:]
       # -v/c [dimless]
       v = -ts.Catalog.vR[mask] / 3.e5
       v -= np.mean(v)
@@ -862,7 +862,7 @@ class ThumbStack(object):
          J = np.random.choice(I, size=nObj, replace=True)
          #
          t = t[J,:]
-         tMean = tMean[J,:]
+         #tMean = tMean[J,:]
          v = v[J]
          s2Hit = s2Hit[J,:]
          s2Full = s2Full[J,:]
@@ -897,34 +897,34 @@ class ThumbStack(object):
       elif est=='ksz_uniformweight':
          # remove mean temperature
          #t -= np.mean(t, axis=0)
-         t -= tMean
+#         t -= tMean
          weights = v[:,np.newaxis] * np.ones_like(s2Hit)
          #norm = sVTrue / np.sum(v[:,np.newaxis]*weights, axis=0)
-         norm = np.std(v) / np.sum(v[:,np.newaxis]*weights, axis=0)
+         norm = np.std(v) / ts.Catalog.rV / np.sum(v[:,np.newaxis]*weights, axis=0)
       # kSZ: detector-noise weighted (hit count)
       elif est=='ksz_hitweight':
          # remove mean temperature
          #t -= np.mean(t, axis=0)
-         t -= tMean
+#         t -= tMean
          weights = v[:,np.newaxis] / s2Hit
          #norm = sVTrue / np.sum(v[:,np.newaxis]*weights, axis=0)
-         norm = np.std(v) / np.sum(v[:,np.newaxis]*weights, axis=0)
+         norm = np.std(v) / ts.Catalog.rV / np.sum(v[:,np.newaxis]*weights, axis=0)
       # kSZ: full noise weighted (detector noise + CMB)
       elif est=='ksz_varweight':
          # remove mean temperature
          #t -= np.mean(t, axis=0)
-         t -= tMean
+#         t -= tMean
          weights = v[:,np.newaxis] / s2Full
          #norm = sVTrue / np.sum(v[:,np.newaxis]*weights, axis=0)
-         norm = np.std(v) / np.sum(v[:,np.newaxis]*weights, axis=0)
+         norm = np.std(v) / ts.Catalog.rV / np.sum(v[:,np.newaxis]*weights, axis=0)
       # kSZ: full noise weighted (detector noise + CMB)
       elif est=='ksz_massvarweight':
          # remove mean temperature
          #t -= np.mean(t, axis=0)
-         t -= tMean
+#         t -= tMean
          weights = m[:,np.newaxis] * v[:,np.newaxis] / s2Full
          #norm = np.mean(m) * sVTrue / np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2 / s2Full, axis=0)
-         norm = np.mean(m) * np.std(v) / np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2 / s2Full, axis=0)
+         norm = np.mean(m) * np.std(v) / ts.Catalog.rV / np.sum(m[:,np.newaxis]**2 * v[:,np.newaxis]**2 / s2Full, axis=0)
 
       #tStop = time()
       #print "stacked profile took", tStop-tStart, "sec"
