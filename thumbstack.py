@@ -1375,7 +1375,7 @@ class ThumbStack(object):
          filterType = self.filterTypes[iFilterType]
 
          # check AP filter histograms
-         self.plotFilterHistograms(filterType)
+#         self.plotFilterHistograms(filterType)
 
 
          # Estimators (tSZ, kSZ, various weightings...)
