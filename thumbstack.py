@@ -100,10 +100,10 @@ class ThumbStack(object):
          self.saveAllStackedProfiles()
       self.loadAllStackedProfiles()
 
-#      if save:
-#         self.plotAllStackedProfiles()
-#         self.plotAllCov()
-#         self.computeAllSnr()
+      if save:
+         self.plotAllStackedProfiles()
+         self.plotAllCov()
+         self.computeAllSnr()
 
       if doStackedMap:
          # save all stacked maps

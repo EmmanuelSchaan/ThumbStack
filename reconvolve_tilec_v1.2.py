@@ -37,85 +37,103 @@ pathFig = "./figures/cmb_map/tilec_pact_" + mapId + "_v1.2.0/"
 if mapId=="cmbksz":
    pathMap = pathOut+"tilec_map.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_full_foot_gal_ps.fits"
-   sOld = 1.6 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 1.6 
+   fwhmNew = 1.4
 elif mapId=="cmbksz_d56":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 1.6 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 1.6 
+   fwhmNew = 1.4
 elif mapId=="cmbksz_boss":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 1.6 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 1.6 
+   fwhmNew = 1.4
 
 # CMB no y
 elif mapId=="cmbksznoy":
    pathMap = pathOut+"tilec_map.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4 
+   fwhmNew = 2.4
 elif mapId=="cmbksznoy_d56":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_comptony_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4 
+   fwhmNew = 2.4
 elif mapId=="cmbksznoy_boss":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_comptony_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4
+   fwhmNew = 2.4
 
 # CMB no CIB
 elif mapId=="cmbksznocib":
    pathMap = pathOut+"tilec_map.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4
+   fwhmNew = 2.4
 elif mapId=="cmbksznocib_d56":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_cib_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4
+   fwhmNew = 2.4
 elif mapId=="cmbksznoy_boss":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_cib_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4
+   fwhmNew = 2.4
 
 # y
 elif mapId=="y":
    pathMap = pathOut+"tilec_map.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_full_foot_gal_ps.fits"
-   sOld = 1.6 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 1.6
+   fwhmNew = [1.4, 2.4]
 elif mapId=="y_d56":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_comptony_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 1.6 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 1.6
+   fwhmNew = [1.4, 2.4]
 elif mapId=="y_boss":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_comptony_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 1.6 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 1.6
+   fwhmNew = [1.4, 2.4]
 
 # y no CIB
 elif mapId=="ynocib":
    pathMap = pathOut+"tilec_map.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4
+   fwhmNew = 2.4
 elif mapId=="ynocib_d56":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_comptony_deprojects_cib_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4
+   fwhmNew = 2.4
 elif mapId=="ynocib_boss":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_comptony_deprojects_cib_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4
+   fwhmNew = 2.4
 
 # y no CMB
 elif mapId=="ynocmb":
    pathMap = pathOut+"tilec_map.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/"+"mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4
+   fwhmNew = 2.4
 elif mapId=="ynocmb_d56":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_comptony_deprojects_cmb_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4
+   fwhmNew = 2.4
 elif mapId=="ynocmb_boss":
    pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_comptony_deprojects_cmb_map_v1.2.0_joint.fits"
    pathCarFullMask = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-   sOld = 2.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   fwhmOld = 2.4
+   fwhmNew = 2.4
 
 
 
@@ -123,7 +141,6 @@ elif mapId=="ynocmb_boss":
 ##########################################################################
 # # Do everything
 
-# In[27]:
 
 
 # create output/figure folders if needed
@@ -132,49 +149,40 @@ if not os.path.exists(pathOut):
 if not os.path.exists(pathFig):
     os.makedirs(pathFig)
 
-
-# In[28]:
-
+# beam sigmas in radians
+# convert from fwhm to sigma
+sOld = fwhmOld * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
 
 # read maps
 tilec = enmap.read_map(pathMap)
-carFullMask = enmap.read_map(pathCarFullMask)
 
+if type(fwhmNew)==float:
+   fwhmNew = [fwhmNew]
 
-# # Reconvolve it to a 1.4' beam
+for fwhm in fwhmNew:
+   print "new fwhm =", fwhm
+   sNew = fwhm *  np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
 
-# In[30]:
+   # do the reconvolution in Fourier space
+   tilecReconvF = enmap.fft(tilec)
+   l2 = np.sum(tilec.lmap()**2,0)
+   tilecReconvF *= np.exp(-0.5*l2*(sNew**2 - sOld**2))
+   tilecReconv = enmap.ifft(tilecReconvF).real
 
-
-# beam sigmas in radians
-# convert from fwhm to sigma
-sNew = 1.4 * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
-
-# do the reconvolution in Fourier space
-tilecReconvF = enmap.fft(tilec)
-l2 = np.sum(tilec.lmap()**2,0)
-tilecReconvF *= np.exp(-0.5*l2*(sNew**2 - sOld**2))
-tilecReconv = enmap.ifft(tilecReconvF).real
-
-
-# In[31]:
+   # save it to file
+   enmap.write_map(pathOut+"tilec_reconv"+str(fwhm)+"_map.fits", tilecReconv)
 
 
 del tilec
 
 
 
-# In[33]:
-
-
-# save it to file
-enmap.write_map(pathOut+"tilec_reconv14_map.fits", tilecReconv)
-
 
 # # Convert maps to healpy (to take their power spectra)
 '''
 # In[34]:
 
+carFullMask = enmap.read_map(pathCarFullMask)
 
 # convert maps to healpix
 hTilecReconv = enmap.to_healpix(tilecReconv)

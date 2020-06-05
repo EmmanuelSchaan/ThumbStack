@@ -42,17 +42,16 @@ enmap.write_map(pathOut, diffMap)
 copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
 
 
-
 ###################################################################################3
 # Difference between TileC y and TileC y no CIB
 # for CIB null test (tSZ estimator)
-pathMap1 = "./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv14_map.fits"
-pathMap2 = "./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_reconv14_map.fits"
+pathMap1 = "./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv2.4_map.fits"
+pathMap2 = "./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_reconv2.4_map.fits"
 pathMask = "./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 pathDirOut = "./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/"
 if not os.path.exists(pathDirOut):
     os.makedirs(pathDirOut)
-pathOut = pathDirOut + "tilec_reconv14_map.fits"
+pathOut = pathDirOut + "tilec_reconv2.4_map.fits"
 
 # save the difference map
 diffMap = enmap.read_map(pathMap1)
@@ -62,16 +61,17 @@ enmap.write_map(pathOut, diffMap)
 copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
 
 
+
 ###################################################################################3
 # Difference between PACT 150 and TileC cmbksz 
 # for kSZ null test
 pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
-pathMap2 = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv14_map.fits"
+pathMap2 = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv1.4_map.fits"
 pathMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 pathDirOut = "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksz/"
 if not os.path.exists(pathDirOut):
     os.makedirs(pathDirOut)
-pathOut = pathDirOut + "tilec_reconv14_map.fits"
+pathOut = pathDirOut + "tilec_reconv1.4_map.fits"
 
 # read the maps
 map1 = enmap.read_map(pathMap1)[0]
@@ -83,7 +83,6 @@ diffMap = map1 - map2
 enmap.write_map(pathOut, diffMap)
 # copy the mask
 copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
-
 
 
 ###################################################################################3
@@ -103,12 +102,12 @@ yTomuK = f(150.e9) * Tcmb * 1.e6  # [muK * sr]
 # after converting the y map to muK at 150GHz
 # for tSZ pipeline test (both maps will have some dust; the dust level may be different in both maps though)
 pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
-pathMap2 = "./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv14_map.fits"
+pathMap2 = "./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv1.4_map.fits"
 pathMask = "./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 pathDirOut = "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_ymuk/"
 if not os.path.exists(pathDirOut):
     os.makedirs(pathDirOut)
-pathOut = pathDirOut + "tilec_reconv14_map.fits"
+pathOut = pathDirOut + "tilec_reconv1.4_map.fits"
 
 # read the maps
 map1 = enmap.read_map(pathMap1)[0]
@@ -122,6 +121,56 @@ enmap.write_map(pathOut, diffMap)
 copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
 
 
+###################################################################################3
+# Difference between PACT 150 and TileC CMB no CIB
+# to check for dust contamination
+# for kSZ foreground test
+pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilecdeproj.fits"
+pathMap2 = "./output/cmb_map/tilec_pact_cmbksznocib_v1.2.0/" + "tilec_reconv2.4_map.fits"
+pathMask = "./output/cmb_map/tilec_pact_cmbksznocib_v1.2.0/" + "mask_full_foot_gal_ps.fits"
+pathDirOut = "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksznocib/"
+if not os.path.exists(pathDirOut):
+    os.makedirs(pathDirOut)
+pathOut = pathDirOut + "tilec_reconv2.4_map.fits"
+
+# read the maps
+map1 = enmap.read_map(pathMap1)[0]
+map2 = enmap.read_map(pathMap2)
+# reproject to the smaller TileC geometry
+map1 = enmap.project(map1, map2.shape, map2.wcs, order=1, mode='constant', cval=0.0, force=False, prefilter=True, mask_nan=True, safe=True)
+# take the difference
+diffMap = map1 - map2
+enmap.write_map(pathOut, diffMap)
+# copy the mask
+copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
 ###################################################################################3
 # Difference between 150GHz reconv to the 90GHz beam and the 90GHz map,
 # after rescaling the 90 to null the tSZ
@@ -144,30 +193,7 @@ diffMap -= enmap.read_map(pathMap2) * freqScaling
 enmap.write_map(pathOut, diffMap)
 # copy the mask
 copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
+'''
 
-
-
-###################################################################################3
-# Difference between PACT 150 and TileC CMB no CIB
-# to check for dust contamination
-# for kSZ foreground test
-pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
-pathMap2 = "./output/cmb_map/tilec_pact_cmbksznocib_v1.2.0/" + "tilec_reconv14_map.fits"
-pathMask = "./output/cmb_map/tilec_pact_cmbksznocib_v1.2.0/" + "mask_full_foot_gal_ps.fits"
-pathDirOut = "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksznocib/"
-if not os.path.exists(pathDirOut):
-    os.makedirs(pathDirOut)
-pathOut = pathDirOut + "tilec_reconv14_map.fits"
-
-# read the maps
-map1 = enmap.read_map(pathMap1)[0]
-map2 = enmap.read_map(pathMap2)
-# reproject to the smaller TileC geometry
-map1 = enmap.project(map1, map2.shape, map2.wcs, order=1, mode='constant', cval=0.0, force=False, prefilter=True, mask_nan=True, safe=True)
-# take the difference
-diffMap = map1 - map2
-enmap.write_map(pathOut, diffMap)
-# copy the mask
-copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
 
 

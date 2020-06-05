@@ -18,3 +18,4 @@ old/
 log/
 .ipynb_checkpoints/
 core
+.git_old/

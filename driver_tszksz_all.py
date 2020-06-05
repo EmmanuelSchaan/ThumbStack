@@ -1,3 +1,4 @@
+# Just a check
 import universe
 reload(universe)
 from universe import *
@@ -121,25 +122,23 @@ tStart = time()
 
 cmbMaps = {
       # PACT day+night, 20200228, Planck Galactic masks 60%
-#      "pactf150daynight20200228maskgal60": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits",
-#         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
-#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
-#         name="pactf150daynight20200228maskgal60"),
-#      "pactf90daynight20200228maskgal60": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits",
-#         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
-#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits",
-#         name="pactf90daynight20200228maskgal60"),
-#      "pactf150reconvto90minus90daynight20200228maskgal60": cmbMap("./output/cmb_map/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150reconvto90_minus_f090_daynight_map.fits",
-#         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
-#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
-#         name="pactf150reconvto90minus90daynight20200228maskgal60"),
-      #
+      "pactf150daynight20200228maskgal60": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits",
+         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
+         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
+         name="pactf150daynight20200228maskgal60"),
+      "pactf90daynight20200228maskgal60": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits",
+         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
+         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits",
+         name="pactf90daynight20200228maskgal60"),
+      "pactf150reconvto90minus90daynight20200228maskgal60": cmbMap("./output/cmb_map/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150reconvto90_minus_f090_daynight_map.fits",
+         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
+         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
+         name="pactf150reconvto90minus90daynight20200228maskgal60"),
       #
       #"pactf150daynight20200228maskgal60reconvto90": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvto90.fits",
       #   "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
       #   "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
       #   name="pactf150daynight20200228maskgal60reconvto90"),
-      #
       #
       ## PACT day+night, 20200228, Planck Galactic masks 70%
       #"pactf150daynight20200228": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits",
@@ -161,41 +160,41 @@ cmbMaps = {
       #   name="coaddcmb20200228lmax9e3"),
       #
       # TileC v1.2, reconvolved to 1.4' beam, combining BOSS N and D56
-      "tilecpactynocmb": cmbMap("./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "tilec_reconv14_map.fits",
+      "tilecpactynocmb": cmbMap("./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "tilec_reconv2.4_map.fits",
       "./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "mask_full_foot_gal_ps.fits",
       name="tilecpactynocmb"),
-      "tilecpactyminusynocib": cmbMap("./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "tilec_reconv14_map.fits",
+      "tilecpactyminusynocib": cmbMap("./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "tilec_reconv2.4_map.fits",
       "./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
       name="tilecpactyminusynocib"),
       #
-#      "tilecpacty": cmbMap("./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv14_map.fits",
-#      "./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-#      name="tilecpacty"),
-      "tilecpactynocib": cmbMap("./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_reconv14_map.fits",
+      "tilecpacty": cmbMap("./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv1.4_map.fits",
+      "./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      name="tilecpacty"),
+      "tilecpactynocib": cmbMap("./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_reconv2.4_map.fits",
       "./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
       name="tilecpactynocib"),
-#      "tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv14_map.fits",
-#      "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-#      name="tilecpactcmbksz"),
-      "tilecpactcmbksznoy": cmbMap("./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "tilec_reconv14_map.fits",
-      "./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      name="tilecpactcmbksznoy"),
+      #"tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv1.4_map.fits",
+      #"./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      #name="tilecpactcmbksz"),
+      #"tilecpactcmbksznoy": cmbMap("./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "tilec_reconv2.4_map.fits",
+      #"./output/cmb_map/tilec_pact_cmbksznoy_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+      #name="tilecpactcmbksznoy"),
       #
       # kSZ pipeline check
-#      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksz": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksz/" + "tilec_reconv14_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksz/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60_minus_tilecpactcmbksz"),
+      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksz": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksz/" + "tilec_reconv1.4_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksz/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60_minus_tilecpactcmbksz"),
       #
       # kSZ dust contamination test
-      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksznocib/" + "tilec_reconv14_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksznocib/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib"),
+      "pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksznocib/" + "tilec_reconv2.4_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_cmbksznocib/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib"),
       #
       # tSZ pipeline (map) check
-#      "pactf150daynight20200228maskgal60_minus_tilecpactymuk": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_ymuk/" + "tilec_reconv14_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_ymuk/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60_minus_tilecpactymuk"),
+      "pactf150daynight20200228maskgal60_minus_tilecpactymuk": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_ymuk/" + "tilec_reconv1.4_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60_minus_tilec_pact_ymuk/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60_minus_tilecpactymuk"),
       #
       # tSZ internal dust test
-#      "pactf150reconvto90minus90noydaynight20200228maskgal60": cmbMap("./output/cmb_map/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150reconvto90_minus_f090_noy_daynight_map.fits",
-#         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
-#         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
-#         name="pactf150reconvto90minus90noydaynight20200228maskgal60"),
-      #
+      "pactf150reconvto90minus90noydaynight20200228maskgal60": cmbMap("./output/cmb_map/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150reconvto90_minus_f090_noy_daynight_map.fits",
+         "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits",
+         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
+         name="pactf150reconvto90minus90noydaynight20200228maskgal60"),
+     #
       ## TileC v1.1, reconvolved to 1.4' beam, combining BOSS N and D56
       #"tilecpactcmbksz_14": cmbMap("./output/cmb_map/tilec_pact_cmbksz/" + "tilec_reconv14_map.fits",
       #"./output/cmb_map/tilec_pact_cmbksz/" + "mask_foot_planck_ps_car.fits",
@@ -335,10 +334,13 @@ save = True
 
 
 #for cmbMapKey in cmbMaps.keys():
-for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
+#for cmbMapKey in ['tilecpactynocmb', 'tilecpactyminusynocib']:
+#for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
 #for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228maskgal60', 'tilecpactynocib']:
 #for cmbMapKey in ['tilecpactynocib', 'pactf90daynight20200228maskgal60','pactf150daynight20200228maskgal60']:
+#for cmbMapKey in ['pactf150reconvto90minus90daynight20200228maskgal60']:
+for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228maskgal60']:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
@@ -350,14 +352,21 @@ for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
       print("Analyzing catalog "+catalog.name)
       name = catalog.name + "_" + cmbName
 
-      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
+      if name=='cmass_kendrick_pactf150daynight20200228maskgal60' or name=='lowz_kendrick__pactf150daynight20200228maskgal60':
+         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=True)
+      else:
+         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
+
+
 
 #      try:
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
 #      except:
 #         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
 
-      ts.plotAllStackedProfiles()
+#      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
+#      ts.plotAllCov()
+
 
 ###################################################################################
 ###################################################################################
@@ -400,67 +409,72 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    if True:
       ts['150'].saveAllCovBootstrapTwoStackedProfiles(ts['90'])
    ts['150'].plotAllCovTwoStackedProfiles(ts['90'])
+'''
+
+
 
    ###################################################################################
    # Summary kSZ and tSZ at 150 and 90
 
 
-   # kSZ plot at 150 and 90
-   fig=plt.figure(0)
-   ax=fig.add_subplot(111)
-   #
-   # convert from sr to arcmin^2
-   factor = (180.*60./np.pi)**2
-   #
-   ax.axhline(0., c='k', lw=1)
-   #
-   ax.errorbar(ts['150'].RApArcmin, factor * ts['150'].stackedProfile["diskring_ksz_varweight"], factor * ts['150'].sStackedProfile["diskring_ksz_varweight"], fmt='-', c='royalblue', label='150GHz')
-   ax.errorbar(ts['150'].RApArcmin + 0.05, factor * ts['90'].stackedProfile["diskring_ksz_varweight"], factor * ts['90'].sStackedProfile["diskring_ksz_varweight"], fmt='-', c='darkviolet', label='90GHz')
-   #
-   ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
-   ax.set_xlabel(r'$R$ [arcmin]')
-   ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(r'kSZ profile')
-   ax.set_ylim((0., 10.))
-   #
-   #path = ts['150'].pathFig+"summary_ksz_150_90_"+catalogKey+".pdf"
-   path = pathFig+"summary_ksz_150_90_"+catalogKey+".pdf"
-   fig.savefig(path, bbox_inches='tight')
-   #plt.show()
-   fig.clf()
+#   # kSZ plot at 150 and 90
+#   fig=plt.figure(0)
+#   ax=fig.add_subplot(111)
+#   #
+#   # convert from sr to arcmin^2
+#   factor = (180.*60./np.pi)**2
+#   #
+#   ax.axhline(0., c='k', lw=1)
+#   #
+#   ax.errorbar(ts['150'].RApArcmin, factor * ts['150'].stackedProfile["diskring_ksz_varweight"], factor * ts['150'].sStackedProfile["diskring_ksz_varweight"], fmt='-', c='royalblue', label='150GHz')
+#   ax.errorbar(ts['150'].RApArcmin + 0.05, factor * ts['90'].stackedProfile["diskring_ksz_varweight"], factor * ts['90'].sStackedProfile["diskring_ksz_varweight"], fmt='-', c='darkviolet', label='90GHz')
+#   #
+#   ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+#   ax.set_xlabel(r'$R$ [arcmin]')
+#   ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+#   ax.set_title(r'kSZ profile')
+#   ax.set_ylim((0., 10.))
+#   #
+#   #path = ts['150'].pathFig+"summary_ksz_150_90_"+catalogKey+".pdf"
+#   path = pathFig+"summary_ksz_150_90_"+catalogKey+".pdf"
+#   fig.savefig(path, bbox_inches='tight')
+#   #plt.show()
+#   fig.clf()
+#
+#
+#   # tSZ + dust plot at 150 and 90
+#   fig=plt.figure(0)
+#   ax=fig.add_subplot(111)
+#   #
+#   # convert from sr to arcmin^2
+#   factor = (180.*60./np.pi)**2
+#   #
+#   ax.axhline(0., c='k', lw=1)
+#   #
+#   ax.errorbar(ts['150'].RApArcmin, factor * ts['150'].stackedProfile["diskring_tsz_varweight"], factor * ts['150'].sStackedProfile["diskring_tsz_varweight"], fmt='-', c='royalblue', label='150GHz')
+#   ax.errorbar(ts['90'].RApArcmin + 0.05, factor * ts['90'].stackedProfile["diskring_tsz_varweight"], factor * ts['90'].sStackedProfile["diskring_tsz_varweight"], fmt='-', c='darkviolet', label='90GHz')
+#   #
+#   ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
+#   ax.set_xlabel(r'$R$ [arcmin]')
+#   ax.set_ylabel(r'$T_{\text{tSZ} + \text{dust}}$ [$\mu K\cdot\text{arcmin}^2$]')
+#   ax.set_title(r'tSZ + dust profile')
+#   #ax.set_ylim((0., 2.))
+#   #
+#   #path = ts['150'].pathFig+"summary_tsz_150_90_"+catalogKey+".pdf"
+#   path = pathFig+"summary_tsz_150_90_"+catalogKey+".pdf"
+#   fig.savefig(path, bbox_inches='tight')
+#   #plt.show()
+#   fig.clf()
 
 
-   # tSZ + dust plot at 150 and 90
-   fig=plt.figure(0)
-   ax=fig.add_subplot(111)
-   #
-   # convert from sr to arcmin^2
-   factor = (180.*60./np.pi)**2
-   #
-   ax.axhline(0., c='k', lw=1)
-   #
-   ax.errorbar(ts['150'].RApArcmin, factor * ts['150'].stackedProfile["diskring_tsz_varweight"], factor * ts['150'].sStackedProfile["diskring_tsz_varweight"], fmt='-', c='royalblue', label='150GHz')
-   ax.errorbar(ts['90'].RApArcmin + 0.05, factor * ts['90'].stackedProfile["diskring_tsz_varweight"], factor * ts['90'].sStackedProfile["diskring_tsz_varweight"], fmt='-', c='darkviolet', label='90GHz')
-   #
-   ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
-   ax.set_xlabel(r'$R$ [arcmin]')
-   ax.set_ylabel(r'$T_{\text{tSZ} + \text{dust}}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(r'tSZ + dust profile')
-   #ax.set_ylim((0., 2.))
-   #
-   #path = ts['150'].pathFig+"summary_tsz_150_90_"+catalogKey+".pdf"
-   path = pathFig+"summary_tsz_150_90_"+catalogKey+".pdf"
-   fig.savefig(path, bbox_inches='tight')
-   #plt.show()
-   fig.clf()
-'''
 
 
-
+###################################################################################
+###################################################################################
 ###################################################################################
 ###################################################################################
 # Read all the stacked profiles
-'''
+
 
 # convert from sr to arcmin^2
 factor = (180.*60./np.pi)**2
@@ -542,11 +556,302 @@ ksz150VShuffleMean = data[:,1] * factor
 sKsz150VShuffleMean = data[:,2] * factor
 
 
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+# Generate all the plots
 
+
+for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
+
+   ###################################################################################
+   ###################################################################################
+   # kSZ null tests
+
+   rAp = rKsz[catalogKey+'_pactf150daynight20200228maskgal60']
+   #
+   # fiducial uncertainty
+   ksz150 = ksz[catalogKey+'_pactf150daynight20200228maskgal60']
+   sKsz150 = sKsz[catalogKey+'_pactf150daynight20200228maskgal60']
+   # Mariana's velocities
+   if catalogKey=='cmass_kendrick':
+      catalogMariana = 'cmass_mariana'
+      ksz150Mariana = ksz[catalogMariana+'_pactf150daynight20200228maskgal60']
+      sKsz150Mariana = sKsz[catalogMariana+'_pactf150daynight20200228maskgal60']
+   #
+   # 150 - tilec cmb, as a consistency check
+   ksz150MinusTilecCmb = ksz[catalogKey+'_pactf150daynight20200228maskgal60_minus_tilecpactcmbksz']
+   sKsz150MinusTilecCmb = sKsz[catalogKey+'_pactf150daynight20200228maskgal60_minus_tilecpactcmbksz']
+   #
+   # 150 reconv to 90 minus 90, to check consistency
+   ksz150Reconv90Minus90 = ksz[catalogKey+'_pactf150reconvto90minus90daynight20200228maskgal60']
+   sKsz150Reconv90Minus90 = sKsz[catalogKey+'_pactf150reconvto90minus90daynight20200228maskgal60']
+   #
+   # tilec y no cmb, to check for tSZ contamination
+   kszYNoCmb = ksz[catalogKey+'_tilecpactynocmb'] * yTomuK150
+   sKszYNoCmb = sKsz[catalogKey+'_tilecpactynocmb'] * yTomuK150
+   #
+   # 150 - tilec cmb no cib, to check for dust contamination
+   ksz150MinusCmbNoCib = ksz[catalogKey+'_pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib']
+   sKsz150MinusCmbNoCib = sKsz[catalogKey+'_pactf150daynight20200228maskgal60_minus_tilecpactcmbksznocib']
+
+
+
+
+   # kSZ pipeline null tests
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   #
+   ax.axhline(0., c='k', lw=1)
+   #
+   # Uncertainty band
+   ax.fill_between(rAp, - sKsz150, sKsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+   #
+   # V-shuffle mean
+   ax.errorbar(rAp, ksz150VShuffleMean, yerr=sKsz150VShuffleMean, fmt='--', label='mean of 100 v-shuffles')
+   #
+   # Average of many mocks
+   ax.errorbar(rAp + 0.025, meanStackedKszGRF, yerr=sStackedKszGRF, fmt='--', label=r'mean of '+str(nMocks)+' mocks')
+   #
+   if catalogKey=='cmass_kendrick':
+      # Mariana - Kendrick
+      #ax.errorbar(rAp, ksz150MKDiff, yerr=sKsz150MKDiff, fmt='-', c='r', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
+      #ax.errorbar(rAp, ksz150, yerr=sKsz150, fmt='-', label='K')
+      #ax.errorbar(rAp, ksz150Mariana, yerr=sKsz150Mariana, fmt='-', label='M')
+      ax.errorbar(rAp + 0.05, (ksz150-ksz150Mariana), yerr=sKsz150, fmt='-', label=r'$v_\text{Kendrick} - v_\text{Mariana}$')
+   #
+   # 150 - tilec cmb
+   ax.errorbar(rAp + 0.075, ksz150MinusTilecCmb, yerr=sKsz150MinusTilecCmb, fmt='-', label='150 - TileC CMB/kSZ')
+   #
+   # 150 reconv to 90 minus 90
+   ax.errorbar(rAp + 0.1, ksz150Reconv90Minus90, yerr=sKsz150Reconv90Minus90, fmt='-', label='150\' - 90')
+   #
+   ax.set_ylim((-10., 15.))
+   ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_title(r'kSZ pipeline null tests')
+   ax.set_ylim((-6., 6.))
+   #
+   path = pathFig + "pipenulltests_ksz_150_"+catalogKey+".pdf"
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
+
+
+
+
+   # kSZ foreground null tests
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   # convert from sr to arcmin^2
+   factor = (180.*60./np.pi)**2
+   #
+   ax.axhline(0., c='k', lw=1)
+   #
+   # Uncertainty band
+   ax.fill_between(rAp, - sKsz150, sKsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+   #
+   # kSZ on TileC y no CMB map
+   ax.errorbar(rAp, kszYNoCmb, yerr=sKszYNoCmb, label=r'TileC y no CMB')
+   #
+   # cmbksz no cib, to check for dust
+   ax.errorbar(rAp + 0.025, ksz150MinusCmbNoCib, yerr=sKsz150MinusCmbNoCib, fmt='-', label=r'150 - TileC CMB/kSZ no CIB')
+   #
+   ax.set_ylim((-10., 15.))
+   ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_title(r'kSZ foreground null tests')
+   #ax.set_ylim((-2., 2.))
+   #
+   path = pathFig + "fgnulltests_ksz_150_"+catalogKey+".pdf"
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
+
+
+
+   ###################################################################################
+   ###################################################################################
+   # tSZ null tests
+
+   rAp = rTsz[catalogKey+'_pactf150daynight20200228maskgal60']
+   #
+   # fiducial uncertainty
+   sTsz150 = sTsz[catalogKey+'_pactf150daynight20200228maskgal60'] 
+   #
+   # 150 - y, to check for map consistency
+   tsz150MinusY = tsz[catalogKey+'_pactf150daynight20200228maskgal60_minus_tilecpactymuk']
+   sTsz150MinusY = sTsz[catalogKey+'_pactf150daynight20200228maskgal60_minus_tilecpactymuk']
+   #
+   # y - y no CIB
+   tszYMinusYNoCib = tsz[catalogKey+'_tilecpactyminusynocib'] * yTomuK150
+   sTszYMinusYNoCib = sTsz[catalogKey+'_tilecpactyminusynocib'] * yTomuK150
+   #
+   # 150' - 90, after rescaling 90 to null tSZ
+   # in order to check for the dust contamination
+   tsz150Reconv90Minus90NoY = tsz[catalogKey+'_pactf150reconvto90minus90noydaynight20200228maskgal60']
+   sTsz150Reconv90Minus90NoY = sTsz[catalogKey+'_pactf150reconvto90minus90noydaynight20200228maskgal60']
+
+
+
+   # tSZ pipeline test
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   ax.axhline(0., c='k', lw=1)
+   #
+   # Uncertainty band
+   ax.fill_between(rAp, - sTsz150, sTsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+   #
+   # mean of GRF mocks
+   ax.errorbar(rAp, meanStackedTszGRF, yerr=sStackedTszGRF, fmt='--', label=r'mean of '+str(nMocks)+' mocks')
+   #
+   # 150 - tilec y
+   ax.errorbar(rAp, tsz150MinusY, yerr=sTsz150MinusY, fmt='--', label=r'150 - TileC y ')
+   #
+   ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_title(r'tSZ pipeline null tests')
+   ax.set_ylim((-6., 6.))
+   #
+   path = pathFig + "pipenulltests_tsz_150_"+catalogKey+".pdf"
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
+
+
+
+   # dust contamination to tSZ
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   ax.axhline(0., c='k', lw=1)
+   #
+   # Uncertainty band
+   ax.fill_between(rAp, - sTsz150, sTsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
+   #
+   # 150 - tilec y
+   ax.errorbar(rAp, tsz150MinusY, yerr=sTsz150MinusY, fmt='--', label=r'150 - TileC y')
+   #
+   # y - y no CIB
+   ax.errorbar(rAp, tszYMinusYNoCib, yerr=sTszYMinusYNoCib, fmt='--', label=r'TileC y - y no CIB')
+   #
+   # 150' - 90 rescaled to null y
+   ax.errorbar(rAp, tsz150Reconv90Minus90NoY, yerr=sTsz150Reconv90Minus90NoY, fmt='--', label=r"150\' - 90 no y")
+   #
+   ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T_\text{dust}$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_title(r'Dust emission')
+   ax.set_ylim((-6., 6.))
+   #
+   path = pathFig + "fgnulltests_tsz_150_"+catalogKey+".pdf"
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
+
+
+
+   ###################################################################################
+   ###################################################################################
+   # summary tSZ plot
+
+
+   rAp = rTsz[catalogKey+'_pactf150daynight20200228maskgal60']
+
+   # PACT 150
+   tsz150 = tsz[catalogKey+'_pactf150daynight20200228maskgal60']
+   sTsz150 = sTsz[catalogKey+'_pactf150daynight20200228maskgal60']
+   #
+   # PACT 90
+   tsz90 = tsz[catalogKey+'_pactf90daynight20200228maskgal60']
+   sTsz90 = sTsz[catalogKey+'_pactf90daynight20200228maskgal60']
+   #
+   # TileC y no Cib
+   tszYNoCib = tsz[catalogKey+'_tilecpactynocib'] * yTomuK150
+   sTszYNoCib = sTsz[catalogKey+'_tilecpactynocib'] * yTomuK150
+
+
+   # tSZ-only from the TileC y no CIB map
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   # convert from sr to arcmin^2
+   factor = (180.*60./np.pi)**2
+   #
+   ax.axhline(0., c='k', lw=1)
+   #
+   # PACT 150
+   #ax.errorbar(rAp, tsz150, yerr=sTsz150, fmt='-', c='royalblue', label='150GHz')
+   # PACT 90
+   #ax.errorbar(rAp, tsz90, yerr=sTsz90, fmt='-', c='darkviolet', label='90GHz')
+   # Tilec y no CIB
+   ax.errorbar(rAp, tszYNoCib, yerr=sTszYNoCib, fmt='-', c='r', label='TileC y no CIB')
+   #
+   ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T_{\text{tSZ}}$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_title(r'tSZ profile')
+   #ax.set_ylim((0., 2.))
+   #
+   path = pathFig+"summary_tsz_"+catalogKey+".pdf"
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
+
+
+   # tSZ + dust plot at 150 and 90
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   # convert from sr to arcmin^2
+   factor = (180.*60./np.pi)**2
+   #
+   ax.axhline(0., c='k', lw=1)
+   #
+   # PACT 150
+   ax.errorbar(rAp, tsz150, yerr=sTsz150, fmt='-', c='royalblue', label='150GHz')
+   # PACT 90
+   ax.errorbar(rAp, tsz90, yerr=sTsz90, fmt='-', c='darkviolet', label='90GHz')
+   # Tilec y no CIB
+   ax.errorbar(rAp, tszYNoCib, yerr=sTszYNoCib, fmt='-', label='TileC y no CIB')
+   #
+   ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T_{\text{tSZ} + \text{dust}}$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_title(r'tSZ + dust profile')
+   #ax.set_ylim((0., 2.))
+   #
+   path = pathFig+"comparison_tsz_150_90_"+catalogKey+".pdf"
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###################################################################################
+###################################################################################
 ###################################################################################
 ###################################################################################
 # kSZ null tests
-
+'''
 rAp = rKsz['cmass_kendrick_pactf150daynight20200228maskgal60']
 #
 # fiducial uncertainty
@@ -775,7 +1080,7 @@ ax.set_ylabel(r'$T_{\text{tSZ}}$ [$\mu K\cdot\text{arcmin}^2$]')
 ax.set_title(r'tSZ profile')
 #ax.set_ylim((0., 2.))
 #
-path = pathFig+"summary_tsz_"+catalogKey+".pdf"
+path = pathFig+"summary_tsz_cmass.pdf"
 fig.savefig(path, bbox_inches='tight')
 #plt.show()
 fig.clf()
@@ -803,16 +1108,15 @@ ax.set_ylabel(r'$T_{\text{tSZ} + \text{dust}}$ [$\mu K\cdot\text{arcmin}^2$]')
 ax.set_title(r'tSZ + dust profile')
 #ax.set_ylim((0., 2.))
 #
-path = pathFig+"comparison_tsz_150_90_"+catalogKey+".pdf"
+path = pathFig+"comparison_tsz_150_90_cmass.pdf"
 fig.savefig(path, bbox_inches='tight')
 #plt.show()
 fig.clf()
 
 
 '''
-
-
-
+###################################################################################
+###################################################################################
 ###################################################################################
 ###################################################################################
 
