@@ -1,4 +1,3 @@
-# Just a check
 import universe
 reload(universe)
 from universe import *
