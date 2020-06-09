@@ -85,9 +85,9 @@ print("WCS attributes: "+str(d56.wcs))
 #########################################################################
 # ACT point source mask
 
-# mask sits in the older folder
-pathPSMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/source_mask_s16_simonecat_sn5_cross_20171105.fits"
+pathPSMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/act_ps_mask/source_mask_s16_simonecat_sn5_cross_20171105.fits"
 psMask = enmap.read_map(pathPSMask)
+
 
 #########################################################################
 # combine Deep56 and BOSS North maps, on the total ACT footprint
@@ -128,7 +128,7 @@ enmap.write_map(pathOut+"tilec_map.fits", tilecMap)
 # Mask the Milky Way with a Planck mask
 
 # Read the Planck Galactic mask
-pathPlanckMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2018_08_10/HFI_Mask_GalPlane-apo0_2048_R2.00.fits"
+pathPlanckMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_galactic_mask/HFI_Mask_GalPlane-apo0_2048_R2.00.fits"
 # field, fsky:
 #0, 0.20
 #1, 0.40
@@ -138,7 +138,8 @@ pathPlanckMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planc
 #5, 0.90
 #6, 0.97
 #7, 0.99
-hpPlanckMaskGal = hp.read_map(pathPlanckMask, field=3)
+#planckMask = hp.read_map(pathPlanckMask, field=3)
+hpPlanckMaskGal = hp.read_map(pathPlanckMask, field=2)
 
 # plot the Planck mask in Galactic coordinates
 #fig=plt.figure(0)
