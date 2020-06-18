@@ -209,8 +209,8 @@ save = True
 #for cmbMapKey in cmbMaps.keys():
 #for cmbMapKey in ['tilecpactynocmb', 'tilecpactyminusynocib']:
 #for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
-for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
-#for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228maskgal60', 'tilecpactynocib']:
+#for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
+for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight20200228maskgal60r2']:
 #for cmbMapKey in ['tilecpactynocib', 'pactf90daynight20200228maskgal60','pactf150daynight20200228maskgal60']:
 #for cmbMapKey in ['pactf150reconvto90minus90daynight20200228maskgal60']:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228maskgal60']:
@@ -225,26 +225,18 @@ for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
       print("Analyzing catalog "+catalog.name)
       name = catalog.name + "_" + cmbName
 
-      if name=='cmass_kendrick_pactf150daynight20200228maskgal60r2' or name=='lowz_kendrick__pactf150daynight20200228maskgal60r2':
+      if name=='cmass_kendrick_pactf150daynight20200228maskgal60r2' or name=='lowz_kendrick_pactf150daynight20200228maskgal60r2' or name=='cmass_kendrick_pactf90daynight20200228maskgal60r2' or name=='lowz_kendrick_pactf90daynight20200228maskgal60r2':
          ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=True)
       else:
          ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
 
 
 
-#      try:
-#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=False, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
-#      except:
-#         ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=True, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=False)
-
-#      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
-#      ts.plotAllCov()
-
 
 ###################################################################################
 ###################################################################################
-#  PACT 90 and 150: stacks and joint cov
-
+#  PACT 90 and 150: joint cov
+'''
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -284,6 +276,59 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ts['150'].plotAllCovTwoStackedProfiles(ts['90'])
 
 
+   ###################################################################################
+   # Summary kSZ and tSZ at 150 and 90
+
+
+   # kSZ plot at 150 and 90
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   # convert from sr to arcmin^2
+   factor = (180.*60./np.pi)**2
+   #
+   ax.axhline(0., c='k', lw=1)
+   #
+   ax.errorbar(ts['150'].RApArcmin, factor * ts['150'].stackedProfile["diskring_ksz_varweight"], factor * ts['150'].sStackedProfile["diskring_ksz_varweight"], fmt='-', c='royalblue', label='150GHz')
+   ax.errorbar(ts['150'].RApArcmin + 0.05, factor * ts['90'].stackedProfile["diskring_ksz_varweight"], factor * ts['90'].sStackedProfile["diskring_ksz_varweight"], fmt='-', c='darkviolet', label='90GHz')
+   #
+   ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_title(r'kSZ profile')
+   ax.set_ylim((0., 10.))
+   #
+   #path = ts['150'].pathFig+"summary_ksz_150_90_"+catalogKey+".pdf"
+   path = pathFig+"summary_ksz_150_90_"+catalogKey+".pdf"
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
+
+
+   # tSZ + dust plot at 150 and 90
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   # convert from sr to arcmin^2
+   factor = (180.*60./np.pi)**2
+   #
+   ax.axhline(0., c='k', lw=1)
+   #
+   ax.errorbar(ts['150'].RApArcmin, factor * ts['150'].stackedProfile["diskring_tsz_varweight"], factor * ts['150'].sStackedProfile["diskring_tsz_varweight"], fmt='-', c='royalblue', label='150GHz')
+   ax.errorbar(ts['90'].RApArcmin + 0.05, factor * ts['90'].stackedProfile["diskring_tsz_varweight"], factor * ts['90'].sStackedProfile["diskring_tsz_varweight"], fmt='-', c='darkviolet', label='90GHz')
+   #
+   ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
+   ax.set_xlabel(r'$R$ [arcmin]')
+   ax.set_ylabel(r'$T_{\text{tSZ} + \text{dust}}$ [$\mu K\cdot\text{arcmin}^2$]')
+   ax.set_title(r'tSZ + dust profile')
+   #ax.set_ylim((0., 2.))
+   #
+   #path = ts['150'].pathFig+"summary_tsz_150_90_"+catalogKey+".pdf"
+   path = pathFig+"summary_tsz_150_90_"+catalogKey+".pdf"
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
+'''
 
 ###################################################################################
 ###################################################################################
@@ -790,8 +835,8 @@ sTszYMinusYNoCib = sTsz['cmass_kendrick_tilecpactyminusynocib'] * yTomuK150
 #
 # 150' - 90, after rescaling 90 to null tSZ
 # in order to check for the dust contamination
-tsz150Reconv90Minus90NoY = tsz['cmass_kendrick_pactf150reconvto90minus90noydaynight20200228maskgal60r2']
-sTsz150Reconv90Minus90NoY = sTsz['cmass_kendrick_pactf150reconvto90minus90noydaynight20200228maskgal60r2']
+#tsz150Reconv90Minus90NoY = tsz['cmass_kendrick_pactf150reconvto90minus90noydaynight20200228maskgal60r2']
+#sTsz150Reconv90Minus90NoY = sTsz['cmass_kendrick_pactf150reconvto90minus90noydaynight20200228maskgal60r2']
 
 
 
@@ -839,7 +884,7 @@ ax.errorbar(rAp, tsz150MinusY, yerr=sTsz150MinusY, fmt='--', label=r'150 - TileC
 ax.errorbar(rAp, tszYMinusYNoCib, yerr=sTszYMinusYNoCib, fmt='--', label=r'TileC y - y no CIB')
 #
 # 150' - 90 rescaled to null y
-ax.errorbar(rAp, tsz150Reconv90Minus90NoY, yerr=sTsz150Reconv90Minus90NoY, fmt='--', label=r"150\' - 90 no y")
+#ax.errorbar(rAp, tsz150Reconv90Minus90NoY, yerr=sTsz150Reconv90Minus90NoY, fmt='--', label=r"150\' - 90 no y")
 #
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlabel(r'$R$ [arcmin]')

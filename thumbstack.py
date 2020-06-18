@@ -52,7 +52,7 @@ class ThumbStack(object):
       self.projCutout = 'cea'
 
       # number of samples for bootstraps, shuffles
-      self.nSamples = 100
+      self.nSamples = 1000
 
       # number of mMax cuts to test,
       # for tSZ contamination to kSZ
@@ -1216,6 +1216,7 @@ class ThumbStack(object):
    def SaveCovBootstrapStackedProfile(self, filterType, est, mVir=None, z=[0., 100.], nSamples=100, nProc=1):
       """Estimate covariance matrix for the stacked profile from bootstrap resampling
       """
+      print "Performing", nSamples, "bootstrap resamples"
       if mVir is None:
          mVir = [self.mMin, self.mMax]
       tStart = time()
@@ -1242,6 +1243,7 @@ class ThumbStack(object):
       that the objects that are not in common are not statistically different
       from the objects in common.
       """
+      print "Performing", nSamples, "bootstrap resamples"
       # for each resample, compute both profiles, and concatenate, before taking the cov
       if mVir is None:
          mVir = [self.mMin, self.mMax]
@@ -1300,7 +1302,7 @@ class ThumbStack(object):
          # only for a few select estimators
          for iEst in range(len(self.EstBootstrap)):
             est = self.EstBootstrap[iEst]
-            self.SaveCovBootstrapTwoStackedProfiles(ts2, filterType, est, nSamples=100, nProc=min(8,self.nProc))
+            self.SaveCovBootstrapTwoStackedProfiles(ts2, filterType, est, nSamples=self.nSamples, nProc=min(8,self.nProc))
 
 
 
@@ -1396,14 +1398,14 @@ class ThumbStack(object):
          if self.doBootstrap: 
             for iEst in range(len(self.EstBootstrap)):
                est = self.EstBootstrap[iEst]
-               self.SaveCovBootstrapStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
+               self.SaveCovBootstrapStackedProfile(filterType, est, nSamples=self.nSamples, nProc=self.nProc)
 
          # covariance matrices from shuffling velocities,
          # for ksz only
          if self.doVShuffle:
             for iEst in range(len(self.EstVShuffle)):
                est = self.EstVShuffle[iEst]
-               self.SaveCovVShuffleStackedProfile(filterType, est, nSamples=100, nProc=self.nProc)
+               self.SaveCovVShuffleStackedProfile(filterType, est, nSamples=self.nSamples, nProc=self.nProc)
 
 
       # Stacked profiles in mass bins, to check for contamination

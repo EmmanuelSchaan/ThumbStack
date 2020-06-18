@@ -59,6 +59,6 @@
 ############################################################
 # Make output readable by everyone
 
-#chmod o+x ./output/thumbstack/*
-#chmod o+r -R ./output/thumbstack/*
+chmod o+x ./output/thumbstack/*
+chmod o+r -R ./output/thumbstack/*
 
