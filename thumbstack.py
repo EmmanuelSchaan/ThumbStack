@@ -52,7 +52,7 @@ class ThumbStack(object):
       self.projCutout = 'cea'
 
       # number of samples for bootstraps, shuffles
-      self.nSamples = 1000
+      self.nSamples = 10000
 
       # number of mMax cuts to test,
       # for tSZ contamination to kSZ

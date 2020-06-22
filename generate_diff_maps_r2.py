@@ -26,6 +26,7 @@ from shutil import copyfile
 ###################################################################################3
 # Difference between 150GHz reconv to the 90GHz beam and the 90GHz map
 # for null test (tSZ and kSZ estimators)
+
 pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvto90.fits"
 pathMap2 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits"
 pathMask = "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits"
@@ -45,13 +46,14 @@ copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
 ###################################################################################3
 # Difference between TileC y and TileC y no CIB
 # for CIB null test (tSZ estimator)
+
 pathMap1 = "./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv2.4_map.fits"
-pathMap2 = "./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_reconv2.4_map.fits"
+pathMap2 = "./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_map.fits"
 pathMask = "./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 pathDirOut = "./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/"
 if not os.path.exists(pathDirOut):
     os.makedirs(pathDirOut)
-pathOut = pathDirOut + "tilec_reconv2.4_map.fits"
+pathOut = pathDirOut + "diff_map.fits"
 
 # save the difference map
 diffMap = enmap.read_map(pathMap1)
@@ -65,13 +67,14 @@ copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
 ###################################################################################3
 # Difference between PACT 150 and TileC cmbksz 
 # for kSZ null test
-pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
-pathMap2 = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv1.4_map.fits"
+
+pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilec.fits"
+pathMap2 = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_map.fits"
 pathMask = "./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 pathDirOut = "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksz/"
 if not os.path.exists(pathDirOut):
     os.makedirs(pathDirOut)
-pathOut = pathDirOut + "tilec_reconv1.4_map.fits"
+pathOut = pathDirOut + "diff_map.fits"
 
 # read the maps
 map1 = enmap.read_map(pathMap1)[0]
@@ -98,16 +101,18 @@ def f(nu):
 yTomuK = f(150.e9) * Tcmb * 1.e6  # [muK * sr]
 
 
+###################################################################################3
 # Difference between PACT 150 and TileC y 
 # after converting the y map to muK at 150GHz
 # for tSZ pipeline test (both maps will have some dust; the dust level may be different in both maps though)
-pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
-pathMap2 = "./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv1.4_map.fits"
+
+pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilec.fits"
+pathMap2 = "./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_map.fits"
 pathMask = "./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 pathDirOut = "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_ymuk/"
 if not os.path.exists(pathDirOut):
     os.makedirs(pathDirOut)
-pathOut = pathDirOut + "tilec_reconv1.4_map.fits"
+pathOut = pathDirOut + "diff_map.fits"
 
 # read the maps
 map1 = enmap.read_map(pathMap1)[0]
@@ -125,13 +130,14 @@ copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
 # Difference between PACT 150 and TileC CMB no CIB
 # to check for dust contamination
 # for kSZ foreground test
+
 pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilecdeproj.fits"
-pathMap2 = "./output/cmb_map/tilec_pact_cmbksznocib_v1.2.0/" + "tilec_reconv2.4_map.fits"
+pathMap2 = "./output/cmb_map/tilec_pact_cmbksznocib_v1.2.0/" + "tilec_map.fits"
 pathMask = "./output/cmb_map/tilec_pact_cmbksznocib_v1.2.0/" + "mask_full_foot_gal_ps.fits"
 pathDirOut = "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksznocib/"
 if not os.path.exists(pathDirOut):
     os.makedirs(pathDirOut)
-pathOut = pathDirOut + "tilec_reconv2.4_map.fits"
+pathOut = pathDirOut + "diff_map.fits"
 
 # read the maps
 map1 = enmap.read_map(pathMap1)[0]
@@ -167,33 +173,6 @@ copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
 
 
 
-
-
-
-'''
-###################################################################################3
-# Difference between 150GHz reconv to the 90GHz beam and the 90GHz map,
-# after rescaling the 90 to null the tSZ
-# for dust null test for tSZ
-pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvto90.fits"
-pathMap2 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits"
-pathMask = "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits"
-pathDirOut = "./output/cmb_map/planck_act_coadd_2020_02_28_r2/"
-if not os.path.exists(pathDirOut):
-    os.makedirs(pathDirOut)
-pathOut = pathDirOut + "act_planck_s08_s18_cmb_f150reconvto90r2_minus_f090_noy_daynight_map.fits"
-
-# freq scaling to apply to 90 to null tSZ
-freqScaling = f(150.e9) / f(90.e9)
-
-
-# save the difference map
-diffMap = enmap.read_map(pathMap1)
-diffMap -= enmap.read_map(pathMap2) * freqScaling
-enmap.write_map(pathOut, diffMap)
-# copy the mask
-copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
-'''
 
 
 

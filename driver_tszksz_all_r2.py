@@ -135,17 +135,17 @@ cmbMaps = {
          name="pactf150reconvto90minus90daynight20200228maskgal60r2"),
       #
       # TileC v1.2, reconvolved to 1.4' beam, combining BOSS N and D56
-      "tilecpactynocmb": cmbMap("./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "tilec_reconv2.4_map.fits",
+      "tilecpactynocmb": cmbMap("./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "tilec_map.fits",
       "./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "mask_full_foot_gal_ps.fits",
       name="tilecpactynocmb"),
-      "tilecpactyminusynocib": cmbMap("./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "tilec_reconv2.4_map.fits",
+      "tilecpactyminusynocib": cmbMap("./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "tilec_map.fits",
       "./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
       name="tilecpactyminusynocib"),
       #
-      "tilecpacty": cmbMap("./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_reconv1.4_map.fits",
+      "tilecpacty": cmbMap("./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_map.fits",
       "./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits",
       name="tilecpacty"),
-      "tilecpactynocib": cmbMap("./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_reconv2.4_map.fits",
+      "tilecpactynocib": cmbMap("./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "tilec_map.fits",
       "./output/cmb_map/tilec_pact_ynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
       name="tilecpactynocib"),
       #"tilecpactcmbksz": cmbMap("./output/cmb_map/tilec_pact_cmbksz_v1.2.0/" + "tilec_reconv1.4_map.fits",
@@ -156,13 +156,13 @@ cmbMaps = {
       #name="tilecpactcmbksznoy"),
       #
       # kSZ pipeline check
-      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksz/" + "tilec_reconv1.4_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksz/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz"),
+      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksz/" + "diff_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksz/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz"),
       #
       # kSZ dust contamination test
-      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksznocib/" + "tilec_reconv2.4_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksznocib/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib"),
+      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksznocib/" + "diff_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksznocib/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib"),
       #
       # tSZ pipeline (map) check
-      "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_ymuk/" + "tilec_reconv1.4_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_ymuk/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60r2_minus_tilecpactymuk"),
+      "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_ymuk/" + "diff_map.fits", "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_ymuk/" + "mask_full_foot_gal_ps.fits", name="pactf150daynight20200228maskgal60r2_minus_tilecpactymuk"),
       #
       }
 
@@ -210,10 +210,14 @@ save = True
 #for cmbMapKey in ['tilecpactynocmb', 'tilecpactyminusynocib']:
 #for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
 #for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
-for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight20200228maskgal60r2']:
+#for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight20200228maskgal60r2']:
+#for cmbMapKey in ['pactf90daynight20200228maskgal60r2']:
 #for cmbMapKey in ['tilecpactynocib', 'pactf90daynight20200228maskgal60','pactf150daynight20200228maskgal60']:
 #for cmbMapKey in ['pactf150reconvto90minus90daynight20200228maskgal60']:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228maskgal60']:
+#for cmbMapKey in ['pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib']:
+for cmbMapKey in ["tilecpactynocmb", "tilecpactyminusynocib", "tilecpacty", "tilecpactynocib", "tilecpactcmbksz", "tilecpactcmbksznoy", "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz", "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk", "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib"]:
+#for cmbMapKey in ["tilecpactynocmb", "tilecpactyminusynocib", "tilecpacty", "tilecpactynocib", "tilecpactcmbksz", "tilecpactcmbksznoy", "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz", "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk", "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib"][::-1]:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
