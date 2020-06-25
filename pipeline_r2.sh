@@ -12,7 +12,7 @@
 # reconvolve the 150GHz map to the beams of 
 # the 90GHz, TileC, TileC deproj,
 # for null tests
-#python reconvolve_pact_r2.py
+python reconvolve_pact_r2.py
 
 ############################################################
 # TileC
@@ -40,7 +40,7 @@
 # Generate difference maps, for null tests
 # this involves PACT maps and TileC maps
 
-#python generate_diff_maps_r2.py
+python generate_diff_maps_r2.py
 
 
 ############################################################

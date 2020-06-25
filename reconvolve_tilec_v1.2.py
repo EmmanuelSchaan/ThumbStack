@@ -47,7 +47,7 @@ for mapId in ['cmbksz', 'y']:
    # beam sigmas in radians
    # convert from fwhm to sigma
    sOld = fwhmOld * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
-   sNew = fwhmNew *  np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
+   sNew = fwhmNew * np.pi/(180.*60.) / np.sqrt(8.*np.log(2.))
 
    # read maps
    tilec = enmap.read_map(pathMap)

@@ -1329,7 +1329,7 @@ class ThumbStack(object):
       data = np.zeros((self.nRAp, 3))
       data[:,0] = self.RApArcmin
       data[:,1] = np.mean(stackSamples, axis=0) # mean of the shuffled stacks
-      data[:,2] = np.sqrt(np.diag(covStack)) / nSamples # variance of the mean
+      data[:,2] = np.sqrt(np.diag(covStack)) / np.sqrt(nSamples) # variance of the mean
       np.savetxt(self.pathOut+"/"+filterType+"_"+est+"_vshufflemean.txt", data)
 
 

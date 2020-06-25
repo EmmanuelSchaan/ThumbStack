@@ -40,12 +40,22 @@ pathBeam150 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_a
 data = np.loadtxt(pathBeam150)
 ell = data[:,0]
 beam150F = data[:,1]
+# regularization, as in Naess+20
+v_cut = 1.e-2
+ell_cut = np.argmin((np.abs(beam150F)-v_cut)**2)
+beam150F = (beam150F>=v_cut) * beam150F + (beam150F<v_cut) * v_cut * beam150F[0] * (ell/ell_cut)**(2. * np.log(v_cut))
+beam150F[0] = 1.
 fBeam150F = interp1d(ell, beam150F, kind='linear', bounds_error=False, fill_value=(beam150F[0], beam150F[-1]))
-#
+
 pathBeam90 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "beam_f090_daynight.txt"
 data = np.loadtxt(pathBeam90)
 ell = data[:,0]
 beam90F = data[:,1]
+# regularization, as in Naess+20
+v_cut = 1.e-2
+ell_cut = np.argmin((np.abs(beam90F)-v_cut)**2)
+beam90F = (beam90F>=v_cut) * beam90F + (beam90F<v_cut) * v_cut * beam90F[0] * (ell/ell_cut)**(2. * np.log(v_cut))
+beam90F[0] = 1.
 fBeam90F = interp1d(ell, beam90F, kind='linear', bounds_error=False, fill_value=(beam90F[0], beam90F[-1]))
 
 # TileC maps have Gussian beams
@@ -60,24 +70,59 @@ fBeamTilecDeprojF = interp1d(ell, beamTilecDeprojF, kind='linear', bounds_error=
 
 
 # Plot Fourier space beams
-#fig=plt.figure(0)
-#ax=fig.add_subplot(111)
-##
-#ax.plot(ell, beam150F, 'b-', label=r'150GHz')
-#s = 1.3 * np.pi / (180. * 60.) / np.sqrt(8.*np.log(2.))
-#y = np.exp(-0.5 * s**2 * ell**2)
-#ax.plot(ell, y, 'b--', label=r'Gaussian with fwhm=1.3')
-##
-#ax.plot(ell, beam90F, 'r-', label=r'90GHz')
-#s = 2.1 * np.pi / (180. * 60.) / np.sqrt(8.*np.log(2.))
-#y = np.exp(-0.5 * s**2 * ell**2)
-#ax.plot(ell, y, 'r--', label=r'Gaussian with fwhm=2.1')
-##
-#ax.legend(loc=1)
-#ax.set_xscale('log', nonposx='clip')
-#ax.set_yscale('log', nonposy='clip')
-##
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+L = np.linspace(0., 5.e5, 10001)
+#
+ax.plot(L, fBeam150F(L), 'b-', label=r'150GHz')
+ax.plot(L, -fBeam150F(L), 'b--')
+#
+ax.plot(L, fBeam90F(L), 'r-', label=r'90GHz')
+ax.plot(L, -fBeam90F(L), 'r--')
+#
+ax.plot(L, fBeamTilecF(L), 'g-', label=r'TileC')
+ax.plot(L, fBeamTilecDeprojF(L), 'c-', label=r'TileC deproj')
+#
+ax.legend(loc=3)
+ax.set_xscale('log', nonposx='clip')
+ax.set_yscale('log', nonposy='clip')
+#
+fig.savefig(pathFig + "beams_fourier.pdf", bbox_inches='tight')
 #plt.show()
+fig.clf()
+
+
+
+
+
+
+# Plot Fourier deconvolution kernels
+fig=plt.figure(0)
+ax=fig.add_subplot(111)
+#
+L = np.linspace(0., 5.e5, 10001)
+#
+ax.plot(L, fBeam90F(L) / fBeam150F(L), 'b-', label=r'150GHz to 90GHz')
+ax.plot(L, -fBeam90F(L) / fBeam150F(L), 'b--')
+#
+ax.plot(L, fBeamTilecF(L) / fBeam150F(L), 'g-', label=r'150GHz to TileC')
+ax.plot(L, -fBeamTilecF(L) / fBeam150F(L), 'g--')
+#
+ax.plot(L, fBeamTilecDeprojF(L) / fBeam150F(L), 'c-', label=r'150GHz to TileC deproj')
+ax.plot(L, -fBeamTilecDeprojF(L) / fBeam150F(L), 'c--')
+#
+ax.legend(loc=3)
+ax.set_xscale('log', nonposx='clip')
+ax.set_yscale('log', nonposy='clip')
+#
+fig.savefig(pathFig + "beams_deconvolution_kernels.pdf", bbox_inches='tight')
+#plt.show()
+fig.clf()
+
+
+
+
 
 
 ##########################################################################
@@ -134,54 +179,37 @@ fig.clf()
 
 
 ##########################################################################
+print("Read PACT 150 map")
+
+# read maps
+iMap = enmap.read_map(pathMap)
+# do the reconvolution in Fourier space
+mapF = enmap.fft(iMap)
+lMap = np.sqrt(np.sum(iMap.lmap()**2,0))
+
+
+##########################################################################
+# Reconvolve the map
+
 print("Reconvolve 150 to 90")
-
 pathOutMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvto90.fits"
-
-
-# read maps
-iMap = enmap.read_map(pathMap)
-# do the reconvolution in Fourier space
-mapF = enmap.fft(iMap)
-lMap = np.sum(iMap.lmap()**2,0)
-mapF *= fBeam90F(lMap) / fBeam150F(lMap)
-oMap = enmap.ifft(mapF).real
-# save it to file
+oMap = enmap.ifft(mapF * fBeam90F(lMap) / fBeam150F(lMap)).real
 enmap.write_map(pathOutMap, oMap)
+print("check finite sum "+str(np.sum(oMap)))
 
 
-##########################################################################
 print("Reconvolve 150 to TileC deproj")
-
 pathOutMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilecdeproj.fits"
-
-
-# read maps
-iMap = enmap.read_map(pathMap)
-# do the reconvolution in Fourier space
-mapF = enmap.fft(iMap)
-lMap = np.sum(iMap.lmap()**2,0)
-mapF *= fBeamTilecDeprojF(lMap) / fBeam150F(lMap)
-oMap = enmap.ifft(mapF).real
-# save it to file
+oMap = enmap.ifft(mapF * fBeamTilecDeprojF(lMap) / fBeam150F(lMap)).real
 enmap.write_map(pathOutMap, oMap)
+print("check finite sum "+str(np.sum(oMap)))
 
 
-##########################################################################
 print("Reconvolve 150 to TileC")
-
 pathOutMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilec.fits"
-
-
-# read maps
-iMap = enmap.read_map(pathMap)
-# do the reconvolution in Fourier space
-mapF = enmap.fft(iMap)
-lMap = np.sum(iMap.lmap()**2,0)
-mapF *= fBeamTilecF(lMap) / fBeam150F(lMap)
-oMap = enmap.ifft(mapF).real
-# save it to file
+oMap = enmap.ifft(mapF * fBeamTilecF(lMap) / fBeam150F(lMap)).real
 enmap.write_map(pathOutMap, oMap)
+print("check finite sum "+str(np.sum(oMap)))
 
 
 

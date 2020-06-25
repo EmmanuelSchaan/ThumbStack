@@ -138,7 +138,7 @@ cmbMaps = {
       "tilecpactynocmb": cmbMap("./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "tilec_map.fits",
       "./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "mask_full_foot_gal_ps.fits",
       name="tilecpactynocmb"),
-      "tilecpactyminusynocib": cmbMap("./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "tilec_map.fits",
+      "tilecpactyminusynocib": cmbMap("./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "diff_map.fits",
       "./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
       name="tilecpactyminusynocib"),
       #
@@ -185,7 +185,6 @@ catalogCombi = {
       "tilecpacty": ['cmass_kendrick', 'lowz_kendrick'],
       "tilecpactynocib": ['cmass_kendrick', 'lowz_kendrick'],
       "tilecpactcmbksz": ['cmass_kendrick', 'lowz_kendrick'],
-      "tilecpactcmbksznoy": ['cmass_kendrick', 'lowz_kendrick'],
       #
       "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz": ['cmass_kendrick', 'lowz_kendrick'],
       "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk": ['cmass_kendrick', 'lowz_kendrick'],
@@ -197,7 +196,7 @@ catalogCombi = {
 ###################################################################################
 ###################################################################################
 # Compute all the stacked profiles
-
+'''
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -207,16 +206,17 @@ save = True
 
 
 #for cmbMapKey in cmbMaps.keys():
+#for cmbMapKey in cmbMaps.keys()[::-1]:
 #for cmbMapKey in ['tilecpactynocmb', 'tilecpactyminusynocib']:
 #for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
-#for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
+for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight20200228maskgal60r2']:
 #for cmbMapKey in ['pactf90daynight20200228maskgal60r2']:
 #for cmbMapKey in ['tilecpactynocib', 'pactf90daynight20200228maskgal60','pactf150daynight20200228maskgal60']:
 #for cmbMapKey in ['pactf150reconvto90minus90daynight20200228maskgal60']:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60', 'pactf90daynight20200228maskgal60']:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib']:
-for cmbMapKey in ["tilecpactynocmb", "tilecpactyminusynocib", "tilecpacty", "tilecpactynocib", "tilecpactcmbksz", "tilecpactcmbksznoy", "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz", "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk", "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib"]:
+#for cmbMapKey in ["tilecpactynocmb", "tilecpactyminusynocib", "tilecpacty", "tilecpactynocib", "tilecpactcmbksz", "tilecpactcmbksznoy", "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz", "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk", "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib"]:
 #for cmbMapKey in ["tilecpactynocmb", "tilecpactyminusynocib", "tilecpacty", "tilecpactynocib", "tilecpactcmbksz", "tilecpactcmbksznoy", "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz", "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk", "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib"][::-1]:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
@@ -233,7 +233,7 @@ for cmbMapKey in ["tilecpactynocmb", "tilecpactyminusynocib", "tilecpacty", "til
          ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=True)
       else:
          ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
-
+'''
 
 
 
