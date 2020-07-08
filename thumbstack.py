@@ -579,10 +579,10 @@ class ThumbStack(object):
          # called PTE
          # is p = erf( n / sqrt(2))
          # Sample of N independent objects: the proba that at least one of them is outside [-n*sigma, +n*sigma]
-         # is 1 - (1-p)^n
-         # ie n * p  if p<<1
+         # is 1 - (1-p)^N
+         # ie N * p  if p<<1
          # Our threshold: n*p should correspond to a 5 sigma PTE, ie
-         # n * p = erf(5/sqrt(2)) = 5.733e-7
+         # N * p = erf(5/sqrt(2)) = 5.733e-7
          nObj = np.sum(mask)
          if nObj<>0:
             f = lambda nSigmas: nObj * special.erfc(nSigmas / np.sqrt(2.)) - special.erfc(5. / np.sqrt(2.))
@@ -612,7 +612,7 @@ class ThumbStack(object):
       To be used for noise weighting in the stacking.
       """
       # keep only objects that overlap, and mask point sources
-      mask = self.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=(self.Catalog.Mvir.min(), self.Catalog.Mvir.max()))
+      mask = self.catalogMask(overlap=True, psMask=True, filterType=filterType, mVir=(self.Catalog.Mvir.min(), self.Catalog.Mvir.max()), outlierReject=False)
       # This array contains the true variances for each object and aperture 
       filtVarTrue = np.zeros((self.Catalog.nObj, self.nRAp))
 
@@ -620,6 +620,7 @@ class ThumbStack(object):
          print("Interpolate variance=f(hit count) for each aperture")
          fVarFromHitCount = np.empty(self.nRAp, dtype='object')
          for iRAp in range(self.nRAp):
+            #print("Aperture number "+str(iRAp))
             x = self.filtHitNoiseStdDev[filterType][mask, iRAp]**2
             y = self.filtMap[filterType][mask, iRAp].copy()
             y = (y - np.mean(y))**2
@@ -655,6 +656,13 @@ class ThumbStack(object):
 
             # evaluate the variance for each object
             filtVarTrue[mask,iRAp] = fVarFromHitCount[iRAp](x)
+
+#            # evaluate the variance for each object
+#            # for the objects masked, still give them a weight just in case,
+#            # to avoid null weights
+#            xFull = self.filtHitNoiseStdDev[filterType][:, iRAp]**2
+#            filtVarTrue[:,iRAp] = fVarFromHitCount[iRAp](xFull)
+
             
             if plot:
                # plot

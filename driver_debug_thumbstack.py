@@ -132,7 +132,7 @@ import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
-save = True
+save = False
 
 # Do it on mocks with shuffled velocities
 pathMap = cmassMarianaVShuffleSmall.pathOut + "mock_vel_dirac_car.fits"

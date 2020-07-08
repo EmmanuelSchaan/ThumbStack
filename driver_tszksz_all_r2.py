@@ -175,7 +175,7 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 
 
 catalogCombi = {
-      "pactf150daynight20200228maskgal60r2": ['cmass_kendrick', 'lowz_kendrick', 'cmass_mariana'],
+      "pactf150daynight20200228maskgal60r2": ['lowz_kendrick', 'cmass_kendrick', 'cmass_mariana'],
       "pactf90daynight20200228maskgal60r2": ['cmass_kendrick', 'lowz_kendrick', 'cmass_mariana'],
       "pactf150reconvto90minus90daynight20200228maskgal60r2": ['cmass_kendrick', 'lowz_kendrick'],
       #
@@ -196,7 +196,7 @@ catalogCombi = {
 ###################################################################################
 ###################################################################################
 # Compute all the stacked profiles
-'''
+
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -207,9 +207,10 @@ save = True
 
 #for cmbMapKey in cmbMaps.keys():
 #for cmbMapKey in cmbMaps.keys()[::-1]:
+for cmbMapKey in ['pactf150daynight20200228maskgal60r2']:
 #for cmbMapKey in ['tilecpactynocmb', 'tilecpactyminusynocib']:
 #for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
-for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
+#for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight20200228maskgal60r2']:
 #for cmbMapKey in ['pactf90daynight20200228maskgal60r2']:
 #for cmbMapKey in ['tilecpactynocib', 'pactf90daynight20200228maskgal60','pactf150daynight20200228maskgal60']:
@@ -233,7 +234,7 @@ for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
          ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=True)
       else:
          ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
-'''
+
 
 
 
@@ -339,7 +340,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 ###################################################################################
 ###################################################################################
 # Read all the stacked profiles
-
+'''
 
 # convert from sr to arcmin^2
 factor = (180.*60./np.pi)**2
@@ -415,7 +416,7 @@ sStackedTszGRF = np.sqrt(np.diag(covStackedTszGRF)) / np.sqrt(nMocks)
 
 
 # kSZ: v-shuffle mean
-data = np.genfromtxt(pathThumb + "cmass_kendrick_pactf150daynight20200228maskgal60/" + "diskring_ksz_varweight_vshufflemean.txt")
+data = np.genfromtxt(pathThumb + "cmass_kendrick_pactf150daynight20200228maskgal60r2/" + "diskring_ksz_varweight_vshufflemean.txt")
 rKsz150VShuffleMean = data[:,0]
 ksz150VShuffleMean = data[:,1] * factor
 sKsz150VShuffleMean = data[:,2] * factor
@@ -491,7 +492,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.errorbar(rAp + 0.075, ksz150MinusTilecCmb, yerr=sKsz150MinusTilecCmb, fmt='-', label='150 - TileC CMB/kSZ')
    #
    # 150 reconv to 90 minus 90
-   ax.errorbar(rAp + 0.1, ksz150Reconv90Minus90, yerr=sKsz150Reconv90Minus90, fmt='-', label='150\' - 90')
+   ax.errorbar(rAp + 0.1, ksz150Reconv90Minus90, yerr=sKsz150Reconv90Minus90, fmt='-', label='150 - 90')
    #
    ax.set_ylim((-10., 15.))
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
@@ -771,7 +772,7 @@ ax.errorbar(rAp + 0.05, (ksz150-ksz150Mariana), yerr=sKsz150, fmt='-', label=r'$
 ax.errorbar(rAp + 0.075, ksz150MinusTilecCmb, yerr=sKsz150MinusTilecCmb, fmt='-', label='150 - TileC CMB/kSZ')
 #
 # 150 reconv to 90 minus 90
-ax.errorbar(rAp + 0.1, ksz150Reconv90Minus90, yerr=sKsz150Reconv90Minus90, fmt='-', label='150\' - 90')
+ax.errorbar(rAp + 0.1, ksz150Reconv90Minus90, yerr=sKsz150Reconv90Minus90, fmt='-', label='150 - 90')
 #
 ax.set_ylim((-10., 15.))
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
@@ -988,4 +989,4 @@ fig.clf()
 
 
 
-
+'''
