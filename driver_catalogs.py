@@ -140,10 +140,6 @@ cmassMariana = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS 
 cmassKendrick = Catalog(u, massConversion, name="cmass_kendrick", nameLong="CMASS K", save=False)
 lowzKendrick = Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K", save=False)
 
-
-###################################################################################
-# plot dn/dz
-'''
 # read overlap flags
 # for PACT maps
 path = "./output/thumbstack/cmass_mariana_pactf150daynight20200228/overlap_flag.txt"
@@ -157,6 +153,10 @@ print "CMASS M:", np.sum(overlapCmassM), "galaxies overlap out of", len(overlapC
 print "CMASS K:", np.sum(overlapCmassK), "galaxies overlap out of", len(overlapCmassK), "ie", 1.*np.sum(overlapCmassK)/len(overlapCmassK),"%"
 print "LOWZ K:", np.sum(overlapLowzK), "galaxies overlap out of", len(overlapLowzK), "ie", 1.*np.sum(overlapLowzK)/len(overlapLowzK),"%"
 
+
+###################################################################################
+# plot dn/dz
+'''
 
 # Bins for histograms
 nBins = 51
@@ -218,4 +218,88 @@ cmassKendrick.writeVtk()
 lowzKendrick.writeVtk()
 cmassMKDiff.writeVtk()
 '''
+
+###################################################################################
+# Show stellar and halo masses
+
+'''
+# Bins for histograms
+nBins = 31
+Bins = np.logspace(np.log10(2.e10), np.log10(2.e12), nBins, 10.)
+binwidth = Bins[1:] - Bins[:-1]
+
+
+fig = plt.figure(0)
+ax = fig.add_subplot(111)
+#
+# CMASS Mariana
+m = cmassMariana.Mstellar[(overlapCmassM*cmassMariana.hasM).astype(bool)]
+histX = np.histogram(m, Bins, density=True)[0].astype(float)
+ax.bar(Bins[:-1], histX, binwidth, color='b', alpha=0.5, label=r'CMASS M')
+ax.axvline(np.mean(m), color='b', ls='--')
+#
+# CMASS Kendrick
+m = cmassKendrick.Mstellar[(overlapCmassK*cmassKendrick.hasM).astype(bool)]
+histX = np.histogram(m, Bins, density=True)[0].astype(float)
+ax.bar(Bins[:-1], histX, binwidth, color='c', alpha=0.5, label=r'CMASS K')
+ax.axvline(np.mean(m), color='c', ls='--')
+#
+# LOWZ Kendrick
+m = lowzKendrick.Mstellar[(overlapLowzK*lowzKendrick.hasM).astype(bool)]
+histX = np.histogram(m, Bins, density=True)[0].astype(float)
+ax.bar(Bins[:-1], histX, binwidth, color='y', alpha=0.5, label=r'LOWZ K')
+ax.axvline(np.mean(m), color='y', ls='--')
+#
+ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+ax.set_xlim((Bins[0], Bins[-1]))
+ax.set_xscale('log', nonposx='clip')
+ax.set_xlabel(r'$M_{\star}$ [$M_\odot$]')
+ax.set_ylabel(r'$N_\text{galaxies} / N_\text{total}$')
+#
+path = cmassMariana.pathFig + "/summary_stellar_masses.pdf"
+fig.savefig(path, bbox_inches='tight')
+#plt.show()
+fig.clf()
+
+
+
+# Bins for histograms
+nBins = 31
+Bins = np.logspace(np.log10(1.e11), np.log10(1.e15), nBins, 10.)
+binwidth = Bins[1:] - Bins[:-1]
+
+
+fig = plt.figure(0)
+ax = fig.add_subplot(111)
+#
+# CMASS Mariana
+m = cmassMariana.Mvir[(overlapCmassM*cmassMariana.hasM).astype(bool)]
+histX = np.histogram(m, Bins, density=True)[0].astype(float)
+ax.bar(Bins[:-1], histX, binwidth, color='b', alpha=0.5, label=r'CMASS M')
+ax.axvline(np.mean(m), color='b', ls='--')
+#
+# CMASS Kendrick
+m = cmassKendrick.Mvir[(overlapCmassK*cmassKendrick.hasM).astype(bool)]
+histX = np.histogram(m, Bins, density=True)[0].astype(float)
+ax.bar(Bins[:-1], histX, binwidth, color='c', alpha=0.5, label=r'CMASS K')
+ax.axvline(np.mean(m), color='c', ls='--')
+#
+# LOWZ Kendrick
+m = lowzKendrick.Mvir[(overlapLowzK*lowzKendrick.hasM).astype(bool)]
+histX = np.histogram(m, Bins, density=True)[0].astype(float)
+ax.bar(Bins[:-1], histX, binwidth, color='y', alpha=0.5, label=r'LOWZ K')
+ax.axvline(np.mean(m), color='y', ls='--')
+#
+ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
+ax.set_xlim((Bins[0], Bins[-1]))
+ax.set_xscale('log', nonposx='clip')
+ax.set_xlabel(r'$M_\text{vir}$ [$M_\odot$]')
+ax.set_ylabel(r'$N_\text{galaxies} / N_\text{total}$')
+#
+path = cmassMariana.pathFig + "/summary_halo_masses.pdf"
+fig.savefig(path, bbox_inches='tight')
+#plt.show()
+fig.clf()
+'''
+
 

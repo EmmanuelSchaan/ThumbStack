@@ -196,18 +196,18 @@ catalogCombi = {
 ###################################################################################
 ###################################################################################
 # Compute all the stacked profiles
-
+'''
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
 
 
-save = True
+save = False
 
 
-#for cmbMapKey in cmbMaps.keys():
+for cmbMapKey in cmbMaps.keys():
 #for cmbMapKey in cmbMaps.keys()[::-1]:
-for cmbMapKey in ['pactf150daynight20200228maskgal60r2']:
+#for cmbMapKey in ['pactf150daynight20200228maskgal60r2']:
 #for cmbMapKey in ['tilecpactynocmb', 'tilecpactyminusynocib']:
 #for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
 #for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
@@ -234,7 +234,7 @@ for cmbMapKey in ['pactf150daynight20200228maskgal60r2']:
          ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=True)
       else:
          ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False)
-
+'''
 
 
 
@@ -340,7 +340,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 ###################################################################################
 ###################################################################################
 # Read all the stacked profiles
-'''
+
 
 # convert from sr to arcmin^2
 factor = (180.*60./np.pi)**2
@@ -431,6 +431,11 @@ sKsz150VShuffleMean = data[:,2] * factor
 
 for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 
+   if catalogKey=='cmass_kendrick':
+      catalogTitle = 'CMASS'
+   elif catalogKey=='lowz_kendrick':
+      catalogTitle = 'LOWZ'
+
    ###################################################################################
    ###################################################################################
    # kSZ null tests
@@ -486,7 +491,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
       #ax.errorbar(rAp, ksz150MKDiff, yerr=sKsz150MKDiff, fmt='-', c='r', label=r'$v_\text{Mariana} - v_\text{Kendrick}$')
       #ax.errorbar(rAp, ksz150, yerr=sKsz150, fmt='-', label='K')
       #ax.errorbar(rAp, ksz150Mariana, yerr=sKsz150Mariana, fmt='-', label='M')
-      ax.errorbar(rAp + 0.05, (ksz150-ksz150Mariana), yerr=sKsz150, fmt='-', label=r'$v_\text{Kendrick} - v_\text{Mariana}$')
+      #ax.errorbar(rAp + 0.05, (ksz150-ksz150Mariana), yerr=sKsz150, fmt='-', label=r'$v_\text{Kendrick} - v_\text{Mariana}$')
+      ax.plot(rAp + 0.05, (ksz150-ksz150Mariana), '-', label=r'$v_\text{Kendrick} - v_\text{Mariana}$')
    #
    # 150 - tilec cmb
    ax.errorbar(rAp + 0.075, ksz150MinusTilecCmb, yerr=sKsz150MinusTilecCmb, fmt='-', label='150 - TileC CMB/kSZ')
@@ -498,7 +504,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(r'kSZ pipeline null tests')
+   ax.set_title(catalogTitle + r' kSZ pipeline null tests')
    ax.set_ylim((-6., 6.))
    #
    path = pathFig + "pipenulltests_ksz_150_"+catalogKey+".pdf"
@@ -531,7 +537,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(r'kSZ foreground null tests')
+   ax.set_title(catalogTitle + r' kSZ foreground null tests')
    #ax.set_ylim((-2., 2.))
    #
    path = pathFig + "fgnulltests_ksz_150_"+catalogKey+".pdf"
@@ -583,7 +589,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(r'tSZ pipeline null tests')
+   ax.set_title(catalogTitle + r' tSZ pipeline null tests')
    ax.set_ylim((-6., 6.))
    #
    path = pathFig + "pipenulltests_tsz_150_"+catalogKey+".pdf"
@@ -614,7 +620,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_\text{dust}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(r'Dust emission')
+   ax.set_title(catalogTitle + r' Dust emission')
    ax.set_ylim((-6., 6.))
    #
    path = pathFig + "fgnulltests_tsz_150_"+catalogKey+".pdf"
@@ -663,7 +669,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_{\text{tSZ}}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(r'tSZ profile')
+   ax.set_title(catalogTitle + r' tSZ profile')
    #ax.set_ylim((0., 2.))
    #
    path = pathFig+"summary_tsz_"+catalogKey+".pdf"
@@ -691,7 +697,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_{\text{tSZ} + \text{dust}}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(r'tSZ + dust profile')
+   ax.set_title(catalogTitle + r' tSZ + dust profile')
    #ax.set_ylim((0., 2.))
    #
    path = pathFig+"comparison_tsz_150_90_"+catalogKey+".pdf"
@@ -717,7 +723,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 ###################################################################################
 ###################################################################################
 # kSZ null tests
-
+'''
 rAp = rKsz['cmass_kendrick_pactf150daynight20200228maskgal60r2']
 #
 # fiducial uncertainty
@@ -985,8 +991,4 @@ fig.clf()
 ###################################################################################
 ###################################################################################
 ###################################################################################
-
-
-
-
 '''
