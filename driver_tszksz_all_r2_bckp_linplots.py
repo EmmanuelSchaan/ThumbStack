@@ -249,7 +249,7 @@ from thumbstack import *
 #ts[freq] = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True)
 
 save = False
-
+'''
 
 for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 #for catalogKey in ['cmass_kendrick']:
@@ -319,20 +319,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(catalogTitle + r' kSZ profile', x=0.5, y=1.25)
-   ax.set_yscale('log', nonposy='clip')
+   ax.set_title(catalogTitle + r' kSZ profile')
    ax.set_ylim((0., 20.))
-   #
-   # make extra abscissa with disk comoving size in Mpc/h
-   ax2 = ax.twiny()
-   ticks = ax.get_xticks()
-   ax2.set_xticks(ticks)
-   newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
-   newticks = np.round(newticks, 2)
-   ax2.set_xticklabels(newticks)
-   ax2.set_xlim(ax.get_xlim())
-   ax2.set_xlabel(r'comoving radius [Mpc/h] at $z=$'+str(round(catalogs[catalogKey].Z.mean(),2)), fontsize=20)
-   ax2.xaxis.set_label_coords(0.5, 1.15)
    #
    #path = ts['150'].pathFig+"summary_ksz_150_90_"+catalogKey+".pdf"
    path = pathFig+"summary_ksz_150_90_"+catalogKey+".pdf"
@@ -367,27 +355,15 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_{\text{tSZ} + \text{dust}}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(catalogTitle + r' tSZ + dust profile', x=0.5, y=1.25)
-   ax.set_yscale('symlog')
+   ax.set_title(catalogTitle + r' tSZ + dust profile')
    #ax.set_ylim((0., 2.))
-   #
-   # make extra abscissa with disk comoving size in Mpc/h
-   ax2 = ax.twiny()
-   ticks = ax.get_xticks()
-   ax2.set_xticks(ticks)
-   newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
-   newticks = np.round(newticks, 2)
-   ax2.set_xticklabels(newticks)
-   ax2.set_xlim(ax.get_xlim())
-   ax2.set_xlabel(r'comoving radius [Mpc/h] at $z=$'+str(round(catalogs[catalogKey].Z.mean(),2)), fontsize=20)
-   ax2.xaxis.set_label_coords(0.5, 1.15)
    #
    #path = ts['150'].pathFig+"summary_tsz_150_90_"+catalogKey+".pdf"
    path = pathFig+"summary_tsz_150_90_"+catalogKey+".pdf"
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
-
+'''
 
 ###################################################################################
 ###################################################################################
@@ -664,19 +640,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(catalogTitle + r' kSZ pipeline null tests', x=0.5, y=1.25)
+   ax.set_title(catalogTitle + r' kSZ pipeline null tests')
    ax.set_ylim((-6., 6.))
-   #
-   # make extra abscissa with disk comoving size in Mpc/h
-   ax2 = ax.twiny()
-   ticks = ax.get_xticks()
-   ax2.set_xticks(ticks)
-   newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
-   newticks = np.round(newticks, 2)
-   ax2.set_xticklabels(newticks)
-   ax2.set_xlim(ax.get_xlim())
-   ax2.set_xlabel(r'comoving radius [Mpc/h] at $z=$'+str(round(catalogs[catalogKey].Z.mean(),2)), fontsize=20)
-   ax2.xaxis.set_label_coords(0.5, 1.15)
    #
    path = pathFig + "pipenulltests_ksz_150_"+catalogKey+".pdf"
    fig.savefig(path, bbox_inches='tight')
@@ -708,19 +673,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(catalogTitle + r' kSZ foreground null tests', x=0.5, y=1.25)
+   ax.set_title(catalogTitle + r' kSZ foreground null tests')
    #ax.set_ylim((-2., 2.))
-   #
-   # make extra abscissa with disk comoving size in Mpc/h
-   ax2 = ax.twiny()
-   ticks = ax.get_xticks()
-   ax2.set_xticks(ticks)
-   newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
-   newticks = np.round(newticks, 2)
-   ax2.set_xticklabels(newticks)
-   ax2.set_xlim(ax.get_xlim())
-   ax2.set_xlabel(r'comoving radius [Mpc/h] at $z=$'+str(round(catalogs[catalogKey].Z.mean(),2)), fontsize=20)
-   ax2.xaxis.set_label_coords(0.5, 1.15)
    #
    path = pathFig + "fgnulltests_ksz_150_"+catalogKey+".pdf"
    fig.savefig(path, bbox_inches='tight')
@@ -771,19 +725,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_\text{tSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(catalogTitle + r' tSZ pipeline null tests', x=0.5, y=1.25)
+   ax.set_title(catalogTitle + r' tSZ pipeline null tests')
    ax.set_ylim((-6., 6.))
-   #
-   # make extra abscissa with disk comoving size in Mpc/h
-   ax2 = ax.twiny()
-   ticks = ax.get_xticks()
-   ax2.set_xticks(ticks)
-   newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
-   newticks = np.round(newticks, 2)
-   ax2.set_xticklabels(newticks)
-   ax2.set_xlim(ax.get_xlim())
-   ax2.set_xlabel(r'comoving radius [Mpc/h] at $z=$'+str(round(catalogs[catalogKey].Z.mean(),2)), fontsize=20)
-   ax2.xaxis.set_label_coords(0.5, 1.15)
    #
    path = pathFig + "pipenulltests_tsz_150_"+catalogKey+".pdf"
    fig.savefig(path, bbox_inches='tight')
@@ -813,19 +756,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_\text{dust}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(catalogTitle + r' Dust emission', x=0.5, y=1.25)
+   ax.set_title(catalogTitle + r' Dust emission')
    ax.set_ylim((-6., 6.))
-   #
-   # make extra abscissa with disk comoving size in Mpc/h
-   ax2 = ax.twiny()
-   ticks = ax.get_xticks()
-   ax2.set_xticks(ticks)
-   newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
-   newticks = np.round(newticks, 2)
-   ax2.set_xticklabels(newticks)
-   ax2.set_xlim(ax.get_xlim())
-   ax2.set_xlabel(r'comoving radius [Mpc/h] at $z=$'+str(round(catalogs[catalogKey].Z.mean(),2)), fontsize=20)
-   ax2.xaxis.set_label_coords(0.5, 1.15)
    #
    path = pathFig + "fgnulltests_tsz_150_"+catalogKey+".pdf"
    fig.savefig(path, bbox_inches='tight')
@@ -882,20 +814,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_{\text{tSZ}}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(catalogTitle + r' tSZ profile', x=0.5, y=1.25)
-   ax.set_yscale('symlog')
+   ax.set_title(catalogTitle + r' tSZ profile')
    #ax.set_ylim((0., 2.))
-   #
-   # make extra abscissa with disk comoving size in Mpc/h
-   ax2 = ax.twiny()
-   ticks = ax.get_xticks()
-   ax2.set_xticks(ticks)
-   newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
-   newticks = np.round(newticks, 2)
-   ax2.set_xticklabels(newticks)
-   ax2.set_xlim(ax.get_xlim())
-   ax2.set_xlabel(r'comoving radius [Mpc/h] at $z=$'+str(round(catalogs[catalogKey].Z.mean(),2)), fontsize=20)
-   ax2.xaxis.set_label_coords(0.5, 1.15)
    #
    path = pathFig+"summary_tsz_"+catalogKey+".pdf"
    fig.savefig(path, bbox_inches='tight')
@@ -922,26 +842,14 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_{\text{tSZ} + \text{dust}}$ [$\mu K\cdot\text{arcmin}^2$]')
-   ax.set_title(catalogTitle + r' tSZ + dust profile', x=0.5, y=1.25)
-   ax.set_yscale('symlog')
+   ax.set_title(catalogTitle + r' tSZ + dust profile')
    #ax.set_ylim((0., 2.))
-   #
-   # make extra abscissa with disk comoving size in Mpc/h
-   ax2 = ax.twiny()
-   ticks = ax.get_xticks()
-   ax2.set_xticks(ticks)
-   newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
-   newticks = np.round(newticks, 2)
-   ax2.set_xticklabels(newticks)
-   ax2.set_xlim(ax.get_xlim())
-   ax2.set_xlabel(r'comoving radius [Mpc/h] at $z=$'+str(round(catalogs[catalogKey].Z.mean(),2)), fontsize=20)
-   ax2.xaxis.set_label_coords(0.5, 1.15)
    #
    path = pathFig+"comparison_tsz_150_90_"+catalogKey+".pdf"
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
-
+'''
 
 
 

@@ -263,3 +263,51 @@ def splitBins(x, nBins):
    return binEdges
 
 
+def computeSnr(d, theory, cov):
+   """Compute null rejection, SNR (=detection significance)
+   """
+   dof = len(d)
+
+   # Compute chi^2_null
+   chi2Null = d.dot( np.linalg.inv(cov).dot(d) )
+   # goodness of fit for null hypothesis
+   print("number of dof:"+str(dof))
+   print("null chi2Null="+str(chi2Null))
+   print("SNR = null sqrt(chi2Null)="+str(np.sqrt(chi2Null)))
+   pteNull = 1.- stats.chi2.cdf(chi2Null, dof)
+   print("null pte="+str(pteNull))
+   # pte as a function of sigma, for a Gaussian random variable
+   fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
+   sigmaNull = optimize.brentq(fsigmaToPTE , 0., 1.e5)
+   print("null pte significance="+str(sigmaNull)+"sigmas")
+
+   # find the best fit amplitude for the theory curve
+   def fdchi2(p):
+      a = p[0]
+      result = (d-a*theory).dot( np.linalg.inv(cov).dot(d-a*theory) )
+      result -= chi2Null
+      return result
+   # Minimize the chi squared
+   p0 = 1.
+   res = optimize.minimize(fdchi2, p0)
+   abest = res.x[0]
+   #sbest= res.x[1]
+   print("best-fit amplitude="+str(abest))
+   print("number of dof:"+str(dof - 1))
+
+   # goodness of fit for best fit
+   chi2Best = fdchi2([abest])+chi2Null
+   print("best-fit chi2="+str(chi2Best))
+   pteBest = 1.- stats.chi2.cdf(chi2Best, dof-1.)
+   print("best-fit pte="+str(pteBest))
+   # pte as a function of sigma, for a Gaussian random variable
+   fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteBest
+   sigma = optimize.brentq(fsigmaToPTE , 0., 1.e3)
+   print("best-fit pte significance="+str(sigma)+"sigmas")
+
+   # favour of best fit over null
+   print("best-fit sqrt(delta chi2)="+str(np.sqrt(abs(fdchi2([abest]))))+"sigmas")
+   fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.))
+   pte = fsigmaToPTE( np.sqrt(abs(fdchi2([abest]))) )
+   print("pte (if Gaussian)="+str(pte))
+

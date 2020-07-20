@@ -2071,7 +2071,7 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def computeSnrStack(self, filterType, est, tTh=None):
+   def computeSnrStack(self, filterType, est, tTh=None, theory=None, name=None):
       """Compute null rejection, SNR (=detection significance)
       for the requested estimator.
       The estimator considered should have a bootstrap covariance.
@@ -2085,8 +2085,18 @@ class ThumbStack(object):
          tTh = '_theory_ksz'
       else:
          tTh = ''
+      
+      if name is None:
+         name = ''
+      else:
+         name = '_'+name
+      
+      if theory is None:
+         theory = self.ftheoryGaussianProfile(sigma_cluster, filterType=filterType)
 
-      path = self.pathFig+"/snr_"+filterType+"_"+est+tTh+".txt"
+
+
+      path = self.pathFig+"/snr_"+filterType+"_"+est+tTh+name+".txt"
       with open(path, 'w') as f:
          f.write("*** "+est+" SNR ***\n")
 
@@ -2109,7 +2119,6 @@ class ThumbStack(object):
 
          # Gaussian model: find best fit amplitude
          sigma_cluster = 1.5  # arcmin
-         theory = self.ftheoryGaussianProfile(sigma_cluster, filterType=filterType)
          def fdchi2(p):
             a = p[0]
             result = (d-a*theory).dot( np.linalg.inv(cov).dot(d-a*theory) )
