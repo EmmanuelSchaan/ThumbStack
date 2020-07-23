@@ -321,7 +321,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
    ax.set_title(catalogTitle + r' kSZ profile', x=0.5, y=1.25)
    ax.set_yscale('log', nonposy='clip')
-   ax.set_ylim((0., 20.))
+   ax.set_ylim((0.03, 40.))
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
