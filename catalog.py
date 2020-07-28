@@ -326,8 +326,8 @@ class Catalog(object):
       self.hasM = data[:nObj,19]
       self.Mvir = data[:nObj,20]  # [M_sun]
       #
-      # Integrated optical depth [dimless]: int d^2theta n_e^2d sigma_T = (total nb of electrons) * sigma_T / (a chi)^2
-      self.integratedTau = data[:nObj,21]   # [dimless]
+      # Integrated optical depth [sr]: int d^2theta n_e^2d sigma_T = (total nb of electrons) * sigma_T / (a chi)^2
+      self.integratedTau = data[:nObj,21]   # [sr]
       #
       # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T (-v/c) Tcmb
       self.integratedKSZ = data[:nObj, 22] # [muK * sr]

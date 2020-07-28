@@ -251,8 +251,8 @@ from thumbstack import *
 save = False
 
 
-for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
-#for catalogKey in ['cmass_kendrick']:
+#for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
+for catalogKey in ['cmass_kendrick']:
    catalog = catalogs[catalogKey]
    print("Analyzing catalog "+catalog.name)
 
@@ -387,6 +387,89 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
+
+
+   ###################################################################################
+   ###################################################################################
+   # Comparison with Schaan+16
+
+   if catalogKey=='cmass_kendrick':
+
+
+      # read results from Schaan+16
+      path = "./input/ksz_schaan+16/diagonal_cov_paper/alpha_ksz_kendrick.txt"
+      data = np.genfromtxt(path)
+      rK = data[:,0]
+      alphaK = data[:,1]
+      sAlphaK = data[:,2]
+      # convert to the new measurement unit
+      cmassK = catalogs['cmass_kendrick']
+      alphaK *= np.std(cmassK.vR) / 3.e5 / cmassK.rV * 2.726e6 * np.mean(cmassK.integratedTau) * (180.*60./np.pi)**2
+      sAlphaK *= np.std(cmassK.vR) / 3.e5  / cmassK.rV * 2.726e6 * np.mean(cmassK.integratedTau) * (180.*60./np.pi)**2
+
+      path = "./input/ksz_schaan+16/diagonal_cov_paper/alpha_ksz_mariana.txt"
+      data = np.genfromtxt(path)
+      rM = data[:,0]
+      alphaM = data[:,1]
+      sAlphaM = data[:,2]
+      # convert to the new measurement unit
+      cmassM = catalogs['cmass_mariana']
+      alphaM *= np.std(cmassM.vR) / 3.e5 / cmassM.rV * 2.726e6 * np.mean(cmassM.integratedTau) * (180.*60./np.pi)**2
+      sAlphaM *= np.std(cmassM.vR) / 3.e5 / cmassM.rV * 2.726e6 * np.mean(cmassM.integratedTau) * (180.*60./np.pi)**2
+
+
+      # kSZ plot at 150 and 90
+      fig=plt.figure(0)
+      ax=fig.add_subplot(111)
+      #
+      # convert from sr to arcmin^2
+      factor = (180.*60./np.pi)**2
+      #
+      ax.axhline(0., c='k', lw=1)
+      #
+      ax.errorbar(ts['150'].RApArcmin, factor * ts['150'].stackedProfile["diskring_ksz_varweight"], factor * ts['150'].sStackedProfile["diskring_ksz_varweight"], fmt=fmt, c='k', label='This work 150GHz CMASS K')
+      #ax.errorbar(ts['150'].RApArcmin + 0.05, factor * ts['90'].stackedProfile["diskring_ksz_varweight"], factor * ts['90'].sStackedProfile["diskring_ksz_varweight"], fmt=fmt, c='darkviolet', label='90GHz')
+      #
+      # Theory curves if available
+#      if catalogKey=='cmass_kendrick':
+#         path = './input/stefania/theory_curves/'
+#         data = np.genfromtxt(path+'cmass_kendrick_ksz_best_150_90.txt')
+#         thRApArcmin = data[:,0]
+#         # convert from muK*sr to muK*arcmin^2
+#         thKsz150 = data[:,1] * (180.*60./np.pi)**2
+#         thKsz90 = data[:,2] * (180.*60./np.pi)**2
+#         ax.plot(thRApArcmin, thKsz150, 'royalblue')
+#         ax.plot(thRApArcmin, thKsz90, 'darkviolet')
+      #
+      # comparison with Schaan+16
+      ax.errorbar(rM, alphaM, yerr=sAlphaM, c='royalblue', label=r'Schaan+16 150GHz CMASS M')
+      ax.errorbar(rK + 0.05, alphaK, yerr=sAlphaK, c='royalblue', alpha=0.3, label=r'Schaan+16 150GHz CMASS K')
+
+      #
+      ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
+      ax.set_xlabel(r'$R$ [arcmin]')
+      ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
+      ax.set_title(catalogTitle + r' kSZ profile', x=0.5, y=1.25)
+      ax.set_yscale('log', nonposy='clip')
+      #ax.set_ylim((0.03, 40.))
+      #
+      # make extra abscissa with disk comoving size in Mpc/h
+      ax2 = ax.twiny()
+      ticks = ax.get_xticks()
+      ax2.set_xticks(ticks)
+      newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
+      newticks = np.round(newticks, 2)
+      ax2.set_xticklabels(newticks)
+      ax2.set_xlim(ax.get_xlim())
+      ax2.set_xlabel(r'comoving radius [Mpc/h] at $z=$'+str(round(catalogs[catalogKey].Z.mean(),2)), fontsize=20)
+      ax2.xaxis.set_label_coords(0.5, 1.15)
+      #
+      #path = ts['150'].pathFig+"summary_ksz_150_90_"+catalogKey+".pdf"
+      path = pathFig+"summary_ksz_150_90_"+catalogKey+"_vs_schaan+16.pdf"
+      fig.savefig(path, bbox_inches='tight')
+      plt.show()
+      fig.clf()
+
 
 
 ###################################################################################
@@ -586,7 +669,7 @@ computeSnr(d, t, cov)
 ###################################################################################
 # Generate all the plots
 
-
+'''
 for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 
    if catalogKey=='cmass_kendrick':
@@ -942,8 +1025,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    #plt.show()
    fig.clf()
 
-
-
+'''
 
 
 
