@@ -263,10 +263,11 @@ def splitBins(x, nBins):
    return binEdges
 
 
-def computeSnr(d, theory, cov):
+def computeSnr(d, theory, cov, dof=None):
    """Compute null rejection, SNR (=detection significance)
    """
-   dof = len(d)
+   if dof is None:
+      dof = len(d)
 
    # Compute chi^2_null
    chi2Null = d.dot( np.linalg.inv(cov).dot(d) )

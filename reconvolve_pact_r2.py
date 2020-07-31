@@ -26,7 +26,6 @@ import rotfuncs
 
 ##########################################################################
 
-pathMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
 
 pathFig = "./figures/cmb_map/"
 
@@ -179,7 +178,10 @@ fig.clf()
 
 
 ##########################################################################
+##########################################################################
 print("Read PACT 150 map")
+
+pathMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
 
 # read maps
 iMap = enmap.read_map(pathMap)
@@ -213,3 +215,24 @@ print("check finite sum "+str(np.sum(oMap)))
 
 
 
+##########################################################################
+##########################################################################
+print("Read PACT 90 map")
+
+pathMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits"
+
+# read maps
+iMap = enmap.read_map(pathMap)
+# do the reconvolution in Fourier space
+mapF = enmap.fft(iMap)
+lMap = np.sqrt(np.sum(iMap.lmap()**2,0))
+
+
+##########################################################################
+# Reconvolve the map
+
+print("Reconvolve 90 to TileC deproj")
+pathOutMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map_reconvtotilecdeproj.fits"
+oMap = enmap.ifft(mapF * fBeamTilecDeprojF(lMap) / fBeam90F(lMap)).real
+enmap.write_map(pathOutMap, oMap)
+print("check finite sum "+str(np.sum(oMap)))
