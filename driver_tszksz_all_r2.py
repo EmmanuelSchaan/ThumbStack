@@ -588,7 +588,21 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    # best fit theory curves
    if catalogKey=='cmass_kendrick':
       ksz150Th = ksz[catalog.name+'_150_theory']
+   ksz150 = ksz[catalogKey+'_pactf150daynight20200228maskgal60r2']
+   sKsz150 = sKsz[catalogKey+'_pactf150daynight20200228maskgal60r2']
+   #
+   # PACT 90
+   ksz90 = ksz[catalogKey+'_pactf90daynight20200228maskgal60r2']
+   sKsz90 = sKsz[catalogKey+'_pactf90daynight20200228maskgal60r2']
+
+   # best fit theory curves
+   if catalogKey=='cmass_kendrick':
+      ksz150Th = ksz[catalog.name+'_150_theory']
       ksz90Th = ksz[catalog.name+'_90_theory']
+
+   # NFW curves
+   ksz150NFW = ksz[catalog.name+'_150_nfw']
+   ksz90NFW = ksz[catalog.name+'_90_nfw']
 
    # NFW curves
    ksz150NFW = ksz[catalog.name+'_150_nfw']
@@ -598,12 +612,13 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 
    fig=plt.figure(0)
    ax=fig.add_subplot(111)
+   ax.minorticks_on()
    #
    ax.axhline(0., c='k', lw=1)
    #
    # virial radius
-   ax.axvline(np.sqrt(tVir**2 + 1.3**2), color='blue', alpha=0.1)
-   ax.axvline(np.sqrt(tVir**2 + 2.1**2), color='purple', alpha=0.1)
+   ax.axvline(np.sqrt(rVir**2 + 1.3**2), color='blue', alpha=0.1)
+   ax.axvline(np.sqrt(rVir**2 + 2.1**2), color='purple', alpha=0.1)
    #
    # data
    ax.errorbar(rAp, ksz150, sKsz150, fmt=fmt, c='blue', label='150GHz')
@@ -623,10 +638,11 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.set_ylabel(r'$T_\text{kSZ}$ [$\mu K\cdot\text{arcmin}^2$]')
    ax.set_title(catalogTitle + r' kSZ profile', x=0.5, y=1.25)
    ax.set_yscale('log', nonposy='clip')
-   ax.set_ylim((0.03, 40.))
+   ax.set_ylim((0.03, 70.))
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
+   ax2.minorticks_on()
    ticks = ax.get_xticks()
    ax2.set_xticks(ticks)
    newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(zMean)  # disk radius in Mpc/h
@@ -638,6 +654,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    #
    # extra ordinate to convert kSZ to tau
    ax3 = ax.twinx()
+   ax3.minorticks_on()
    ax3.set_yscale('log', nonposy='clip')
    ylim = ax.get_ylim()
    ylim = np.array(ylim) / tauToKsz
@@ -669,11 +686,12 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 
       fig=plt.figure(0)
       ax=fig.add_subplot(111)
+      ax.minorticks_on()
       #
       ax.axhline(0., c='k', lw=1)
       #
       # virial radius
-      ax.axvline(np.sqrt(tVir**2 + 1.3**2), color='blue', alpha=0.1)
+      ax.axvline(np.sqrt(rVir**2 + 1.3**2), color='blue', alpha=0.1)
       #
       # data
       ax.errorbar(rAp, ksz150, sKsz150, fmt=fmt, c='blue', label='150GHz')
@@ -700,6 +718,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
       #
       # make extra abscissa with disk comoving size in Mpc/h
       ax2 = ax.twiny()
+      ax2.minorticks_on()
       ticks = ax.get_xticks()
       ax2.set_xticks(ticks)
       newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(zMean)  # disk radius in Mpc/h
@@ -711,6 +730,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
       #
       # extra ordinate to convert kSZ to tau
       ax3 = ax.twinx()
+      ax3.minorticks_on()
       ax3.set_yscale('log', nonposy='clip')
       ylim = ax.get_ylim()
       ylim = np.array(ylim) / tauToKsz
@@ -744,12 +764,13 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    # tSZ + dust plot at 150 and 90
    fig=plt.figure(0)
    ax=fig.add_subplot(111)
+   ax.minorticks_on()
    #
    ax.axhline(0., c='k', lw=1)
    #
    # virial radius
-   ax.axvline(np.sqrt(tVir**2 + 1.3**2), color='blue', alpha=0.1)
-   ax.axvline(np.sqrt(tVir**2 + 2.1**2), color='purple', alpha=0.1)
+   ax.axvline(np.sqrt(rVir**2 + 1.3**2), color='blue', alpha=0.1)
+   ax.axvline(np.sqrt(rVir**2 + 2.1**2), color='purple', alpha=0.1)
    #
    ax.errorbar(rAp, tsz150, sTsz150, fmt=fmt, c='blue', label='150GHz')
    ax.errorbar(rAp + 0.05, tsz90, sTsz90, fmt=fmt, c='purple', label='90GHz')
@@ -768,6 +789,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
+   ax2.minorticks_on()
    ticks = ax.get_xticks()
    ax2.set_xticks(ticks)
    newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(zMean)  # disk radius in Mpc/h
@@ -796,15 +818,16 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    if catalogKey=='cmass_kendrick':
       tszYNoCibTh = tsz[catalog.name+'_ynocib_theory'] * yTomuK150
 
-   '''   
+   
    # tSZ-only from the TileC y no CIB map
    fig=plt.figure(0)
    ax=fig.add_subplot(111)
+   ax.minorticks_on()
    #
    ax.axhline(0., c='k', lw=1)
    #
    # virial radius
-   ax.axvline(np.sqrt(tVir**2 + 2.4**2), color='r', alpha=0.1)
+   ax.axvline(np.sqrt(rVir**2 + 2.4**2), color='r', alpha=0.1)
    #
    # Tilec y no CIB
    ax.errorbar(rAp, tszYNoCib, yerr=sTszYNoCib, fmt=fmt, c='r', label='TileC y no CIB')
@@ -817,11 +840,12 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'$T_{\text{tSZ}}$ [$\mu K\cdot\text{arcmin}^2$]')
    ax.set_title(catalogTitle + r' tSZ profile', x=0.5, y=1.25)
-   ax.set_yscale('symlog')
+   ax.set_yscale('symlog', linthreshy=1e-1, linscaley=0.1)
    #ax.set_ylim((0., 2.))
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
+   ax2.minorticks_on()
    ticks = ax.get_xticks()
    ax2.set_xticks(ticks)
    newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(zMean)  # disk radius in Mpc/h
@@ -833,18 +857,19 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    #
    # extra ordinate to convert tSZ to y units
    ax3 = ax.twinx()
-#   ax3.set_yscale('symlog')
+   ax3.minorticks_on()
+   ax3.set_yscale('symlog', linthreshy=1e-1 / np.abs(yTomuK150), linscaley=0.1)
    ylim = ax.get_ylim()
    ylim = np.array(ylim) / np.abs(yTomuK150)
    ax3.set_ylim(ylim)
-   ax3.set_ylabel(r'Integrated $y_\text{CAP}$ [arcmin$^2$]', fontsize=20)
+   ax3.set_ylabel(r'Integrated $-y_\text{CAP}$ [arcmin$^2$]', fontsize=20)
    #
    path = pathFig+"summary_tsz_"+catalogKey+".pdf"
    fig.savefig(path, bbox_inches='tight')
    #plt.show()
    fig.clf()
 
-   '''
+   
    
    ###################################################################################
    # Comparison: tSZ + dust plot on 150, 90, TileC
@@ -852,13 +877,14 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 
    fig=plt.figure(0)
    ax=fig.add_subplot(111)
+   ax.minorticks_on()
    #
    ax.axhline(0., c='k', lw=1)
    #
    # virial radius
-   ax.axvline(np.sqrt(tVir**2 + 1.3**2), color='blue', alpha=0.1)
-   ax.axvline(np.sqrt(tVir**2 + 2.1**2), color='purple', alpha=0.1)
-   ax.axvline(np.sqrt(tVir**2 + 2.4**2), color='r', alpha=0.1)
+   ax.axvline(np.sqrt(rVir**2 + 1.3**2), color='blue', alpha=0.1)
+   ax.axvline(np.sqrt(rVir**2 + 2.1**2), color='purple', alpha=0.1)
+   ax.axvline(np.sqrt(rVir**2 + 2.4**2), color='r', alpha=0.1)
    #
    # Tilec y no CIB
    ax.errorbar(rAp, tszYNoCib, yerr=sTszYNoCib, fmt=fmt, c='r', label='TileC y no CIB')
@@ -876,6 +902,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
+   ax2.minorticks_on()
    ticks = ax.get_xticks()
    ax2.set_xticks(ticks)
    newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(zMean)  # disk radius in Mpc/h
@@ -929,6 +956,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    # kSZ pipeline null tests
    fig=plt.figure(0)
    ax=fig.add_subplot(111)
+   ax.minorticks_on()
    #
    #
    ax.axhline(0., c='k', lw=1)
@@ -965,6 +993,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
+   ax2.minorticks_on()
    ticks = ax.get_xticks()
    ax2.set_xticks(ticks)
    newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
@@ -985,6 +1014,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    # kSZ foreground null tests
    fig=plt.figure(0)
    ax=fig.add_subplot(111)
+   ax.minorticks_on()
    #
    # convert from sr to arcmin^2
    factor = (180.*60./np.pi)**2
@@ -1009,6 +1039,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
+   ax2.minorticks_on()
    ticks = ax.get_xticks()
    ax2.set_xticks(ticks)
    newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
@@ -1050,6 +1081,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    # tSZ pipeline test
    fig=plt.figure(0)
    ax=fig.add_subplot(111)
+   ax.minorticks_on()
    #
    ax.axhline(0., c='k', lw=1)
    #
@@ -1070,6 +1102,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
+   ax2.minorticks_on()
    ticks = ax.get_xticks()
    ax2.set_xticks(ticks)
    newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
@@ -1089,6 +1122,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    # dust contamination to tSZ
    fig=plt.figure(0)
    ax=fig.add_subplot(111)
+   ax.minorticks_on()
    #
    ax.axhline(0., c='k', lw=1)
    #
@@ -1112,6 +1146,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
+   ax2.minorticks_on()
    ticks = ax.get_xticks()
    ax2.set_xticks(ticks)
    newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(catalogs[catalogKey].Z.mean())  # disk radius in Mpc/h
@@ -1199,6 +1234,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    # Plot the electron temperature
    fig=plt.figure(0)
    ax=fig.add_subplot(111)
+   ax.minorticks_on()
    #
    # Expected virial temperature
    ax.axhline(tVir, color='gray', alpha=0.5)
@@ -1208,16 +1244,18 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.errorbar(rAp + 0.05, tE90, sTE90, c='purple', label=r'from 90')
    #
    # virial radius
-   ax.axvline(np.sqrt(tVir**2 + 1.3**2), color='blue')
-   ax.axvline(np.sqrt(tVir**2 + 2.1**2), color='purple')
+   ax.axvline(np.sqrt(rVir**2 + 2.4**2), color='k', ls='--', label=r'$T_\text{vir}$')
    #
    ax.legend(loc=1, fontsize='x-small', labelspacing=0.1)
-   ax.set_ylim((0., 1.5e7))
+   #ax.set_ylim((0., 3.e7))
+   ax.set_ylim((1.e6, 1.e8))
+   ax.set_yscale('log', nonposy='clip')
    ax.set_xlabel(r'$R$ [arcmin]')
    ax.set_ylabel(r'Electron temperature $T_e$ [K]')
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
+   ax2.minorticks_on()
    ticks = ax.get_xticks()
    ax2.set_xticks(ticks)
    newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(zMean)  # disk radius in Mpc/h
