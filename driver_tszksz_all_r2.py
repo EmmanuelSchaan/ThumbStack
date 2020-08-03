@@ -554,14 +554,20 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    catalog = catalogs[catalogKey]
 
    # true velocity RMS for CMASS K
-   zMean = catalog.Z.mean()
+   zMean = catalog.Z.mean()   # Msun
    vRms = u.v1dRms(0., zMean, W3d_sth) # [km/s]
    tauToKsz = 2.726e6 * (vRms/3.e5)
    # virial radius, before convolving with the beams
-   mVirMean = catalog.Mvir.mean()
-   rVir = u.frvir(mVirMean, zMean)   # [Mpc/h]
-   tVir = rVir / u.bg.comoving_distance(zMean) * (180.*60./np.pi) # [arcmin]
+   mVirMean = catalog.Mvir.mean()   # [Msun]. Will need to be converted to [Msun/h] below 
+   rVir = u.frvir(mVirMean * u.bg.h, zMean)   # [Mpc/h]
+   thetaVir = rVir / u.bg.comoving_distance(zMean) * (180.*60./np.pi) # [arcmin]
 
+   print catalogKey
+   print "mean z =", zMean
+   print "mean chi =", u.bg.comoving_distance(zMean), "Mpc/h"
+   print "mean mass =", mVirMean, "Msun"
+   print "virial radius =", rVir, "Mpc/h"
+   print "virial angle =", thetaVir, "arcmin"
 
    if catalogKey=='cmass_kendrick':
       catalogTitle = 'CMASS'
@@ -617,8 +623,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.axhline(0., c='k', lw=1)
    #
    # virial radius
-   ax.axvline(np.sqrt(rVir**2 + 1.3**2), color='blue', alpha=0.1)
-   ax.axvline(np.sqrt(rVir**2 + 2.1**2), color='purple', alpha=0.1)
+   ax.axvline(np.sqrt(thetaVir**2 + 1.3**2/(8.*np.log(2.))), color='blue', alpha=0.1)
+   ax.axvline(np.sqrt(thetaVir**2 + 2.1**2/(8.*np.log(2.))), color='purple', alpha=0.1)
    #
    # data
    ax.errorbar(rAp, ksz150, sKsz150, fmt=fmt, c='blue', label='150GHz')
@@ -691,7 +697,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
       ax.axhline(0., c='k', lw=1)
       #
       # virial radius
-      ax.axvline(np.sqrt(rVir**2 + 1.3**2), color='blue', alpha=0.1)
+      ax.axvline(np.sqrt(thetaVir**2 + 1.3**2/(8.*np.log(2.))), color='blue', alpha=0.1)
       #
       # data
       ax.errorbar(rAp, ksz150, sKsz150, fmt=fmt, c='blue', label='150GHz')
@@ -769,8 +775,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.axhline(0., c='k', lw=1)
    #
    # virial radius
-   ax.axvline(np.sqrt(rVir**2 + 1.3**2), color='blue', alpha=0.1)
-   ax.axvline(np.sqrt(rVir**2 + 2.1**2), color='purple', alpha=0.1)
+   ax.axvline(np.sqrt(thetaVir**2 + 1.3**2/(8.*np.log(2.))), color='blue', alpha=0.1)
+   ax.axvline(np.sqrt(thetaVir**2 + 2.1**2/(8.*np.log(2.))), color='purple', alpha=0.1)
    #
    ax.errorbar(rAp, tsz150, sTsz150, fmt=fmt, c='blue', label='150GHz')
    ax.errorbar(rAp + 0.05, tsz90, sTsz90, fmt=fmt, c='purple', label='90GHz')
@@ -827,7 +833,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.axhline(0., c='k', lw=1)
    #
    # virial radius
-   ax.axvline(np.sqrt(rVir**2 + 2.4**2), color='r', alpha=0.1)
+   ax.axvline(np.sqrt(thetaVir**2 + 2.4**2/(8.*np.log(2.))), color='r', alpha=0.1)
    #
    # Tilec y no CIB
    ax.errorbar(rAp, tszYNoCib, yerr=sTszYNoCib, fmt=fmt, c='r', label='TileC y no CIB')
@@ -882,9 +888,9 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.axhline(0., c='k', lw=1)
    #
    # virial radius
-   ax.axvline(np.sqrt(rVir**2 + 1.3**2), color='blue', alpha=0.1)
-   ax.axvline(np.sqrt(rVir**2 + 2.1**2), color='purple', alpha=0.1)
-   ax.axvline(np.sqrt(rVir**2 + 2.4**2), color='r', alpha=0.1)
+   ax.axvline(np.sqrt(thetaVir**2 + 1.3**2/(8.*np.log(2.))), color='blue', alpha=0.1)
+   ax.axvline(np.sqrt(thetaVir**2 + 2.1**2/(8.*np.log(2.))), color='purple', alpha=0.1)
+   ax.axvline(np.sqrt(thetaVir**2 + 2.4**2/(8.*np.log(2.))), color='r', alpha=0.1)
    #
    # Tilec y no CIB
    ax.errorbar(rAp, tszYNoCib, yerr=sTszYNoCib, fmt=fmt, c='r', label='TileC y no CIB')
@@ -1237,14 +1243,14 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.minorticks_on()
    #
    # Expected virial temperature
-   ax.axhline(tVir, color='gray', alpha=0.5)
+   ax.axhline(tVir, color='k', ls='--', label=r'$T_\text{vir}$')
    #
    # data
    ax.errorbar(rAp, tE150, sTE150, c='blue', label=r'from 150')
    ax.errorbar(rAp + 0.05, tE90, sTE90, c='purple', label=r'from 90')
    #
    # virial radius
-   ax.axvline(np.sqrt(rVir**2 + 2.4**2), color='k', ls='--', label=r'$T_\text{vir}$')
+   ax.axvline(np.sqrt(thetaVir**2 + 2.4**2/(8.*np.log(2.))), color='gray', alpha=0.5)
    #
    ax.legend(loc=1, fontsize='x-small', labelspacing=0.1)
    #ax.set_ylim((0., 3.e7))
