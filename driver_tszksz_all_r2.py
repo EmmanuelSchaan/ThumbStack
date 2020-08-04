@@ -568,6 +568,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    print "mean mass =", mVirMean, "Msun"
    print "virial radius =", rVir, "Mpc/h"
    print "virial angle =", thetaVir, "arcmin"
+   print "RMS 1d velocity =", vRms, "km/s"
 
    if catalogKey=='cmass_kendrick':
       catalogTitle = 'CMASS'
@@ -1257,7 +1258,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.set_ylim((1.e6, 1.e8))
    ax.set_yscale('log', nonposy='clip')
    ax.set_xlabel(r'$R$ [arcmin]')
-   ax.set_ylabel(r'Electron temperature $T_e$ [K]')
+   ax.set_ylabel(r'$T_e \equiv \left(\frac{m_e c^2}{k_B}\right)\left(\frac{y_\text{CAP}}{\tau_\text{CAP}}\right)$ [K]')
+   ax.set_title(catalogTitle + r' electron temperature', x=0.5, y=1.25)
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
