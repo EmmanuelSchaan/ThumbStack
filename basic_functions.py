@@ -275,7 +275,9 @@ def computeSnr(d, theory, cov, dof=None):
    print("number of dof:"+str(dof))
    print("null chi2Null="+str(chi2Null))
    print("SNR = null sqrt(chi2Null)="+str(np.sqrt(chi2Null)))
-   pteNull = 1.- stats.chi2.cdf(chi2Null, dof)
+#   pteNull = 1.- stats.chi2.cdf(chi2Null, dof)
+#   print("null pte="+str(pteNull))
+   pteNull = stats.distributions.chi2.sf(chi2Null, dof)
    print("null pte="+str(pteNull))
    # pte as a function of sigma, for a Gaussian random variable
    fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull

@@ -488,7 +488,7 @@ sKsz150VShuffleMean = data[:,2] * factor
 
 
 for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
-
+   
    # kSZ
    d = np.concatenate((ksz[catalogKey+'_pactf150daynight20200228maskgal60r2'],
                        ksz[catalogKey+'_pactf90daynight20200228maskgal60r2']))
@@ -520,7 +520,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    print(catalogKey+", tsz on tilec y no cib")
    computeSnr(d, t, cov)
 
-
+   
    # tSZ  + dust
    print(catalogKey+", joint tsz+dust 150-90")
    # joint tsz + dust,
