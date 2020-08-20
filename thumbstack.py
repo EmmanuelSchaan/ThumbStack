@@ -551,22 +551,22 @@ class ThumbStack(object):
 
       # Here mask is 1 for objects we want to keep
       mask = np.ones_like(self.Catalog.RA)
-      #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
+      print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       if mVir is not None:
          mask *= (self.Catalog.Mvir>=mVir[0]) * (self.Catalog.Mvir<=mVir[1])
-         #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
+         print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       if z is not None:
          mask *= (self.Catalog.Z>=z[0]) * (self.Catalog.Z<=z[1])
       if overlap:
          mask *= self.overlapFlag.copy()
-         #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
+         print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       # PS mask: look at largest aperture, and remove if any point within the disk or ring is masked
       if psMask:
          # The point source mask may vary from one filterType to another
          if filterType is None:
             filterType = self.filtMask.keys()[0]
          mask *= 1.*(np.abs(self.filtMask[filterType][:,-1])<1.)
-         #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
+         print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       mask *= extraSelection
       #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       if outlierReject:

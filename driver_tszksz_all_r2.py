@@ -221,10 +221,10 @@ from thumbstack import *
 save = True
 
 
-#for cmbMapKey in cmbMaps.keys():
+for cmbMapKey in cmbMaps.keys():
 #for cmbMapKey in cmbMaps.keys()[::-1]:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60r2reconvtotilecdeproj', 'pactf90daynight20200228maskgal60r2reconvtotilecdeproj']:
-for cmbMapKey in ['pactf90daynight20200228maskgal60r2reconvtotilecdeproj']:
+#for cmbMapKey in ['pactf90daynight20200228maskgal60r2reconvtotilecdeproj']:
 #for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
 #for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
    cmbMap = cmbMaps[cmbMapKey].map()
@@ -575,7 +575,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
       fmt = 'o'
    elif catalogKey=='lowz_kendrick':
       catalogTitle = 'LOWZ'
-      fmt = 'o--'
+      fmt = 'o:'#'o--'
 
    rAp = rKsz[catalogKey+'_pactf150daynight20200228maskgal60r2']
 
@@ -628,17 +628,28 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.axvline(np.sqrt(thetaVir**2 + 2.1**2/(8.*np.log(2.))), color='purple', alpha=0.1)
    #
    # data
-   ax.errorbar(rAp, ksz150, sKsz150, fmt=fmt, c='blue', label='150GHz')
-   ax.errorbar(rAp + 0.05, ksz90, sKsz90, fmt=fmt, c='purple', label='90GHz')
+   ax.errorbar(rAp, ksz150, sKsz150, fmt=fmt, c='blue', label='150 GHz DR5')
+   ax.errorbar(rAp + 0.05, ksz90, sKsz90, fmt=fmt, c='purple', label='98 GHz DR5')
    #
    # best fit theory curves
    if catalogKey=='cmass_kendrick':
       ax.plot(rAp, ksz150Th, 'blue', label=r'Joint best fit profile')
       ax.plot(rAp, ksz90Th, 'purple')
+      #
+      # NFW profiles 
+      ax.plot(rAp, ksz150NFW, ls='--', c='blue', label=r'NFW')
+      ax.plot(rAp, ksz90NFW, ls='--', c='purple')
    #
-   # NFW profiles 
-   ax.plot(rAp, ksz150NFW, ls='--', c='blue', label=r'NFW')
-   ax.plot(rAp, ksz90NFW, ls='--', c='purple')
+   # Gaussian profiles to guide the eye
+   fwhm = np.array([1.3, 2.1, 6.])   # arcmin
+   sigma = fwhm / np.sqrt(8. * np.log(2.))
+   for s in sigma:
+      #y = ftheoryGaussianProfile(s, filterType='diskring')
+      y = (1. - np.exp(-0.5*rAp**2/s**2))**2
+      # normalize to the last data point at 150 GHz
+      y *= ksz150[-1]
+      ax.plot(rAp, y, 'gray', alpha=0.3)
+   ax.plot([], [], 'gray', alpha=0.3, label=r'Gaussian profiles')
    #
    ax.legend(loc=4, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
@@ -701,11 +712,11 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
       ax.axvline(np.sqrt(thetaVir**2 + 1.3**2/(8.*np.log(2.))), color='blue', alpha=0.1)
       #
       # data
-      ax.errorbar(rAp, ksz150, sKsz150, fmt=fmt, c='blue', label='150GHz')
+      ax.errorbar(rAp, ksz150, sKsz150, fmt=fmt, c='k', label='This work 150 GHz CMASS K')
       #
       # comparison with Schaan+16
-      ax.errorbar(rM, kszMS16, yerr=sKszMS16, c='blue', label=r'Schaan+16 150GHz CMASS M')
-      ax.errorbar(rK + 0.05, kszKS16, yerr=sKszKS16, c='blue', alpha=0.3, label=r'Schaan+16 150GHz CMASS K')
+      ax.errorbar(rM, kszMS16, yerr=sKszMS16, c='blue', label=r'Schaan+16 150 GHz CMASS M')
+      ax.errorbar(rK + 0.05, kszKS16, yerr=sKszKS16, c='blue', alpha=0.3, label=r'Schaan+16 150 GHz CMASS K')
       #
 #      # Theory curves if available
 #      if catalogKey=='cmass_kendrick':
@@ -779,8 +790,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.axvline(np.sqrt(thetaVir**2 + 1.3**2/(8.*np.log(2.))), color='blue', alpha=0.1)
    ax.axvline(np.sqrt(thetaVir**2 + 2.1**2/(8.*np.log(2.))), color='purple', alpha=0.1)
    #
-   ax.errorbar(rAp, tsz150, sTsz150, fmt=fmt, c='blue', label='150GHz')
-   ax.errorbar(rAp + 0.05, tsz90, sTsz90, fmt=fmt, c='purple', label='90GHz')
+   ax.errorbar(rAp, tsz150, sTsz150, fmt=fmt, c='blue', label='150 GHz DR5')
+   ax.errorbar(rAp + 0.05, tsz90, sTsz90, fmt=fmt, c='purple', label='98 GHz DR5')
    #
    # Theory curves if available
    if catalogKey=='cmass_kendrick':
@@ -792,7 +803,6 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.set_ylabel(r'$T_{\text{tSZ} + \text{dust}}$ [$\mu K\cdot\text{arcmin}^2$]')
    ax.set_title(catalogTitle + r' tSZ + dust profile', x=0.5, y=1.25)
    ax.set_yscale('symlog')
-   #ax.set_ylim((0., 2.))
    #
    # make extra abscissa with disk comoving size in Mpc/h
    ax2 = ax.twiny()
@@ -837,7 +847,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.axvline(np.sqrt(thetaVir**2 + 2.4**2/(8.*np.log(2.))), color='r', alpha=0.1)
    #
    # Tilec y no CIB
-   ax.errorbar(rAp, tszYNoCib, yerr=sTszYNoCib, fmt=fmt, c='r', label='TileC y no CIB')
+   ax.errorbar(rAp, tszYNoCib, yerr=sTszYNoCib, fmt=fmt, c='r', label='ILC y no CIB DR4')
    #
    # Theory curves if available
    if catalogKey=='cmass_kendrick':
@@ -894,11 +904,11 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.axvline(np.sqrt(thetaVir**2 + 2.4**2/(8.*np.log(2.))), color='r', alpha=0.1)
    #
    # Tilec y no CIB
-   ax.errorbar(rAp, tszYNoCib, yerr=sTszYNoCib, fmt=fmt, c='r', label='TileC y no CIB')
+   ax.errorbar(rAp, tszYNoCib, yerr=sTszYNoCib, fmt=fmt, c='r', label='ILC y no CIB DR4')
    # PACT 150
-   ax.errorbar(rAp, tsz150, yerr=sTsz150, fmt='-', c='blue', label='150GHz')
+   ax.errorbar(rAp, tsz150, yerr=sTsz150, fmt='-', c='blue', label='150 GHz DR5')
    # PACT 90
-   ax.errorbar(rAp, tsz90, yerr=sTsz90, fmt='-', c='purple', label='90GHz')
+   ax.errorbar(rAp, tsz90, yerr=sTsz90, fmt='-', c='purple', label='98 GHz DR5')
    #
    ax.legend(loc=3, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
@@ -975,7 +985,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.errorbar(rAp, ksz150VShuffleMean, yerr=sKsz150VShuffleMean, fmt='--', label='mean of 100 v-shuffles')
    #
    # Average of many mocks
-   ax.errorbar(rAp + 0.025, meanStackedKszGRF, yerr=sStackedKszGRF, fmt='--', label=r'mean of '+str(nMocks)+' mocks')
+   ax.errorbar(rAp + 0.05, meanStackedKszGRF, yerr=sStackedKszGRF, fmt='--', label=r'mean of '+str(nMocks)+' mocks')
    #
    if catalogKey=='cmass_kendrick':
       # Mariana - Kendrick
@@ -983,13 +993,13 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
       #ax.errorbar(rAp, ksz150, yerr=sKsz150, fmt='-', label='K')
       #ax.errorbar(rAp, ksz150Mariana, yerr=sKsz150Mariana, fmt='-', label='M')
       #ax.errorbar(rAp + 0.05, (ksz150-ksz150Mariana), yerr=sKsz150, fmt='-', label=r'$v_\text{Kendrick} - v_\text{Mariana}$')
-      ax.plot(rAp + 0.05, (ksz150-ksz150Mariana), '-', label=r'$v_\text{Kendrick} - v_\text{Mariana}$')
+      ax.plot(rAp + 0.1, (ksz150-ksz150Mariana), '-', label=r'$v_\text{fiducial} - v_\text{M}$')
    #
    # 150 - tilec cmb
-   ax.errorbar(rAp + 0.075, ksz150MinusTilecCmb, yerr=sKsz150MinusTilecCmb, fmt='-', label='150 - TileC CMB/kSZ')
+   ax.errorbar(rAp + 0.15, ksz150MinusTilecCmb, yerr=sKsz150MinusTilecCmb, fmt='-', label='150 - ILC CMB/kSZ')
    #
    # 150 reconv to 90 minus 90
-   ax.errorbar(rAp + 0.1, ksz150Reconv90Minus90, yerr=sKsz150Reconv90Minus90, fmt='-', label='150 - 90')
+   ax.errorbar(rAp + 0.2, ksz150Reconv90Minus90, yerr=sKsz150Reconv90Minus90, fmt='-', label='150 - 98')
    #
    ax.set_ylim((-10., 15.))
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
@@ -1032,10 +1042,10 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.fill_between(rAp, - sKsz150, sKsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
    #
    # kSZ on TileC y no CMB map
-   ax.errorbar(rAp, kszYNoCmb, yerr=sKszYNoCmb, label=r'TileC y no CMB')
+   ax.errorbar(rAp, kszYNoCmb, yerr=sKszYNoCmb, label=r'ILC y no CMB')
    #
    # cmbksz no cib, to check for dust
-   ax.errorbar(rAp + 0.025, ksz150MinusCmbNoCib, yerr=sKsz150MinusCmbNoCib, fmt='-', label=r'150 - TileC CMB/kSZ no CIB')
+   ax.errorbar(rAp + 0.05, ksz150MinusCmbNoCib, yerr=sKsz150MinusCmbNoCib, fmt='-', label=r'150 - ILC CMB/kSZ no CIB')
    #
    ax.set_ylim((-10., 15.))
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
@@ -1099,7 +1109,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.errorbar(rAp, meanStackedTszGRF, yerr=sStackedTszGRF, fmt='--', label=r'mean of '+str(nMocks)+' mocks')
    #
    # 150 - tilec y
-   ax.errorbar(rAp, tsz150MinusY, yerr=sTsz150MinusY, fmt='--', label=r'150 - TileC y ')
+   ax.errorbar(rAp, tsz150MinusY, yerr=sTsz150MinusY, fmt='--', label=r'150 - ILC y ')
    #
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
    ax.set_xlabel(r'$R$ [arcmin]')
@@ -1137,10 +1147,10 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.fill_between(rAp, - sTsz150, sTsz150, edgecolor='', facecolor='gray', alpha=0.5, label=r'statistical error')
    #
    # 150 - tilec y
-   ax.errorbar(rAp, tsz150MinusY, yerr=sTsz150MinusY, fmt='--', label=r'150 - TileC y')
+   ax.errorbar(rAp, tsz150MinusY, yerr=sTsz150MinusY, fmt='--', label=r'150 - ILC y')
    #
    # y - y no CIB
-   ax.errorbar(rAp, tszYMinusYNoCib, yerr=sTszYMinusYNoCib, fmt='--', label=r'TileC y - y no CIB')
+   ax.errorbar(rAp, tszYMinusYNoCib, yerr=sTszYMinusYNoCib, fmt='--', label=r'ILC y - y no CIB')
    #
 #   # 150' - 90 rescaled to null y
 #   ax.errorbar(rAp, tsz150Reconv90Minus90NoY, yerr=sTsz150Reconv90Minus90NoY, fmt='--', label=r"150\' - 90 no y")
@@ -1247,8 +1257,8 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax.axhline(tVir, color='k', ls='--', label=r'$T_\text{vir}$')
    #
    # data
-   ax.errorbar(rAp, tE150, sTE150, c='blue', label=r'from 150')
-   ax.errorbar(rAp + 0.05, tE90, sTE90, c='purple', label=r'from 90')
+   ax.errorbar(rAp, tE150, sTE150, fmt='o:', c='blue', label=r'from 150 GHz DR5')
+   ax.errorbar(rAp + 0.05, tE90, sTE90, fmt='o:', c='purple', label=r'from 98 GHz DR5')
    #
    # virial radius
    ax.axvline(np.sqrt(thetaVir**2 + 2.4**2/(8.*np.log(2.))), color='gray', alpha=0.5)

@@ -142,11 +142,11 @@ lowzKendrick = Catalog(u, massConversion, name="lowz_kendrick", nameLong="LOWZ K
 
 # read overlap flags
 # for PACT maps
-path = "./output/thumbstack/cmass_mariana_pactf150daynight20200228/overlap_flag.txt"
+path = "./output/thumbstack/cmass_mariana_pactf150daynight20200228maskgal60r2/overlap_flag.txt"
 overlapCmassM = np.genfromtxt(path).astype(bool)
-path = "./output/thumbstack/cmass_kendrick_pactf150daynight20200228/overlap_flag.txt"
+path = "./output/thumbstack/cmass_kendrick_pactf150daynight20200228maskgal60r2/overlap_flag.txt"
 overlapCmassK = np.genfromtxt(path).astype(bool)
-path = "./output/thumbstack/lowz_kendrick_pactf150daynight20200228/overlap_flag.txt"
+path = "./output/thumbstack/lowz_kendrick_pactf150daynight20200228maskgal60r2/overlap_flag.txt"
 overlapLowzK = np.genfromtxt(path).astype(bool)
 
 print "CMASS M:", np.sum(overlapCmassM), "galaxies overlap out of", len(overlapCmassM), "ie", 1.*np.sum(overlapCmassM)/len(overlapCmassM),"%"
@@ -156,7 +156,7 @@ print "LOWZ K:", np.sum(overlapLowzK), "galaxies overlap out of", len(overlapLow
 
 ###################################################################################
 # plot dn/dz
-'''
+
 
 # Bins for histograms
 nBins = 51
@@ -170,14 +170,17 @@ ax = fig.add_subplot(111)
 # CMASS Mariana
 histX = np.histogram(cmassMariana.Z[overlapCmassM], Bins)[0].astype(float)
 ax.bar(Bins[:-1], histX, binwidth, color='b', alpha=0.5, label=r'CMASS M ('+np.sum(overlapCmassM).astype(str)+' total)')
+ax.axvline(np.mean(cmassMariana.Z[overlapCmassM]), color='b', ls='--')
 #
 # CMASS Kendrick
 histX = np.histogram(cmassKendrick.Z[overlapCmassK], Bins)[0].astype(float)
 ax.bar(Bins[:-1], histX, binwidth, color='c', alpha=0.5, label=r'CMASS K ('+np.sum(overlapCmassK).astype(str)+' total)')
+ax.axvline(np.mean(cmassKendrick.Z[overlapCmassK]), color='c', ls='--')
 #
 # LOWZ Kendrick
 histX = np.histogram(lowzKendrick.Z[overlapLowzK], Bins)[0].astype(float)
 ax.bar(Bins[:-1], histX, binwidth, color='y', alpha=0.5, label=r'LOWZ K ('+np.sum(overlapLowzK).astype(str)+' total)')
+ax.axvline(np.mean(lowzKendrick.Z[overlapLowzK]), color='y', ls='--')
 #
 ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
 ax.set_xlim((Bins[0], Bins[-1]))
@@ -187,13 +190,13 @@ ax.set_ylabel(r'$N_\text{galaxies}$')
 path = cmassMariana.pathFig + "/summary_dndz.pdf"
 fig.savefig(path, bbox_inches='tight')
 fig.clf()
-'''
+
 
 
 ###################################################################################
 # Plot overlap CMASS M and ACT
 
-'''
+
 # AdvACT hit map to superimpose
 # PACT day+night, 20200228, Planck Galactic masks 60%
 pathMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
@@ -207,22 +210,22 @@ hMap = np.log(np.abs(hMap)+1.e-5)
 hMap = enmap.to_healpix(hMap)
 
 cmassMariana.plotFootprint(hMap=hMap)
-'''
+
 
 ###################################################################################
 # Generate vtk files for visualization
 
-'''
+
 cmassMariana.writeVtk()
 cmassKendrick.writeVtk()
 lowzKendrick.writeVtk()
-cmassMKDiff.writeVtk()
-'''
+#cmassMKDiff.writeVtk()
+
 
 ###################################################################################
 # Show stellar and halo masses
 
-'''
+
 # Bins for histograms
 nBins = 31
 Bins = np.logspace(np.log10(2.e10), np.log10(2.e12), nBins, 10.)
@@ -300,6 +303,6 @@ path = cmassMariana.pathFig + "/summary_halo_masses.pdf"
 fig.savefig(path, bbox_inches='tight')
 #plt.show()
 fig.clf()
-'''
+
 
 

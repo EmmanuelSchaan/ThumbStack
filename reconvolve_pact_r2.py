@@ -74,14 +74,14 @@ ax=fig.add_subplot(111)
 #
 L = np.linspace(0., 5.e5, 10001)
 #
-ax.plot(L, fBeam150F(L), 'b-', label=r'150GHz')
+ax.plot(L, fBeam150F(L), 'b-', label=r'150 GHz DR5')
 ax.plot(L, -fBeam150F(L), 'b--')
 #
-ax.plot(L, fBeam90F(L), 'r-', label=r'90GHz')
+ax.plot(L, fBeam90F(L), 'r-', label=r'98 GHz DR5')
 ax.plot(L, -fBeam90F(L), 'r--')
 #
-ax.plot(L, fBeamTilecF(L), 'g-', label=r'TileC')
-ax.plot(L, fBeamTilecDeprojF(L), 'c-', label=r'TileC deproj')
+ax.plot(L, fBeamTilecF(L), 'g-', label=r'ILC DR4')
+ax.plot(L, fBeamTilecDeprojF(L), 'c-', label=r'ILC deproj DR4')
 #
 ax.legend(loc=3)
 ax.set_xscale('log', nonposx='clip')
@@ -102,13 +102,13 @@ ax=fig.add_subplot(111)
 #
 L = np.linspace(0., 5.e5, 10001)
 #
-ax.plot(L, fBeam90F(L) / fBeam150F(L), 'b-', label=r'150GHz to 90GHz')
+ax.plot(L, fBeam90F(L) / fBeam150F(L), 'b-', label=r'150 GHz to 98 GHz')
 ax.plot(L, -fBeam90F(L) / fBeam150F(L), 'b--')
 #
-ax.plot(L, fBeamTilecF(L) / fBeam150F(L), 'g-', label=r'150GHz to TileC')
+ax.plot(L, fBeamTilecF(L) / fBeam150F(L), 'g-', label=r'150 GHz to ILC')
 ax.plot(L, -fBeamTilecF(L) / fBeam150F(L), 'g--')
 #
-ax.plot(L, fBeamTilecDeprojF(L) / fBeam150F(L), 'c-', label=r'150GHz to TileC deproj')
+ax.plot(L, fBeamTilecDeprojF(L) / fBeam150F(L), 'c-', label=r'150 GHz to ILC deproj')
 ax.plot(L, -fBeamTilecDeprojF(L) / fBeam150F(L), 'c--')
 #
 ax.legend(loc=3)
@@ -144,13 +144,13 @@ fig=plt.figure(0)
 ax=fig.add_subplot(111)
 #
 # Coadd at 150
-ax.plot(theta*180.*60./np.pi, beam150, 'b-', label=r'150GHz')
+ax.plot(theta*180.*60./np.pi, beam150, 'b-', label=r'150 GHz DR5')
 s = 1.3 * np.pi / (180. * 60.) / np.sqrt(8.*np.log(2.))
 y = np.exp(-0.5 * theta**2 / s**2) #/ (2. * np.pi * s**2)
 ax.plot(theta*180.*60./np.pi, y, 'b--', label=r'G fwhm=$1.3^\prime$')
 #
 # Coadd at 90
-ax.plot(theta*180.*60./np.pi, beam90, 'r-', label=r'90GHz')
+ax.plot(theta*180.*60./np.pi, beam90, 'r-', label=r'98 GHz DR5')
 s = 2.1 * np.pi / (180. * 60.) / np.sqrt(8.*np.log(2.))
 y = np.exp(-0.5 * theta**2 / s**2) #/ (2. * np.pi * s**2)
 ax.plot(theta*180.*60./np.pi, y, 'r--', label=r'G fwhm=$2.1^\prime$')
@@ -158,12 +158,12 @@ ax.plot(theta*180.*60./np.pi, y, 'r--', label=r'G fwhm=$2.1^\prime$')
 # TileC no deproj
 s = 1.6 * np.pi / (180. * 60.) / np.sqrt(8.*np.log(2.))
 y = np.exp(-0.5 * theta**2 / s**2) #/ (2. * np.pi * s**2)
-ax.plot(theta*180.*60./np.pi, y, 'g-', label=r'TileC: G fwhm=$1.6^\prime$')
+ax.plot(theta*180.*60./np.pi, y, 'g-', label=r'ILC DR4: G fwhm=$1.6^\prime$')
 #
 # TileC  deproj
 s = 2.4 * np.pi / (180. * 60.) / np.sqrt(8.*np.log(2.))
 y = np.exp(-0.5 * theta**2 / s**2) #/ (2. * np.pi * s**2)
-ax.plot(theta*180.*60./np.pi, y, 'c-', label=r'TileC deproj: G fwhm=$2.4^\prime$')
+ax.plot(theta*180.*60./np.pi, y, 'c-', label=r'ILC deproj DR4: G fwhm=$2.4^\prime$')
 #
 ax.legend(loc=3, fontsize='x-small', labelspacing=0.1, frameon=False)
 ax.set_xscale('log', nonposx='clip')
@@ -236,3 +236,5 @@ pathOutMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_ac
 oMap = enmap.ifft(mapF * fBeamTilecDeprojF(lMap) / fBeam90F(lMap)).real
 enmap.write_map(pathOutMap, oMap)
 print("check finite sum "+str(np.sum(oMap)))
+
+
