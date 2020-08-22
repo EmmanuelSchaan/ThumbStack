@@ -246,6 +246,36 @@ for cmbMapKey in cmbMaps.keys():
 
 ###################################################################################
 ###################################################################################
+# Stacked cutout maps for PR
+
+import thumbstack
+reload(thumbstack)
+from thumbstack import *
+
+
+save = False
+
+
+for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight20200228maskgal60r2', 'tilecpactynocib']:
+   cmbMap = cmbMaps[cmbMapKey].map()
+   cmbMask = cmbMaps[cmbMapKey].mask()
+   cmbHit = cmbMaps[cmbMapKey].hit()
+   cmbName = cmbMaps[cmbMapKey].name
+   print("Analyzing map "+cmbName)
+
+   for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:#catalogCombi[cmbMapKey]:
+      catalog = catalogs[catalogKey]
+      print("Analyzing catalog "+catalog.name)
+      name = catalog.name + "_" + cmbName
+
+      print("C'est parti")
+
+      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=True, doStackedMap=True)
+
+
+
+###################################################################################
+###################################################################################
 # Joint cov 90-150 for PACT and PACT reconv to tilec deproj
 
 '''

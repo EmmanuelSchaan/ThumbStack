@@ -105,13 +105,15 @@ class ThumbStack(object):
          self.plotAllCov()
          self.computeAllSnr()
 
-      if doStackedMap:
-         # save all stacked maps
-         #self.saveAllStackedMaps()
-         # save only the stacked maps for
-         # the best tsz and ksz estimators,
-         # and for the diskring weighting
-         self.saveAllStackedMaps(filterTypes=['diskring'], Est=['tsz_varweight', 'ksz_varweight'])
+      #if save:
+      if True:
+         if doStackedMap:
+            # save all stacked maps
+            #self.saveAllStackedMaps()
+            # save only the stacked maps for
+            # the best tsz and ksz estimators,
+            # and for the diskring weighting
+            self.saveAllStackedMaps(filterTypes=['diskring'], Est=['tsz_varweight', 'ksz_varweight'])
 
 
 
@@ -957,7 +959,8 @@ class ThumbStack(object):
          chunkIndices[-1] = range((nChunk-1)*chunkSize, ts.Catalog.nObj)
 
          # select weights for a typical aperture size (not the smallest, not the largest)
-         iRAp0 = ts.nRAp / 2
+         #iRAp0 = ts.nRAp / 2
+         iRAp0 = ts.nRAp / 4
          norm = norm[iRAp0]
          # need to link object number with weight,
          # despite the mask
@@ -1366,9 +1369,17 @@ class ThumbStack(object):
             est = Est[iEst]
             print "compute stacked map:", filterType, est
             stackedMap = self.computeStackedProfile(filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=True)
+
+            ## for low SNR signals, downgrade the map
+            #lowBaseMap = FlatMap(nX=cutoutMap.shape[0]//2, nY=cutoutMap.shape[1]//2, sizeX=size, sizeY=size)
+            #nXNew = stackedMap.shape[0] // 2
+            #nYNew = stackedMap.shape[1] // 2
+            #stackedMap = baseMap.downResolution(nXNew, nYNew, data=stackedMap)
+
             # plot the stacked map and save it
             path = self.pathFig + "/stackedmap_"+filterType+"_"+est+".pdf"
             baseMap.plot(data=stackedMap, save=True, path=path)
+            #lowBaseMap.plot(data=stackedMap, save=True, path=path)
 
 
    ##################################################################################
