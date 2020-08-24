@@ -586,7 +586,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 ###################################################################################
 ###################################################################################
 # Generate all the plots
-
+'''
 
 for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    catalog = catalogs[catalogKey]
@@ -1331,17 +1331,97 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax2.xaxis.set_label_coords(0.5, 1.15)
    #
    path = pathFig+"electron_temperature_150_90_"+catalogKey+".pdf"
-   #fig.savefig(path, bbox_inches='tight')
-   plt.show()
-   #fig.clf()
+   fig.savefig(path, bbox_inches='tight')
+   #plt.show()
+   fig.clf()
+'''
 
 
-
+###################################################################################
+###################################################################################
 ###################################################################################
 ###################################################################################
 # Plot the 2d stacked cutouts
 
-'''
+
+###################################################################################
+# map object for plotting
+
+# Reproduce the cutoutGeometry in thumbstack
+rApMaxArcmin = 6. # [arcmin]
+resCutoutArcmin = 0.25  # [arcmin]
+# choose postage stamp size to fit the largest ring
+dArcmin = np.ceil(2. * rApMaxArcmin * np.sqrt(2.))
+#
+nx = np.floor((dArcmin / resCutoutArcmin - 1.) / 2.) + 1.
+nX = np.int(2 * nx + 1)
+dxDeg = (2. * nx + 1.) * resCutoutArcmin / 60.
+# create a map object for plotting
+baseMap = FlatMap(nX=nX, nY=nX, sizeX=dxDeg*np.pi/180., sizeY=dxDeg*np.pi/180.)
+
+
+def plot2dCutout(baseMap, data, title=None, cbTitle=None, cmap='viridis', path=None):
+   vMin = np.min(data.flatten())
+   vMax = np.max(data.flatten())
+
+   fig=plt.figure(0)
+   ax=fig.add_subplot(111)
+   #
+   # pcolor wants x and y to be edges of cell,
+   # ie one more element, and offset by half a cell
+   x = baseMap.dX * (np.arange(baseMap.nX+1) - 0.5)
+   x -= x[baseMap.nX//2]
+   y = baseMap.dY * (np.arange(baseMap.nY+1) - 0.5)
+   y -= y[baseMap.nX//2]
+   x,y = np.meshgrid(x, y, indexing='ij')
+   #
+   cp=ax.pcolormesh(x*180.*60./np.pi, y*180.*60./np.pi, data, linewidth=0, rasterized=True)
+   #cp=ax.pcolormesh(x*180./np.pi, y*180./np.pi, data, linewidth=0, rasterized=True)
+   #
+   # get limits for later
+   lim = ax.get_xlim()
+   #
+   # choose color map: jet, summer, winter, Reds, gist_gray, YlOrRd, bwr, seismic
+   cp.set_cmap(cmap)
+   #cp.set_clim(0.,255.)
+   #cp.set_clim(-3.*sigma, 3.*sigma)
+   cp.set_clim(vMin, vMax)
+   cb=fig.colorbar(cp)
+   #
+   plt.axis('scaled')
+   ax.set_xlim(np.min(x)*180.*60./np.pi, np.max(x)*180.*60./np.pi)
+   ax.set_ylim(np.min(y)*180.*60./np.pi, np.max(y)*180.*60./np.pi)
+   ax.set_xlabel('$x$ [arcmin]')
+   ax.set_ylabel('$y$ [arcmin]')
+   if title is not None:
+      ax.set_title(title, x=0.5, y=1.25)
+   if cbTitle is not None:
+      #cb.set_label(cbTitle)
+      cb.ax.set_title(cbTitle)
+   #
+   # make extra abscissa with disk comoving size in Mpc/h
+   ax2 = ax.twiny()
+   ax2.minorticks_on()
+   ticks = ax.get_xticks()
+   ax2.set_xticks(ticks)
+   newticks = np.array(ticks) * np.pi/(180.*60.)*u.bg.comoving_distance(zMean)  # disk radius in Mpc/h
+   newticks = np.round(newticks, 2)
+   ax2.set_xticklabels(newticks)
+   ax2.set_xlim(ax.get_xlim())
+   ax2.set_xlabel(r'Comoving radius [Mpc/h] at $z=$'+str(round(zMean,2)), fontsize=20)
+   ax2.xaxis.set_label_coords(0.5, 1.15)
+   #
+   if path is not None:
+      print "saving plot to "+path
+      fig.savefig(path, bbox_inches='tight')
+      fig.clf()
+   else:
+      plt.show()
+
+
+###################################################################################
+
+
 for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    catalog = catalogs[catalogKey]
 
@@ -1371,8 +1451,43 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 
 
    ###################################################################################
-   # tSZ + dust
-'''
+   # tSZ + dust, tSZ
+
+   # read the stacked 2d cutouts
+   path = "./output/thumbstack/"+catalogKey+"_pactf150daynight20200228maskgal60r2"+"/stackedmap_diskring_tsz_varweight.txt"
+   mapTsz150 = np.genfromtxt(path)
+   #
+   path = "./output/thumbstack/"+catalogKey+"_pactf90daynight20200228maskgal60r2"+"/stackedmap_diskring_tsz_varweight.txt"
+   mapTsz90 = np.genfromtxt(path)
+   #
+   path = "./output/thumbstack/"+catalogKey+"_tilecpacty"+"/stackedmap_diskring_tsz_varweight.txt"
+   mapTszTilecy = np.genfromtxt(path) * yTomuK150
+   #
+   path = "./output/thumbstack/"+catalogKey+"_tilecpactynocib"+"/stackedmap_diskring_tsz_varweight.txt"
+   mapTszTilecynocib = np.genfromtxt(path) * yTomuK150
+
+
+   plot2dCutout(baseMap, mapTsz150, title=catalogTitle+r' tSZ+dust f150', cbTitle=r'$\mu$K', cmap='afmhot', path=pathFig+"stacked_map_"+catalogKey+"_tsz_150.pdf")
+   plot2dCutout(baseMap, mapTsz90, title=catalogTitle+r' tSZ+dust f90', cbTitle=r'$\mu$K', cmap='afmhot', path=pathFig+"stacked_map_"+catalogKey+"_tsz_90.pdf")
+   plot2dCutout(baseMap, mapTszTilecy, title=catalogTitle+r' tSZ ILC', cbTitle=r'$\mu$K', cmap='afmhot', path=pathFig+"stacked_map_"+catalogKey+"_tsz_tilecy.pdf")
+   plot2dCutout(baseMap, mapTszTilecynocib, title=catalogTitle+r' tSZ no dust ILC', cbTitle=r'$\mu$K', cmap='afmhot', path=pathFig+"stacked_map_"+catalogKey+"_tsz_tilecynocib.pdf")
+
+
+   ###################################################################################
+   # kSZ
+
+   # read the stacked 2d cutouts
+   path = "./output/thumbstack/"+catalogKey+"_pactf150daynight20200228maskgal60r2"+"/stackedmap_diskring_ksz_varweight.txt"
+   mapKsz150 = np.genfromtxt(path)
+   #
+   path = "./output/thumbstack/"+catalogKey+"_pactf90daynight20200228maskgal60r2"+"/stackedmap_diskring_ksz_varweight.txt"
+   mapKsz90 = np.genfromtxt(path)
+
+
+   plot2dCutout(baseMap, mapKsz150, title=catalogTitle+r' kSZ f150', cbTitle=r'$\mu$K', cmap='viridis', path=pathFig+"stacked_map_"+catalogKey+"_ksz_150.pdf")
+   plot2dCutout(baseMap, mapKsz90, title=catalogTitle+r' kSZ f90', cbTitle=r'$\mu$K', cmap='viridis', path=pathFig+"stacked_map_"+catalogKey+"_ksz_90.pdf")
+
+
 
 
 

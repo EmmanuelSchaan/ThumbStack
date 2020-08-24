@@ -125,9 +125,9 @@ class ThumbStack(object):
       self.nRAp = 9 #30 #9  #4
       
       # Aperture radii in Mpc/h
-      self.rApMinMpch = 1.
-      self.rApMaxMpch = 5
-      self.RApMpch = np.linspace(self.rApMinMpch, self.rApMaxMpch, self.nRAp)
+      #self.rApMinMpch = 1.
+      #self.rApMaxMpch = 5
+      #self.RApMpch = np.linspace(self.rApMinMpch, self.rApMaxMpch, self.nRAp)
       
       # Aperture radii in arcmin
       self.rApMinArcmin = 1.  #0.1   #1.  # 1.
