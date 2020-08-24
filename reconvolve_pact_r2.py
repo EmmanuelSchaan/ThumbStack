@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[21]:
-
 import numpy as np, time
 import matplotlib.pyplot as plt
 
@@ -34,7 +29,7 @@ pathFig = "./figures/cmb_map/"
 # Fourier beams
 print("Reading the Fourier beams")
 
-# the coadds have complex beams
+# the coadds have complicated beams
 pathBeam150 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "beam_f150_daynight.txt"
 data = np.loadtxt(pathBeam150)
 ell = data[:,0]
@@ -57,6 +52,20 @@ beam90F = (beam90F>=v_cut) * beam90F + (beam90F<v_cut) * v_cut * beam90F[0] * (e
 beam90F[0] = 1.
 fBeam90F = interp1d(ell, beam90F, kind='linear', bounds_error=False, fill_value=(beam90F[0], beam90F[-1]))
 
+# night-only data
+pathBeam150Night = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "beam_f150_night.txt"
+data = np.loadtxt(pathBeam150)
+ell = data[:,0]
+beam150NightF = data[:,1]
+# regularization, as in Naess+20
+v_cut = 1.e-2
+ell_cut = np.argmin((np.abs(beam150NightF)-v_cut)**2)
+beam150NightF = (beam150F>=v_cut) * beam150F + (beam150F<v_cut) * v_cut * beam150F[0] * (ell/ell_cut)**(2. * np.log(v_cut))
+beam150NightF[0] = 1.
+fBeam150NightF = interp1d(ell, beam150NightF, kind='linear', bounds_error=False, fill_value=(beam150F[0], beam150F[-1]))
+
+
+
 # TileC maps have Gussian beams
 s = 1.6 * np.pi / (180. * 60.) / np.sqrt(8.*np.log(2.))
 beamTilecF = np.exp(-0.5 * s**2 * ell**2)
@@ -77,6 +86,9 @@ L = np.linspace(0., 5.e5, 10001)
 ax.plot(L, fBeam150F(L), 'b-', label=r'150 GHz DR5')
 ax.plot(L, -fBeam150F(L), 'b--')
 #
+#ax.plot(L, fBeam150NightF(L), 'y:', label=r'150 GHz DR5 night-only')
+#ax.plot(L, -fBeam150NightF(L), 'y:')
+#
 ax.plot(L, fBeam90F(L), 'r-', label=r'98 GHz DR5')
 ax.plot(L, -fBeam90F(L), 'r--')
 #
@@ -88,7 +100,7 @@ ax.set_xscale('log', nonposx='clip')
 ax.set_yscale('log', nonposy='clip')
 #
 fig.savefig(pathFig + "beams_fourier.pdf", bbox_inches='tight')
-#plt.show()
+plt.show()
 fig.clf()
 
 

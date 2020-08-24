@@ -1370,6 +1370,10 @@ class ThumbStack(object):
             print "compute stacked map:", filterType, est
             stackedMap = self.computeStackedProfile(filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=True)
 
+            # save the stacked cutout
+            path = self.pathOut + "/stackedmap_"+filterType+"_"+est+".txt"
+            np.savetxt(path, stackedMap)
+
             ## for low SNR signals, downgrade the map
             #lowBaseMap = FlatMap(nX=cutoutMap.shape[0]//2, nY=cutoutMap.shape[1]//2, sizeX=size, sizeY=size)
             #nXNew = stackedMap.shape[0] // 2

@@ -151,6 +151,25 @@ enmap.write_map(pathOut, diffMap)
 copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
 
 
+###################################################################################3
+# Difference between 150GHz reconv to the 90GHz beam and the 90GHz map
+# for null test (tSZ and kSZ estimators)
+
+pathMap1 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
+pathMap2 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_night_map.fits"
+pathMask = "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits"
+pathDirOut = "./output/cmb_map/planck_act_coadd_2020_02_28_r2/"
+if not os.path.exists(pathDirOut):
+    os.makedirs(pathDirOut)
+pathOut = pathDirOut + "act_planck_s08_s18_cmb_f150_daynight_minus_night_map.fits"
+
+# save the difference map
+diffMap = enmap.read_map(pathMap1)
+diffMap -= enmap.read_map(pathMap2)
+enmap.write_map(pathOut, diffMap)
+# copy the mask
+copyfile(pathMask, pathDirOut + "mask_full_foot_gal_ps.fits")
+
 
 
 

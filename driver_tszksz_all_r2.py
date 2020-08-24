@@ -177,6 +177,11 @@ cmbMaps = {
       "pactf90daynight20200228maskgal60r2reconvtotilecdeproj": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map_reconvtotilecdeproj.fits", 
          "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits", 
          name="pactf90daynight20200228maskgal60r2reconvtotilecdeproj"),
+      #
+      # daynight VS night null test
+      "pactf150daynight20200228maskgal60r2_minus_night": cmbMap("./output/cmb_map/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_minus_night_map.fits",
+         "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits",
+         name="pactf150daynight20200228maskgal60r2_minus_night"),
       }
 
 tStop = time()
@@ -205,6 +210,8 @@ catalogCombi = {
       "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz": ['cmass_kendrick', 'lowz_kendrick'],
       "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk": ['cmass_kendrick', 'lowz_kendrick'],
       "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib": ['cmass_kendrick', 'lowz_kendrick'],
+      #
+      "pactf150daynight20200228maskgal60r2_minus_night": ['cmass_kendrick'],
       }
 
 
@@ -221,12 +228,13 @@ from thumbstack import *
 save = True
 
 
-for cmbMapKey in cmbMaps.keys():
+#for cmbMapKey in cmbMaps.keys():
 #for cmbMapKey in cmbMaps.keys()[::-1]:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60r2reconvtotilecdeproj', 'pactf90daynight20200228maskgal60r2reconvtotilecdeproj']:
 #for cmbMapKey in ['pactf90daynight20200228maskgal60r2reconvtotilecdeproj']:
 #for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
 #for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
+for cmbMapKey in ["pactf150daynight20200228maskgal60r2_minus_night"]:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
@@ -247,7 +255,7 @@ for cmbMapKey in cmbMaps.keys():
 ###################################################################################
 ###################################################################################
 # Stacked cutout maps for PR
-
+'''
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -256,7 +264,7 @@ from thumbstack import *
 save = False
 
 
-for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight20200228maskgal60r2', 'tilecpactynocib']:
+for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight20200228maskgal60r2', 'tilecpactynocib', 'tilecpacty']:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
@@ -271,7 +279,7 @@ for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight2020022
       print("C'est parti")
 
       ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=True, doStackedMap=True)
-
+'''
 
 
 ###################################################################################
@@ -996,6 +1004,11 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    # 150 - tilec cmb no cib, to check for dust contamination
    ksz150MinusCmbNoCib = ksz[catalogKey+'_pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib']
    sKsz150MinusCmbNoCib = sKsz[catalogKey+'_pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib']
+   #
+   # 150 daynight minus night, for null test
+   if catalogKey=='cmass_kendrick':
+      ksz150DaynightMinusNight = ksz[catalogKey+'_pactf150daynight20200228maskgal60r2_minus_night']
+      sKsz150DaynightMinusNight = sKsz[catalogKey+'_pactf150daynight20200228maskgal60r2_minus_night']
 
 
 
@@ -1030,6 +1043,10 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    #
    # 150 reconv to 90 minus 90
    ax.errorbar(rAp + 0.2, ksz150Reconv90Minus90, yerr=sKsz150Reconv90Minus90, fmt='-', label='150 - 98')
+   #
+   # 150 daynight minus night
+   if catalogKey=='cmass_kendrick':
+      ax.errorbar(rAp + 0.25, ksz150DaynightMinusNight, yerr=sKsz150DaynightMinusNight, fmt='-', label='150 daynight - night')
    #
    ax.set_ylim((-10., 15.))
    ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
@@ -1314,12 +1331,48 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    ax2.xaxis.set_label_coords(0.5, 1.15)
    #
    path = pathFig+"electron_temperature_150_90_"+catalogKey+".pdf"
-   fig.savefig(path, bbox_inches='tight')
-   #plt.show()
-   fig.clf()
+   #fig.savefig(path, bbox_inches='tight')
+   plt.show()
+   #fig.clf()
 
 
 
+###################################################################################
+###################################################################################
+# Plot the 2d stacked cutouts
+
+'''
+for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
+   catalog = catalogs[catalogKey]
+
+   # true velocity RMS for CMASS K
+   zMean = catalog.Z.mean()   # Msun
+   vRms = u.v1dRms(0., zMean, W3d_sth) # [km/s]
+   tauToKsz = 2.726e6 * (vRms/3.e5)
+   # virial radius, before convolving with the beams
+   mVirMean = catalog.Mvir.mean()   # [Msun]. Will need to be converted to [Msun/h] below 
+   rVir = u.frvir(mVirMean * u.bg.h, zMean)   # [Mpc/h]
+   thetaVir = rVir / u.bg.comoving_distance(zMean) * (180.*60./np.pi) # [arcmin]
+
+   print catalogKey
+   print "mean z =", zMean
+   print "mean chi =", u.bg.comoving_distance(zMean), "Mpc/h"
+   print "mean mass =", mVirMean, "Msun"
+   print "virial radius =", rVir, "Mpc/h"
+   print "virial angle =", thetaVir, "arcmin"
+   print "RMS 1d velocity =", vRms, "km/s"
+
+   if catalogKey=='cmass_kendrick':
+      catalogTitle = 'CMASS'
+   elif catalogKey=='lowz_kendrick':
+      catalogTitle = 'LOWZ'
+
+   rAp = rKsz[catalogKey+'_pactf150daynight20200228maskgal60r2']
+
+
+   ###################################################################################
+   # tSZ + dust
+'''
 
 
 
