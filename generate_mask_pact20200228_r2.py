@@ -49,9 +49,9 @@ iMap = '90'
 
 
 if iMap=='90':
-    pathHit = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits"
+    pathHit = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits"
 if iMap=='150':
-    pathHit = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits"
+    pathHit = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits"
 
 
 # Choose the Galactic mask to use: value of fsky
@@ -218,7 +218,7 @@ planckMask = reproject.enmap_from_healpix(planckMask, footMask.shape, footMask.w
 # In[ ]:
 
 
-pathPSMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/act_ps_mask/source_mask_s16_simonecat_sn5_cross_20171105.fits"
+pathPSMask = "/global/cscratch1/sd/eschaan/project_ucsc/data/act_ps_mask/source_mask_s16_simonecat_sn5_cross_20171105.fits"
 psMask = enmap.read_map(pathPSMask)
 
 

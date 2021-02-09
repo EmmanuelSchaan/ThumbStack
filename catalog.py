@@ -624,8 +624,8 @@ class Catalog(object):
 
       if hMap is None:
          #pathMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
-         pathMask = "./output/cmb_map/pact20200228/" + "mask_full_foot_gal60_ps.fits"
-         pathHit = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits"
+         pathMask = "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits"
+         pathHit = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits"
          #
          #hMap = enmap.read_map(pathMap)[0] * enmap.read_map(pathMask)
          hMap = enmap.read_map(pathHit)[0] 

@@ -85,7 +85,7 @@ print("WCS attributes: "+str(d56.wcs))
 #########################################################################
 # ACT point source mask
 
-pathPSMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/act_ps_mask/source_mask_s16_simonecat_sn5_cross_20171105.fits"
+pathPSMask = "/global/cscratch1/sd/eschaan/project_ucsc/data/act_ps_mask/source_mask_s16_simonecat_sn5_cross_20171105.fits"
 psMask = enmap.read_map(pathPSMask)
 
 
@@ -128,7 +128,7 @@ enmap.write_map(pathOut+"tilec_map.fits", tilecMap)
 # Mask the Milky Way with a Planck mask
 
 # Read the Planck Galactic mask
-pathPlanckMask = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_galactic_mask/HFI_Mask_GalPlane-apo0_2048_R2.00.fits"
+pathPlanckMask = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_galactic_mask/HFI_Mask_GalPlane-apo0_2048_R2.00.fits"
 # field, fsky:
 #0, 0.20
 #1, 0.40

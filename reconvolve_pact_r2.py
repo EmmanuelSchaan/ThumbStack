@@ -30,7 +30,7 @@ pathFig = "./figures/cmb_map/"
 print("Reading the Fourier beams")
 
 # the coadds have complicated beams
-pathBeam150 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "beam_f150_daynight.txt"
+pathBeam150 = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "beam_f150_daynight.txt"
 data = np.loadtxt(pathBeam150)
 ell = data[:,0]
 beam150F = data[:,1]
@@ -41,7 +41,7 @@ beam150F = (beam150F>=v_cut) * beam150F + (beam150F<v_cut) * v_cut * beam150F[0]
 beam150F[0] = 1.
 fBeam150F = interp1d(ell, beam150F, kind='linear', bounds_error=False, fill_value=(beam150F[0], beam150F[-1]))
 
-pathBeam90 = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "beam_f090_daynight.txt"
+pathBeam90 = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "beam_f090_daynight.txt"
 data = np.loadtxt(pathBeam90)
 ell = data[:,0]
 beam90F = data[:,1]
@@ -53,7 +53,7 @@ beam90F[0] = 1.
 fBeam90F = interp1d(ell, beam90F, kind='linear', bounds_error=False, fill_value=(beam90F[0], beam90F[-1]))
 
 # night-only data
-pathBeam150Night = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "beam_f150_night.txt"
+pathBeam150Night = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "beam_f150_night.txt"
 data = np.loadtxt(pathBeam150)
 ell = data[:,0]
 beam150NightF = data[:,1]
@@ -193,7 +193,7 @@ fig.clf()
 ##########################################################################
 print("Read PACT 150 map")
 
-pathMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
+pathMap = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits"
 
 # read maps
 iMap = enmap.read_map(pathMap)
@@ -206,21 +206,21 @@ lMap = np.sqrt(np.sum(iMap.lmap()**2,0))
 # Reconvolve the map
 
 print("Reconvolve 150 to 90")
-pathOutMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvto90.fits"
+pathOutMap = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvto90.fits"
 oMap = enmap.ifft(mapF * fBeam90F(lMap) / fBeam150F(lMap)).real
 enmap.write_map(pathOutMap, oMap)
 print("check finite sum "+str(np.sum(oMap)))
 
 
 print("Reconvolve 150 to TileC deproj")
-pathOutMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilecdeproj.fits"
+pathOutMap = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilecdeproj.fits"
 oMap = enmap.ifft(mapF * fBeamTilecDeprojF(lMap) / fBeam150F(lMap)).real
 enmap.write_map(pathOutMap, oMap)
 print("check finite sum "+str(np.sum(oMap)))
 
 
 print("Reconvolve 150 to TileC")
-pathOutMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilec.fits"
+pathOutMap = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilec.fits"
 oMap = enmap.ifft(mapF * fBeamTilecF(lMap) / fBeam150F(lMap)).real
 enmap.write_map(pathOutMap, oMap)
 print("check finite sum "+str(np.sum(oMap)))
@@ -231,7 +231,7 @@ print("check finite sum "+str(np.sum(oMap)))
 ##########################################################################
 print("Read PACT 90 map")
 
-pathMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits"
+pathMap = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits"
 
 # read maps
 iMap = enmap.read_map(pathMap)
@@ -244,7 +244,7 @@ lMap = np.sqrt(np.sum(iMap.lmap()**2,0))
 # Reconvolve the map
 
 print("Reconvolve 90 to TileC deproj")
-pathOutMap = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map_reconvtotilecdeproj.fits"
+pathOutMap = "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map_reconvtotilecdeproj.fits"
 oMap = enmap.ifft(mapF * fBeamTilecDeprojF(lMap) / fBeam90F(lMap)).real
 enmap.write_map(pathOutMap, oMap)
 print("check finite sum "+str(np.sum(oMap)))
