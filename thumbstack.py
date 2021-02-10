@@ -36,15 +36,15 @@ class ThumbStack(object):
       # estimators (ksz, tsz) and weightings (uniform, hit, var, ...)
       # for stacked profiles, bootstrap cov and v-shuffle cov
       if self.cmbHit is not None:
-         self.Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
-         self.EstBootstrap = ['tsz_varweight', 'ksz_varweight']
-         self.EstVShuffle = ['ksz_varweight']
-         self.EstMBins = ['ksz_varweight']# ['tsz_varweight', 'ksz_varweight']
+         self.Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight']   #['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+         self.EstBootstrap = ['tsz_varweight']  #['tsz_varweight', 'ksz_varweight']
+         self.EstVShuffle = []   #['ksz_varweight']
+         self.EstMBins = ['tsz_varweight']# ['tsz_varweight', 'ksz_varweight']
       else:
-         self.Est = ['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
-         self.EstBootstrap = ['tsz_uniformweight', 'ksz_uniformweight']
-         self.EstVShuffle = ['ksz_uniformweight']
-         self.EstMBins = ['ksz_uniformweight'] #['tsz_uniformweight', 'ksz_uniformweight']
+         self.Est = ['tsz_uniformweight'] #['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
+         self.EstBootstrap = ['tsz_uniformweight'] #['tsz_uniformweight', 'ksz_uniformweight']
+         self.EstVShuffle = []   #['ksz_uniformweight']
+         self.EstMBins = ['tsz_uniformweight'] #['ksz_uniformweight'] #['tsz_uniformweight', 'ksz_uniformweight']
 
       # resolution of the cutout maps to be extracted
       self.resCutoutArcmin = 0.25   # [arcmin]

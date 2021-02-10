@@ -57,14 +57,18 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 
 
 catalogs = {
-      "lowz20200908": Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", rV=0.5, save=False),
+      "lowz20200908full": Catalog(u, massConversion, name="lowz20200908full", nameLong="LOWZ Full", save=False),
+      "lowz20200908mbin0": Catalog(u, massConversion, name="lowz20200908mbin0", nameLong="LOWZ Bin 0", save=False),
+      "lowz20200908mbin1": Catalog(u, massConversion, name="lowz20200908mbin1", nameLong="LOWZ Bin 1", save=False),
+      "lowz20200908mbin2": Catalog(u, massConversion, name="lowz20200908mbin2", nameLong="LOWZ Bin 2", save=False)
       }
 
 
-## Mini CMASS Mariana, for debugging
-#nObj = 10000#50000
-#cmassMarianaShort = Catalog(u, massConversion, name="cmass_mariana", nameLong="CMASS M", save=False, nObj=nObj)
-#cmassMarianaShort.name = "cmass_mariana_short"
+# mini LOWZ, for debugging
+nObj = 5000
+lowzShort = Catalog(u, massConversion, name="lowzfull20200908", nameLong="LOWZ Full", save=False, nObj=nObj)
+lowzShort.name = "lowzshort20200908"
+lowzShort.nameLong = "LOWZ Short"
 
 
 
@@ -109,26 +113,26 @@ tStart = time()
 
 cmbMaps = {
       # PACT day+night, 20200228, Planck Galactic masks 60%
-      "pactf150daynight20200228maskgal60r2": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits",
+      "pactf150daynight20200228maskgal60r2": cmbMap("/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map.fits",
          "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits",
-         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
+         "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
          name="pactf150daynight20200228maskgal60r2"),
-      "pactf90daynight20200228maskgal60r2": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits",
+      "pactf90daynight20200228maskgal60r2": cmbMap("/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map.fits",
          "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits",
-         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits",
+         "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_ivar.fits",
          name="pactf90daynight20200228maskgal60r2"),
-      "pactf150reconvto90minus90daynight20200228maskgal60r2": cmbMap("./output/cmb_map/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150reconvto90_minus_f090_daynight_map.fits",
-         "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits",
-         "/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
-         name="pactf150reconvto90minus90daynight20200228maskgal60r2"),
+#      "pactf150reconvto90minus90daynight20200228maskgal60r2": cmbMap("./output/cmb_map/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150reconvto90_minus_f090_daynight_map.fits",
+#         "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits",
+#         "/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_ivar.fits",
+#         name="pactf150reconvto90minus90daynight20200228maskgal60r2"),
       #
       # TileC v1.2, reconvolved to 1.4' beam, combining BOSS N and D56
-      "tilecpactynocmb": cmbMap("./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "tilec_map.fits",
-      "./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      name="tilecpactynocmb"),
-      "tilecpactyminusynocib": cmbMap("./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "diff_map.fits",
-      "./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
-      name="tilecpactyminusynocib"),
+#      "tilecpactynocmb": cmbMap("./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "tilec_map.fits",
+#      "./output/cmb_map/tilec_pact_ynocmb_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+#      name="tilecpactynocmb"),
+#      "tilecpactyminusynocib": cmbMap("./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "diff_map.fits",
+#      "./output/cmb_map/tilec_pact_yminusynocib_v1.2.0/" + "mask_full_foot_gal_ps.fits",
+#      name="tilecpactyminusynocib"),
       #
       "tilecpacty": cmbMap("./output/cmb_map/tilec_pact_y_v1.2.0/" + "tilec_map.fits",
       "./output/cmb_map/tilec_pact_y_v1.2.0/" + "mask_full_foot_gal_ps.fits",
@@ -144,32 +148,32 @@ cmbMaps = {
       #name="tilecpactcmbksznoy"),
       #
       # kSZ pipeline check
-      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksz/" + "diff_map.fits",
-         "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksz/" + "mask_full_foot_gal_ps.fits",
-         name="pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz"),
+#      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksz/" + "diff_map.fits",
+#         "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksz/" + "mask_full_foot_gal_ps.fits",
+#         name="pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz"),
       #
       # kSZ dust contamination test
-      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksznocib/" + "diff_map.fits",
-         "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksznocib/" + "mask_full_foot_gal_ps.fits",
-         name="pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib"),
+#      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksznocib/" + "diff_map.fits",
+#         "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_cmbksznocib/" + "mask_full_foot_gal_ps.fits",
+#         name="pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib"),
       #
       # tSZ pipeline (map) check
-      "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_ymuk/" + "diff_map.fits",
-         "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_ymuk/" + "mask_full_foot_gal_ps.fits",
-         name="pactf150daynight20200228maskgal60r2_minus_tilecpactymuk"),
+#      "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk": cmbMap("./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_ymuk/" + "diff_map.fits",
+#         "./output/cmb_map/pactf150daynight20200228maskgal60r2_minus_tilec_pact_ymuk/" + "mask_full_foot_gal_ps.fits",
+#         name="pactf150daynight20200228maskgal60r2_minus_tilecpactymuk"),
       #
       # To have tau and y at the same TileC deproj beam
-      "pactf150daynight20200228maskgal60r2reconvtotilecdeproj": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilecdeproj.fits", 
-         "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits", 
-         name="pactf150daynight20200228maskgal60r2reconvtotilecdeproj"),
-      "pactf90daynight20200228maskgal60r2reconvtotilecdeproj": cmbMap("/global/cscratch1/sd/eschaan/project_ksz_act_planck/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map_reconvtotilecdeproj.fits", 
-         "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits", 
-         name="pactf90daynight20200228maskgal60r2reconvtotilecdeproj"),
+#      "pactf150daynight20200228maskgal60r2reconvtotilecdeproj": cmbMap("/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_map_reconvtotilecdeproj.fits", 
+#         "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits", 
+#         name="pactf150daynight20200228maskgal60r2reconvtotilecdeproj"),
+#      "pactf90daynight20200228maskgal60r2reconvtotilecdeproj": cmbMap("/global/cscratch1/sd/eschaan/project_ucsc/data/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f090_daynight_map_reconvtotilecdeproj.fits", 
+#         "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits", 
+#         name="pactf90daynight20200228maskgal60r2reconvtotilecdeproj"),
       #
       # daynight VS night null test
-      "pactf150daynight20200228maskgal60r2_minus_night": cmbMap("./output/cmb_map/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_minus_night_map.fits",
-         "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits",
-         name="pactf150daynight20200228maskgal60r2_minus_night"),
+#      "pactf150daynight20200228maskgal60r2_minus_night": cmbMap("./output/cmb_map/planck_act_coadd_2020_02_28_r2/" + "act_planck_s08_s18_cmb_f150_daynight_minus_night_map.fits",
+#         "./output/cmb_map/pact20200228_r2/" + "mask_full_foot_gal60_ps.fits",
+#         name="pactf150daynight20200228maskgal60r2_minus_night"),
       }
 
 tStop = time()
@@ -181,25 +185,25 @@ print("took "+str(round((tStop-tStart)/60., 2))+" min")
 
 
 catalogCombi = {
-      "pactf150daynight20200228maskgal60r2reconvtotilecdeproj": ['lowz_kendrick', 'cmass_kendrick', 'cmass_mariana'],
-      "pactf90daynight20200228maskgal60r2reconvtotilecdeproj": ['lowz_kendrick', 'cmass_kendrick', 'cmass_mariana'],
+      "pactf150daynight20200228maskgal60r2reconvtotilecdeproj": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
+      "pactf90daynight20200228maskgal60r2reconvtotilecdeproj": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
       #
-      "pactf150daynight20200228maskgal60r2": ['lowz_kendrick', 'cmass_kendrick', 'cmass_mariana'],
-      "pactf90daynight20200228maskgal60r2": ['cmass_kendrick', 'lowz_kendrick', 'cmass_mariana'],
-      "pactf150reconvto90minus90daynight20200228maskgal60r2": ['cmass_kendrick', 'lowz_kendrick'],
+      "pactf150daynight20200228maskgal60r2": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
+      "pactf90daynight20200228maskgal60r2": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
+      "pactf150reconvto90minus90daynight20200228maskgal60r2": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
       #
-      "tilecpactynocmb": ['cmass_kendrick', 'lowz_kendrick'],
-      "tilecpactyminusynocib": ['cmass_kendrick', 'lowz_kendrick'],
+      "tilecpactynocmb": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
+      "tilecpactyminusynocib": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
       #
-      "tilecpacty": ['cmass_kendrick', 'lowz_kendrick'],
-      "tilecpactynocib": ['cmass_kendrick', 'lowz_kendrick'],
-      "tilecpactcmbksz": ['cmass_kendrick', 'lowz_kendrick'],
+      "tilecpacty": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
+      "tilecpactynocib": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
+      "tilecpactcmbksz": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
       #
-      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz": ['cmass_kendrick', 'lowz_kendrick'],
-      "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk": ['cmass_kendrick', 'lowz_kendrick'],
-      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib": ['cmass_kendrick', 'lowz_kendrick'],
+      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksz": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
+      "pactf150daynight20200228maskgal60r2_minus_tilecpactymuk": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
+      "pactf150daynight20200228maskgal60r2_minus_tilecpactcmbksznocib": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
       #
-      "pactf150daynight20200228maskgal60r2_minus_night": ['cmass_kendrick'],
+      "pactf150daynight20200228maskgal60r2_minus_night": ['lowz20200908full', 'lowz20200908mbin0', 'lowz20200908mbin1', 'lowz20200908mbin2'],
       }
 
 
@@ -216,13 +220,15 @@ from thumbstack import *
 save = True
 
 
-#for cmbMapKey in cmbMaps.keys():
+#for cmbMapKey in ['pactf150daynight20200228maskgal60r2']:
+#for cmbMapKey in ['pactf90daynight20200228maskgal60r2']:
+for cmbMapKey in cmbMaps.keys():
 #for cmbMapKey in cmbMaps.keys()[::-1]:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60r2reconvtotilecdeproj', 'pactf90daynight20200228maskgal60r2reconvtotilecdeproj']:
 #for cmbMapKey in ['pactf90daynight20200228maskgal60r2reconvtotilecdeproj']:
 #for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
 #for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
-for cmbMapKey in ["pactf150daynight20200228maskgal60r2_minus_night"]:
+#for cmbMapKey in ["pactf150daynight20200228maskgal60r2_minus_night"]:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
@@ -230,6 +236,7 @@ for cmbMapKey in ["pactf150daynight20200228maskgal60r2_minus_night"]:
    print("Analyzing map "+cmbName)
 
    for catalogKey in catalogCombi[cmbMapKey]:
+   #for catalogKey in ['lowz20200908full']:
       catalog = catalogs[catalogKey]
       print("Analyzing catalog "+catalog.name)
       name = catalog.name + "_" + cmbName
@@ -243,7 +250,7 @@ for cmbMapKey in ["pactf150daynight20200228maskgal60r2_minus_night"]:
 ###################################################################################
 ###################################################################################
 # Stacked cutout maps for PR
-'''
+
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -252,22 +259,26 @@ from thumbstack import *
 save = False
 
 
-for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight20200228maskgal60r2', 'tilecpactynocib', 'tilecpacty']:
+for cmbMapKey in cmbMaps.keys():
+#for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight20200228maskgal60r2', 'tilecpactynocib', 'tilecpacty']:
+#for cmbMapKey in ['pactf150daynight20200228maskgal60r2', 'pactf90daynight20200228maskgal60r2']:
+#for cmbMapKey in ['tilecpactynocib', 'tilecpacty']:
    cmbMap = cmbMaps[cmbMapKey].map()
    cmbMask = cmbMaps[cmbMapKey].mask()
    cmbHit = cmbMaps[cmbMapKey].hit()
    cmbName = cmbMaps[cmbMapKey].name
    print("Analyzing map "+cmbName)
 
-   for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:#catalogCombi[cmbMapKey]:
+   for catalogKey in catalogCombi[cmbMapKey]:
+   #for catalogKey in ['lowz20200908full']:
       catalog = catalogs[catalogKey]
       print("Analyzing catalog "+catalog.name)
       name = catalog.name + "_" + cmbName
 
       print("C'est parti")
 
-      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=True, doBootstrap=True, doVShuffle=True, doStackedMap=True)
-'''
+      ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=False, doVShuffle=False, doStackedMap=True)
+
 
 
 ###################################################################################
@@ -330,7 +341,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 ###################################################################################
 # Read all the stacked profiles
 
-
+'''
 # convert from sr to arcmin^2
 factor = (180.*60./np.pi)**2
 
@@ -484,7 +495,7 @@ sKsz['cmass_mariana_150_schaan+16'] = sAlphaM * np.std(cmassM.vR) / 3.e5 / cmass
 
 
 # read the stacks on mock GRFs, to compare
-pathMockGRF = "/global/cscratch1/sd/eschaan/project_ksz_act_planck/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
+pathMockGRF = "/global/cscratch1/sd/eschaan/project_ucsc/code/thumbstack/output/cmb_map/mocks_grf_planck_act_coadd_2019_03_11/"
 iMock0 = 0
 nMocks = 800
 #
@@ -504,7 +515,7 @@ data = np.genfromtxt(pathThumb + "cmass_kendrick_pactf150daynight20200228maskgal
 rKsz150VShuffleMean = data[:,0]
 ksz150VShuffleMean = data[:,1] * factor
 sKsz150VShuffleMean = data[:,2] * factor
-
+'''
 
 
 ###################################################################################
@@ -512,7 +523,7 @@ sKsz150VShuffleMean = data[:,2] * factor
 ###################################################################################
 # Compute significances
 
-
+'''
 for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    
    # kSZ
@@ -562,7 +573,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    else:
       t = np.zeros_like(d)
    computeSnr(d, t, cov)
-
+'''
 
 
 
@@ -1409,7 +1420,7 @@ def plot2dCutout(baseMap, data, title=None, cbTitle=None, cmap='viridis', path=N
 
 ###################################################################################
 
-
+'''
 for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
    catalog = catalogs[catalogKey]
 
@@ -1474,7 +1485,7 @@ for catalogKey in ['cmass_kendrick', 'lowz_kendrick']:
 
    plot2dCutout(baseMap, mapKsz150, title=catalogTitle+r' kSZ f150', cbTitle=r'$\mu$K', cmap='viridis', path=pathFig+"stacked_map_"+catalogKey+"_ksz_150.pdf")
    plot2dCutout(baseMap, mapKsz90, title=catalogTitle+r' kSZ f90', cbTitle=r'$\mu$K', cmap='viridis', path=pathFig+"stacked_map_"+catalogKey+"_ksz_90.pdf")
-
+'''
 
 
 
