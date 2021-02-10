@@ -6,34 +6,38 @@
 
 # generate full mask: footprint + point sources + Planck Milky Way
 # same for 90 and 150GHz
-python generate_mask_pact20200228_r2.py '60'
-python generate_mask_pact20200228_r2.py '70'
+#echo "generate masks PACT"
+#python generate_mask_pact20200228_r2.py '60'
+#python generate_mask_pact20200228_r2.py '70'
 
 # reconvolve the 150GHz map to the beams of 
 # the 90GHz, TileC, TileC deproj,
 # for null tests
-python reconvolve_pact_r2.py
+#python reconvolve_pact_r2.py
 
 ############################################################
 # TileC
 
 # generate the masks for TileC BOSS N and D56
-python generate_mask_tilec_v1.2.py 'cmbksz_d56'
-python generate_mask_tilec_v1.2.py 'cmbksz_boss'
+#echo "generating masks"
+#python generate_mask_tilec_v1.2.py 'cmbksz_d56'
+#python generate_mask_tilec_v1.2.py 'cmbksz_boss'
 
 # combine D56+BN into single maps
-python combine_tilec_maps_v1.2.py "cmbksz"
-python combine_tilec_maps_v1.2.py "cmbksznoy"
-python combine_tilec_maps_v1.2.py "cmbksznocib"
-python combine_tilec_maps_v1.2.py "y"
-python combine_tilec_maps_v1.2.py "ynocib"
-python combine_tilec_maps_v1.2.py "ynocmb"
+#echo "combining BN annd D56 maps"
+#python combine_tilec_maps_v1.2.py "cmbksz"
+#python combine_tilec_maps_v1.2.py "cmbksznoy"
+#python combine_tilec_maps_v1.2.py "cmbksznocib"
+#python combine_tilec_maps_v1.2.py "y"
+#python combine_tilec_maps_v1.2.py "ynocib"
+#python combine_tilec_maps_v1.2.py "ynocmb"
 
 
 # reconvolve the TileC maps without deproj
 # to the beam of the deproj maps,
 # for null tests
-python reconvolve_tilec_v1.2.py
+#echo "Reconvolve TileC to TileC deproj, for null tests"
+#python reconvolve_tilec_v1.2.py
 
 
 ############################################################
@@ -46,6 +50,6 @@ python reconvolve_tilec_v1.2.py
 ############################################################
 # Make output readable by everyone
 
-chmod o+x ./output/thumbstack/*
-chmod o+r -R ./output/thumbstack/*
+#chmod o+x ./output/thumbstack/*
+#chmod o+r -R ./output/thumbstack/*
 

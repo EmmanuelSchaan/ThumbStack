@@ -38,13 +38,13 @@ mapId = sys.argv[1]
 if mapId=='cmbksz_d56':
    pathFig = "./figures/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/"
    pathOut = "./output/cmb_map/tilec_pact_cmbksz_d56_v1.2.0/"
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_map_v1.2.0_joint.fits"
-   pathTilecMask = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_mask.fits" # no hit count: use the mask
+   pathMap = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_deep56_cmb_map_v1.2.0_joint.fits"
+   pathTilecMask = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/deep56_tilec_mask.fits"
 if mapId=='cmbksz_boss':
    pathFig = "./figures/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/"
    pathOut = "./output/cmb_map/tilec_pact_cmbksz_boss_v1.2.0/"
-   pathMap = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_map_v1.2.0_joint.fits"
-   pathTilecMask = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_mask.fits"
+   pathMap = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_boss_cmb_map_v1.2.0_joint.fits"
+   pathTilecMask = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/boss_tilec_mask.fits"
 
 
 # In[4]:

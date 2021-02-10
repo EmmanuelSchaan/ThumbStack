@@ -34,23 +34,23 @@ pathOut = "./output/cmb_map/tilec_pact_" + mapId + "_v1.2.0/"
 pathFig = "./figures/cmb_map/tilec_pact_" + mapId + "_v1.2.0/"
 
 if mapId=="cmbksz":
-   pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_map_v1.2.0_joint.fits"
-   pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_map_v1.2.0_joint.fits"
+   pathMapD56 = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_deep56_cmb_map_v1.2.0_joint.fits"
+   pathMapBN = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_boss_cmb_map_v1.2.0_joint.fits"
 elif mapId=="cmbksznoy":
-   pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_comptony_map_v1.2.0_joint.fits"
-   pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_comptony_map_v1.2.0_joint.fits"
+   pathMapD56 = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_deep56_cmb_deprojects_comptony_map_v1.2.0_joint.fits"
+   pathMapBN = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_boss_cmb_deprojects_comptony_map_v1.2.0_joint.fits"
 elif mapId=="cmbksznocib":
-   pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_cmb_deprojects_cib_map_v1.2.0_joint.fits"
-   pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_cmb_deprojects_cib_map_v1.2.0_joint.fits"
+   pathMapD56 = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_deep56_cmb_deprojects_cib_map_v1.2.0_joint.fits"
+   pathMapBN = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_boss_cmb_deprojects_cib_map_v1.2.0_joint.fits"
 elif mapId=="y": 
-   pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_comptony_map_v1.2.0_joint.fits"
-   pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_comptony_map_v1.2.0_joint.fits"
+   pathMapD56 = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_deep56_comptony_map_v1.2.0_joint.fits"
+   pathMapBN = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_boss_comptony_map_v1.2.0_joint.fits"
 elif mapId=="ynocib":
-   pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_comptony_deprojects_cib_map_v1.2.0_joint.fits"
-   pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_comptony_deprojects_cib_map_v1.2.0_joint.fits"
+   pathMapD56 = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_deep56_comptony_deprojects_cib_map_v1.2.0_joint.fits"
+   pathMapBN = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_boss_comptony_deprojects_cib_map_v1.2.0_joint.fits"
 elif mapId=="ynocmb":
-   pathMapD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_single_tile_deep56_comptony_deprojects_cmb_map_v1.2.0_joint.fits"
-   pathMapBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_single_tile_boss_comptony_deprojects_cmb_map_v1.2.0_joint.fits"
+   pathMapD56 = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_deep56_comptony_deprojects_cmb_map_v1.2.0_joint.fits"
+   pathMapBN = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/tilec_single_tile_boss_comptony_deprojects_cmb_map_v1.2.0_joint.fits"
 
 
 
@@ -69,12 +69,12 @@ print "Read maps and masks"
 
 # Deep56
 d56 = enmap.read_map(pathMapD56)
-pathTilecMaskD56 = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_deep56/tilec_mask.fits"   # no hit count: use the mask
+pathTilecMaskD56 = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/deep56_tilec_mask.fits"   # no hit count: use the mask
 tilecMaskD56 = enmap.read_map(pathTilecMaskD56)
 
 # BOSS North
 bn = enmap.read_map(pathMapBN)
-pathTilecMaskBN = "/global/cscratch1/sd/msyriac/data/depot/tilec/v1.2.0_20200324/map_v1.2.0_joint_boss/tilec_mask.fits"   # no hit count: use the mask
+pathTilecMaskBN = "/global/cscratch1/sd/eschaan/project_ucsc/data/tilec_v1.2.0/boss_tilec_mask.fits"   # no hit count: use the mask
 tilecMaskBN = enmap.read_map(pathTilecMaskBN)
 
 print("Map properties:")
