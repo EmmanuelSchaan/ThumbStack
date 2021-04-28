@@ -228,7 +228,7 @@ catalogCombi = {
 ###################################################################################
 ###################################################################################
 # Compute all the stacked profiles
-'''
+
 import thumbstack
 reload(thumbstack)
 from thumbstack import *
@@ -237,10 +237,10 @@ from thumbstack import *
 save = True
 
 
-for cmbMapKey in cmbMaps.keys():
+#for cmbMapKey in cmbMaps.keys():
 #for cmbMapKey in cmbMaps.keys()[::-1]:
 #for cmbMapKey in cmbMaps.keys()[:len(cmbMaps.keys())//2]:
-#for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
+for cmbMapKey in cmbMaps.keys()[len(cmbMaps.keys())//2:]:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60r2']:
 #for cmbMapKey in ['pactf90daynight20200228maskgal60r2']:
 #for cmbMapKey in ['pactf150daynight20200228maskgal60r2reconvtotilecdeproj', 'pactf90daynight20200228maskgal60r2reconvtotilecdeproj']:
@@ -260,7 +260,7 @@ for cmbMapKey in cmbMaps.keys():
       name = catalog.name + "_" + cmbName
 
       ts = ThumbStack(u, catalog, cmbMap, cmbMask, cmbHit, name, nameLong=None, save=save, nProc=nProc, doMBins=False, doBootstrap=True, doVShuffle=False, cmbNu=cmbNu, cmbUnitLatex=cmbUnitLatex)
-'''
+
 
 ###################################################################################
 ###################################################################################
