@@ -6,7 +6,7 @@ from headers import *
 class ThumbStack(object):
 
 #   def __init__(self, U, Catalog, pathMap="", pathMask="", pathHit="", name="test", nameLong=None, save=False, nProc=1):
-   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit=None, name="test", nameLong=None, save=False, nProc=1, filterTypes='diskring', doStackedMap=False, doMBins=False, doVShuffle=False, doBootstrap=False):
+   def __init__(self, U, Catalog, cmbMap, cmbMask, cmbHit=None, name="test", nameLong=None, save=False, nProc=1, filterTypes='diskring', doStackedMap=False, doMBins=False, doVShuffle=False, doBootstrap=False, cmbNu=150.e9, cmbUnitLatex=r'$\mu$K'):
       
       self.nProc = nProc
       self.U = U
@@ -22,6 +22,8 @@ class ThumbStack(object):
       self.doMBins = doMBins
       self.doVShuffle = doVShuffle
       self.doBootstrap = doBootstrap
+      self.cmbNu = cmbNu
+      self.cmbUnitLatex = cmbUnitLatex
 
       # aperture photometry filters to implement
       if filterTypes=='diskring':
@@ -36,10 +38,10 @@ class ThumbStack(object):
       # estimators (ksz, tsz) and weightings (uniform, hit, var, ...)
       # for stacked profiles, bootstrap cov and v-shuffle cov
       if self.cmbHit is not None:
-         self.Est = ['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight']   #['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
-         self.EstBootstrap = ['tsz_varweight']  #['tsz_varweight', 'ksz_varweight']
+         self.Est = ['tsz_uniformweight']   #['tsz_uniformweight', 'tsz_hitweight', 'tsz_varweight', 'ksz_uniformweight', 'ksz_hitweight', 'ksz_varweight', 'ksz_massvarweight']
+         self.EstBootstrap = ['tsz_uniformweight']  #['tsz_varweight', 'ksz_varweight']
          self.EstVShuffle = []   #['ksz_varweight']
-         self.EstMBins = ['tsz_varweight']# ['tsz_varweight', 'ksz_varweight']
+         self.EstMBins = ['tsz_uniformweight']# ['tsz_varweight', 'ksz_varweight']
       else:
          self.Est = ['tsz_uniformweight'] #['tsz_uniformweight', 'ksz_uniformweight', 'ksz_massvarweight']
          self.EstBootstrap = ['tsz_uniformweight'] #['tsz_uniformweight', 'ksz_uniformweight']
@@ -57,11 +59,10 @@ class ThumbStack(object):
       # number of mMax cuts to test,
       # for tSZ contamination to kSZ
       self.nMMax = 20
-
       # fiducial mass cuts, to avoid eg tSZ contamination
       # from massive clusters
-      self.mMin = 1.e6
-      self.mMax = 1.e14 # 1.e17
+      self.mMin = 0. #1.e6
+      self.mMax = np.inf #1.e14 # 1.e17
 
       
       # Output path
@@ -113,7 +114,8 @@ class ThumbStack(object):
             # save only the stacked maps for
             # the best tsz and ksz estimators,
             # and for the diskring weighting
-            self.saveAllStackedMaps(filterTypes=['diskring'], Est=['tsz_varweight', 'ksz_varweight'])
+            #self.saveAllStackedMaps(filterTypes=['diskring'], Est=['tsz_varweight', 'ksz_varweight'])
+            self.saveAllStackedMaps(filterTypes=None, Est=None)
 
 
 
@@ -553,22 +555,23 @@ class ThumbStack(object):
 
       # Here mask is 1 for objects we want to keep
       mask = np.ones_like(self.Catalog.RA)
-      print "keeping fraction", np.sum(mask)/len(mask), " of objects"
+      print "start with fraction", np.sum(mask)/len(mask), "of objects"
       if mVir is not None:
          mask *= (self.Catalog.Mvir>=mVir[0]) * (self.Catalog.Mvir<=mVir[1])
-         print "keeping fraction", np.sum(mask)/len(mask), " of objects"
+         print "keeping fraction", np.sum(mask)/len(mask), "of objects after mass cut"
       if z is not None:
          mask *= (self.Catalog.Z>=z[0]) * (self.Catalog.Z<=z[1])
+         print "keeping fraction", np.sum(mask)/len(mask), "of objects after further z cut"
       if overlap:
          mask *= self.overlapFlag.copy()
-         print "keeping fraction", np.sum(mask)/len(mask), " of objects"
+         print "keeping fraction", np.sum(mask)/len(mask), "of objects after further overlap cut"
       # PS mask: look at largest aperture, and remove if any point within the disk or ring is masked
       if psMask:
          # The point source mask may vary from one filterType to another
          if filterType is None:
             filterType = self.filtMask.keys()[0]
          mask *= 1.*(np.abs(self.filtMask[filterType][:,-1])<1.)
-         print "keeping fraction", np.sum(mask)/len(mask), " of objects"
+         print "keeping fraction", np.sum(mask)/len(mask), "of objects after PS mask"
       mask *= extraSelection
       #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
       if outlierReject:
@@ -596,9 +599,10 @@ class ThumbStack(object):
             newMask = (np.abs(self.filtMap[filterType][:,:]) <= nSigmasCut * sigmas[np.newaxis,:])
             # take the intersection of the masks
             mask *= np.prod(newMask, axis=1).astype(bool)
+            print "keeping fraction", np.sum(1.*mask)/len(mask), "of objects after further outlier cut"
       # make sure the mask is boolean
       mask = mask.astype(bool)
-      #print "keeping fraction", np.sum(mask)/len(mask), " of objects"
+      print "keeping fraction", np.sum(1.*mask)/len(mask), "in the end"
       return mask
 
 
@@ -700,7 +704,6 @@ class ThumbStack(object):
       self.filtVarTrue = {}
       for iFilterType in range(len(self.filterTypes)):
          filterType = self.filterTypes[iFilterType]
-         print("For "+filterType+" filter:")
          self.filtVarTrue[filterType] = self.measureVarFromHitCount(filterType, plot=plot)
 
 
@@ -781,7 +784,7 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def computeStackedProfile(self, filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=False, mVir=None, z=[0., 100.], ts=None, mask=None):
+   def computeStackedProfile(self, filterType, est, iBootstrap=None, iVShuffle=None, tTh='', stackedMap=False, mVir=None, z=[0., 100.], ts=None, mask=None):
       """Returns the estimated profile and its uncertainty for each aperture.
       est: string to select the estimator
       iBootstrap: index for bootstrap resampling
@@ -792,6 +795,7 @@ class ThumbStack(object):
 
       #tStart = time()
 
+      print("- Compute stacked profile: "+filterType+", "+est+", "+tTh)
 
       # compute stacked profile from another thumbstack object
       if ts is None:
@@ -806,26 +810,28 @@ class ThumbStack(object):
 #      tMean = ts.meanT[filterType].copy()
 
       # temperatures [muK * sr]
-      if tTh is None:
+      if tTh=='':
          t = ts.filtMap[filterType].copy() # [muK * sr]
       elif tTh=='tsz':
          # expected tSZ signal
          # AP profile shape, between 0 and 1
-         sigma_cluster = 1.5  # arcmin
+         sigma_cluster = 3.   #1.5  # arcmin
          shape = ts.ftheoryGaussianProfile(sigma_cluster) # between 0 and 1 [dimless]
          # multiply by integrated y to get y profile [sr]
          t = np.column_stack([ts.Catalog.integratedY[:] * shape[iAp] for iAp in range(ts.nRAp)])
-         # convert from y profile to dT profile
-         Tcmb = 2.726   # K
-         h = 6.63e-34   # SI
-         kB = 1.38e-23  # SI
-         def f(nu):
-            """frequency dependence for tSZ temperature
-            """
-            x = h*nu/(kB*Tcmb)
-            return x*(np.exp(x)+1.)/(np.exp(x)-1.) -4.
-         #t *= 2. * f(150.e9) * Tcmb * 1.e6  # [muK * sr]
-         t *= f(150.e9) * Tcmb * 1.e6  # [muK * sr]
+         # convert from y profile to dT profile if needed
+         if self.cmbUnitLatex==r'$\mu$K':
+            nu = self.cmbNu   # Hz
+            Tcmb = 2.726   # K
+            h = 6.63e-34   # SI
+            kB = 1.38e-23  # SI
+            def f(nu):
+               """frequency dependence for tSZ temperature
+               """
+               x = h*nu/(kB*Tcmb)
+               return x*(np.exp(x)+1.)/(np.exp(x)-1.) -4.
+            #t *= 2. * f(nu) * Tcmb * 1.e6  # [muK * sr]
+            t *= f(nu) * Tcmb * 1.e6  # [muK * sr]
       elif tTh=='ksz':
          # expected kSZ signal
          # AP profile shape, between 0 and 1
@@ -833,6 +839,8 @@ class ThumbStack(object):
          shape = ts.ftheoryGaussianProfile(sigma_cluster) # between 0 and 1 [dimless]
          # multiply by integrated kSZ to get kSZ profile [muK * sr]
          t = np.column_stack([ts.Catalog.integratedKSZ[:] * shape[iAp] for iAp in range(ts.nRAp)])   # [muK * sr]
+         if self.cmbUnitLatex=='':
+            t /= 2.726e6   # convert from [muK*sr] to [sr]
       t = t[mask, :]
  #     tMean = tMean[mask,:]
       # -v/c [dimless]
@@ -1348,7 +1356,7 @@ class ThumbStack(object):
 
 
    def saveAllStackedMaps(self, filterTypes=None, Est=None):
-      print "- compute stacked maps"
+      print "- compute all stacked maps"
       if filterTypes is None:
          filterTypes = self.filterTypes
       if Est is None:
@@ -1368,7 +1376,7 @@ class ThumbStack(object):
          for iEst in range(len(Est)):
             est = Est[iEst]
             print "compute stacked map:", filterType, est
-            stackedMap = self.computeStackedProfile(filterType, est, iBootstrap=None, iVShuffle=None, tTh=None, stackedMap=True)
+            stackedMap = self.computeStackedProfile(filterType, est, iBootstrap=None, iVShuffle=None, tTh='', stackedMap=True)
 
             # save the stacked cutout
             path = self.pathOut + "/stackedmap_"+filterType+"_"+est+".txt"
@@ -1390,7 +1398,7 @@ class ThumbStack(object):
 
 
    def saveAllStackedProfiles(self):
-      print "- compute stacked profiles and their cov"
+      print "- compute all stacked profiles and their cov"
       tStart = time()
       data = np.zeros((self.nRAp, 3))
       data[:,0] = self.RApArcmin # [arcmin]
@@ -2086,12 +2094,13 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def computeSnrStack(self, filterType, est, tTh=None, theory=None, name=None):
+   def computeSnrStack(self, filterType, est, tTh='', theory=None, name=None):
       """Compute null rejection, SNR (=detection significance)
       for the requested estimator.
       The estimator considered should have a bootstrap covariance.
       """
 
+      print "- compute SNR and significances for "+filterType+" "+est+" "+tTh
 
       # replace data with theory if requested
       if tTh=='tsz':
@@ -2107,6 +2116,7 @@ class ThumbStack(object):
          name = '_'+name
       
       if theory is None:
+         sigma_cluster = 3. 
          theory = self.ftheoryGaussianProfile(sigma_cluster, filterType=filterType)
 
 

@@ -41,8 +41,8 @@ massConversion = MassConversionKravtsov14()
 
 ###################################################################################
 ###################################################################################
-# Galaxy catalogs
-
+# Prepare galaxy catalogs
+'''
 # LOWZ full sample
 lowzFull = Catalog(u, massConversion, name="lowz20200908full", nameLong="LOWZ Full", pathInCatalog="../../data/lowz/output/lowz_z0p2_0p35.txt", save=True)
 lowzFull.plotHistograms()
@@ -66,7 +66,7 @@ lowzMBin2 = Catalog(u, massConversion, name="lowz20200908mbin2", nameLong="LOWZ 
 lowzMBin2.plotHistograms()
 lowzMBin2.plotFootprint()
 lowzMBin2.printProperties()
-
+'''
 
 
 ###################################################################################
