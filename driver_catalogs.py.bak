@@ -1,5 +1,4 @@
 import universe
-from importlib import reload
 reload(universe)
 from universe import *
 
@@ -74,18 +73,18 @@ lowzMBin2.printProperties()
 ###################################################################################
 # Read catalogs and plot
 
-# # LOWZ, full and mass bins
-# lowzFull = Catalog(u, massConversion, name="lowz20200908full", nameLong="LOWZ Full", save=False)
-# lowzMBin0 = Catalog(u, massConversion, name="lowz20200908mbin0", nameLong="LOWZ Bin 0", save=False)
-# lowzMBin1 = Catalog(u, massConversion, name="lowz20200908mbin1", nameLong="LOWZ Bin 1", save=False)
-# lowzMBin2 = Catalog(u, massConversion, name="lowz20200908mbin2", nameLong="LOWZ Bin 2", save=False)
+# LOWZ, full and mass bins
+lowzFull = Catalog(u, massConversion, name="lowz20200908full", nameLong="LOWZ Full", save=False)
+lowzMBin0 = Catalog(u, massConversion, name="lowz20200908mbin0", nameLong="LOWZ Bin 0", save=False)
+lowzMBin1 = Catalog(u, massConversion, name="lowz20200908mbin1", nameLong="LOWZ Bin 1", save=False)
+lowzMBin2 = Catalog(u, massConversion, name="lowz20200908mbin2", nameLong="LOWZ Bin 2", save=False)
 
 
-# # mini LOWZ, for debugging
-# nObj = 5000
-# lowzShort = Catalog(u, massConversion, name="lowzfull20200908", nameLong="LOWZ Full", save=False, nObj=nObj)
-# lowzShort.name = "lowzshort20200908"
-# lowzShort.nameLong = "LOWZ Short"
+# mini LOWZ, for debugging
+nObj = 5000
+lowzShort = Catalog(u, massConversion, name="lowzfull20200908", nameLong="LOWZ Full", save=False, nObj=nObj)
+lowzShort.name = "lowzshort20200908"
+lowzShort.nameLong = "LOWZ Short"
 
 
 ###################################################################################

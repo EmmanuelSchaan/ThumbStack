@@ -134,7 +134,7 @@ def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=False, nameL
       av = mean
       fPDF = lambda x: (2*np.pi*sigma2)**(-1./2.) * np.exp(-(x-av)**2 / (2*sigma2))
       g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
-      histGaussFit = np.array(list(map(g, list(range(nBins-1)))))
+      histGaussFit = np.array(map(g, range(nBins-1)))
       histGaussFit *= len(X)
       ax.step(Bins[:-1], histGaussFit, color='g', lw=3, where='post', label=r'Gaussian')
       #
@@ -150,7 +150,7 @@ def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=False, nameL
       av = 0.
       fPDF = lambda x: (2*np.pi*s2Theory)**(-1./2.) * np.exp(-(x-av)**2 / (2*s2Theory))
       g = lambda i: integrate.quad(fPDF, Bins[i], Bins[i+1], epsabs=0, epsrel=1.e-3)[0]
-      histTheory = np.array(list(map(g, list(range(nBins-1)))))
+      histTheory = np.array(map(g, range(nBins-1)))
       histTheory *= len(X)
       ax.step(Bins[:-1], histTheory, color='r', lw=3, where='post')#, label=r'Theory')
    #
@@ -217,7 +217,7 @@ def my2dHistogram(X, Y, nBins=(71, 71), limx=None, limy=None, limc=None, fTheory
    #
    # theory curves, if any
    for f in fTheory:
-      Ytheory = np.array(list(map(f, X)))
+      Ytheory = np.array(map(f, X))
       ax.plot(X, Ytheory, 'y')
    #
    plt.colorbar(im)
@@ -272,17 +272,17 @@ def computeSnr(d, theory, cov, dof=None):
    # Compute chi^2_null
    chi2Null = d.dot( np.linalg.inv(cov).dot(d) )
    # goodness of fit for null hypothesis
-   print(("number of dof:"+str(dof)))
-   print(("null chi2Null="+str(chi2Null)))
-   print(("SNR = null sqrt(chi2Null)="+str(np.sqrt(chi2Null))))
+   print("number of dof:"+str(dof))
+   print("null chi2Null="+str(chi2Null))
+   print("SNR = null sqrt(chi2Null)="+str(np.sqrt(chi2Null)))
 #   pteNull = 1.- stats.chi2.cdf(chi2Null, dof)
 #   print("null pte="+str(pteNull))
    pteNull = stats.distributions.chi2.sf(chi2Null, dof)
-   print(("null pte="+str(pteNull)))
+   print("null pte="+str(pteNull))
    # pte as a function of sigma, for a Gaussian random variable
    fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteNull
    sigmaNull = optimize.brentq(fsigmaToPTE , 0., 1.e5)
-   print(("null pte significance="+str(sigmaNull)+"sigmas"))
+   print("null pte significance="+str(sigmaNull)+"sigmas")
 
    # find the best fit amplitude for the theory curve
    def fdchi2(p):
@@ -295,22 +295,22 @@ def computeSnr(d, theory, cov, dof=None):
    res = optimize.minimize(fdchi2, p0)
    abest = res.x[0]
    #sbest= res.x[1]
-   print(("best-fit amplitude="+str(abest)))
-   print(("number of dof:"+str(dof - 1)))
+   print("best-fit amplitude="+str(abest))
+   print("number of dof:"+str(dof - 1))
 
    # goodness of fit for best fit
    chi2Best = fdchi2([abest])+chi2Null
-   print(("best-fit chi2="+str(chi2Best)))
+   print("best-fit chi2="+str(chi2Best))
    pteBest = 1.- stats.chi2.cdf(chi2Best, dof-1.)
-   print(("best-fit pte="+str(pteBest)))
+   print("best-fit pte="+str(pteBest))
    # pte as a function of sigma, for a Gaussian random variable
    fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.)) - pteBest
    sigma = optimize.brentq(fsigmaToPTE , 0., 1.e3)
-   print(("best-fit pte significance="+str(sigma)+"sigmas"))
+   print("best-fit pte significance="+str(sigma)+"sigmas")
 
    # favour of best fit over null
-   print(("best-fit sqrt(delta chi2)="+str(np.sqrt(abs(fdchi2([abest]))))+"sigmas"))
+   print("best-fit sqrt(delta chi2)="+str(np.sqrt(abs(fdchi2([abest]))))+"sigmas")
    fsigmaToPTE = lambda sigma: special.erfc(sigma/np.sqrt(2.))
    pte = fsigmaToPTE( np.sqrt(abs(fdchi2([abest]))) )
-   print(("pte (if Gaussian)="+str(pte)))
+   print("pte (if Gaussian)="+str(pte))
 

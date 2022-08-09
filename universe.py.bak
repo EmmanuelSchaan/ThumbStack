@@ -237,11 +237,11 @@ class Universe(object):
    
    
    def printCosmoParams(self):
-      print("h = ", self.bg.h)
-      print("Omega0_m = ", self.bg.Omega0_m)
-      print("Omega0_lambda = ", self.bg.Omega0_lambda)
-      print("Omega0_r = ", self.bg.Omega0_r)
-      print("Omega0_k = ", self.bg.Omega0_k)
+      print "h = ", self.bg.h
+      print "Omega0_m = ", self.bg.Omega0_m
+      print "Omega0_lambda = ", self.bg.Omega0_lambda
+      print "Omega0_r = ", self.bg.Omega0_r
+      print "Omega0_k = ", self.bg.Omega0_k
 
    def plotDensity(self):
       z = np.linspace(0., 300., 512)
@@ -287,7 +287,7 @@ class Universe(object):
 
    def plotTransfer(self):
       transfer = self.sp.get_transfer(z=0)
-      print((transfer.dtype.names))
+      print(transfer.dtype.names)
       plt.subplot(211)
       plt.plot(transfer['k'], transfer['d_tot'])
       plt.ylabel("total density transfer")
@@ -336,15 +336,15 @@ class Universe(object):
 
    def plotThermo(self):
       # recombination
-      print("recombination redshift =", self.th.z_rec)
-      print("sound horizon at recombination =", self.th.rs_rec, "Mpc/h")
-      print("sound horizon angle at recombination =", self.th.theta_s * 180./np.pi, "deg")
+      print "recombination redshift =", self.th.z_rec
+      print "sound horizon at recombination =", self.th.rs_rec, "Mpc/h"
+      print "sound horizon angle at recombination =", self.th.theta_s * 180./np.pi, "deg"
       # drag
-      print("drag redshift =", self.th.z_drag)
-      print("sound horizon at z_drag =", self.th.rs_drag, "Mpc/h")
+      print "drag redshift =", self.th.z_drag
+      print "sound horizon at z_drag =", self.th.rs_drag, "Mpc/h"
       # reionization
-      print("reionization redshift =", self.th.z_reio)
-      print("reionization optical depth =", self.th.tau_reio)
+      print "reionization redshift =", self.th.z_reio
+      print "reionization optical depth =", self.th.tau_reio
    
    def plotPrimordial(self):
       plt.loglog(self.K, self.pm.get_pkprim(self.K), label='from CLASS')
@@ -530,10 +530,10 @@ class Universe(object):
       """
       #
       f = lambda k: self.sp.get_pklin(k, z)
-      P = np.array(list(map(f, self.K)))
+      P = np.array(map(f, self.K))
       #
       f = lambda k: self.dlnPlindDelta(k, z)
-      dP = np.array(list(map(f, self.K)))
+      dP = np.array(map(f, self.K))
 
       # dlnP/ddelta
       fig = plt.figure(0)
@@ -769,7 +769,7 @@ class Universe(object):
       #
       for a in A:
          fscaling = lambda fsky: self.Sigma2_2d(self.bg.comoving_distance(1./a-1.) * 2.*np.sqrt(fsky), 1./a-1., W2d_cth) * fsky
-         HSV = np.array(list(map(fscaling, Fsky)))
+         HSV = np.array(map(fscaling, Fsky))
          ax.loglog(Fsky, HSV, label=r'$z=$'+str(round(1./a-1., 2)))
       #
       ax.legend(loc=1)
@@ -790,7 +790,7 @@ class Universe(object):
 
       # variance of the matter overdensity smoothed over the survey (only used for HSV for 3d cov)
       R = (3.*V/(4.*np.pi))**(1./3.)   # for a spherical survey
-      HSV = np.array( [self.Sigma2(r, 0., W3d_sth) for r in R] ) * V
+      HSV = np.array( map(lambda r: self.Sigma2(r, 0., W3d_sth), R) ) * V
 
       fig=plt.figure(0)
       ax=plt.subplot(111)
