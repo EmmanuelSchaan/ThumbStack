@@ -157,9 +157,9 @@ def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=False, nameL
    ax.legend(loc=1)
    ax.set_xlim((lim[0], lim[1]))
    if semilogx:
-      ax.set_xscale('log', nonposx='clip')
+      ax.set_xscale('log', nonpositive='clip')
    if semilogy:
-      ax.set_yscale('log', nonposy='clip')
+      ax.set_yscale('log', nonpositive='clip')
    #
 #   if doGauss:
 #      yMin = min(histGaussFit.min(), 0.5*np.min(histX[histX>0]))
