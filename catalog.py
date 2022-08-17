@@ -161,7 +161,6 @@ class Catalog(object):
          self.Mvir = self.MassConversion.fmStarTomVir(2.6e11)
 
 
-
    def addIntegratedTau(self):
       """integrated optical depth to Thompson scattering: int d^2theta n_e^2d sigma_T
       = (total nb of electrons) * sigma_T / (a chi)^2
@@ -175,7 +174,7 @@ class Catalog(object):
       # convert from total baryon mass to electron total number
       me = 9.10938291e-31  # electron mass (kg)
       mH = 1.67262178e-27  # proton mass (kg)
-      mHe = 4.*mH # helium nucleus mass (kg)
+      mHe = 4.*mH  # helium nucleus mass (kg)
       xH = 0.76   # primordial hydrogen fraction by mass
       nH_ne = 2.*xH/(xH+1.)
       nHe_ne = (1.-xH)/(2.*(1.+xH))
@@ -185,7 +184,7 @@ class Catalog(object):
       
       # multiply by Thomson cross section (physical)
       mpc = 3.08567758e16*1.e6   # 1Mpc in m
-      sigma_T = 6.6524e-29 # Thomson cross section in m^2
+      sigma_T = 6.6524e-29   # Thomson cross section in m^2
       self.integratedTau *= sigma_T / (mpc / self.U.bg.h)**2
       
       # divide by (a chi)^2
@@ -219,6 +218,40 @@ class Catalog(object):
       
       self.integratedY = yCcyl
 
+   
+   def addIntegratedDeflection(self):
+      """Integrated lensing deflection over the halo: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
+      in [?].
+      the f function is the one in forecast_schaan_2015.pdf 
+      which agrees with what we used from with Baxter et al 2015.
+      """
+      print("- add integrated deflection")
+      
+      # getting Rs and rhoS:
+      # concentration params from Duffy et al 2008, used by Tinker
+      cNFW0 = 5.71
+      cNFWam = -0.084
+      cNFWaz = -0.47
+      # from Duffy et al 2008: different pivot mass
+      cNFW = cNFW0 * (self.Mvir/2.e12)**cNFWam * (1.+self.Z)**cNFWaz
+      # comoving virial radius and scale radius in h^-1 Mpc
+      Rvir = ( 3.*self.Mvir / (4*np.pi*self.U.rho_crit(z) * self.U.Deltacrit_z(z)) )**(1./3.)
+      Rs = Rvir / cNFW
+      # NFW scale density (comoving)
+      rhoS = m / (4.*np.pi*Rs**3) / (np.log(1.+cNFW) - cNFW/(1.+cNFW))
+      
+      # (4G rhoS Rs^2 / c^2) times the integral of f function 
+      self.integratedDeflection = ((4*self.U.G*rhoS*Rs**2)/(self.U.c_kms)**2) * (np.pi* (np.log(cNFW)*np.log(cNFW/4)+(np.arccos(1/cNFW))**2))
+
+   
+   def addIntegratedML(self):
+      """Integrated Moving Lens effect: v_transverse * integratedDeflection
+      in [?].
+      """
+      print("- add integrated ML")
+      self.integratedML = np.sqrt((self.vTheta)**2 + (self.vPhi)**2) * self.integratedTau
+         
+
 
    ##################################################################################
 
@@ -227,8 +260,8 @@ class Catalog(object):
       data = np.zeros((self.nObj,24))
       #
       # sky coordinates and redshift
-      data[:,0] = self.RA # [deg]
-      data[:,1] = self.DEC   # [deg]
+      data[:,0] = self.RA   # [deg]
+      data[:,1] = self.DEC    # [deg]
       data[:,2] = self.Z
       #
       # observed cartesian coordinates
@@ -335,6 +368,7 @@ class Catalog(object):
       # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = data[:nObj, 23] # [sr]
+
 
 
    ##################################################################################
@@ -496,6 +530,11 @@ class Catalog(object):
       # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = np.concatenate((self.integratedY, newCat.integratedY)) # [sr]
+      # 
+      # Integrated ML signal [?]: ?
+      # ?
+      self.integratedML = np.concatenate((self.integratedML, newCat.integratedML)) # [?]
+      
 
       # Write the full catalog to the output path, if needed
       if save:
