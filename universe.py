@@ -522,8 +522,6 @@ class Universe(object):
       result -= 1.   # this is -1/3 * dlnk^3/dlnk
       return result
 
-
-
    def plotdlnPlindDelta(self, z=0.):
       """for the linear power spectrum, dlnP/ddelta is independent of z
       but dP/ddelta is not

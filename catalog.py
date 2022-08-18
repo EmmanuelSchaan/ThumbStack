@@ -40,6 +40,8 @@ class Catalog(object):
          self.addIntegratedTau()
          self.addIntegratedKSZ()
          self.addIntegratedY()
+         self.addIntegratedDeflection()
+         self.addIntegratedML()
          self.writeCatalog()
 
       self.loadCatalog(nObj=nObj)
@@ -221,9 +223,9 @@ class Catalog(object):
    
    def addIntegratedDeflection(self):
       """Integrated lensing deflection over the halo: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
-      in [?].
+      in [sr].
       the f function is the one in forecast_schaan_2015.pdf 
-      which agrees with what we used from with Baxter et al 2015.
+      which agrees with what we used from with Baxter et al 2015 for deflection angle of NFW halos.
       """
       print("- add integrated deflection")
       
@@ -235,10 +237,10 @@ class Catalog(object):
       # from Duffy et al 2008: different pivot mass
       cNFW = cNFW0 * (self.Mvir/2.e12)**cNFWam * (1.+self.Z)**cNFWaz
       # comoving virial radius and scale radius in h^-1 Mpc
-      Rvir = ( 3.*self.Mvir / (4*np.pi*self.U.rho_crit(z) * self.U.Deltacrit_z(z)) )**(1./3.)
+      Rvir = ( 3.*self.Mvir / (4*np.pi*self.U.rho_crit(self.Z) * self.U.Deltacrit_z(self.Z)) )**(1./3.)
       Rs = Rvir / cNFW
       # NFW scale density (comoving)
-      rhoS = m / (4.*np.pi*Rs**3) / (np.log(1.+cNFW) - cNFW/(1.+cNFW))
+      rhoS = self.Mvir / (4.*np.pi*Rs**3) / (np.log(1.+cNFW) - cNFW/(1.+cNFW))
       
       # (4G rhoS Rs^2 / c^2) times the integral of f function 
       self.integratedDeflection = ((4*self.U.G*rhoS*Rs**2)/(self.U.c_kms)**2) * (np.pi* (np.log(cNFW)*np.log(cNFW/4)+(np.arccos(1/cNFW))**2))
@@ -246,7 +248,8 @@ class Catalog(object):
    
    def addIntegratedML(self):
       """Integrated Moving Lens effect: v_transverse * integratedDeflection
-      in [?].
+      in [sr].
+      To get dT in muK*sr, multiply by Tcmb
       """
       print("- add integrated ML")
       self.integratedML = np.sqrt((self.vTheta)**2 + (self.vPhi)**2) * self.integratedTau
