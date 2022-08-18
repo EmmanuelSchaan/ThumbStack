@@ -260,7 +260,7 @@ class Catalog(object):
 
    def writeCatalog(self):
       print("- write full catalog to "+self.pathOutCatalog)
-      data = np.zeros((self.nObj,24))
+      data = np.zeros((self.nObj,26))
       #
       # sky coordinates and redshift
       data[:,0] = self.RA   # [deg]
@@ -312,6 +312,14 @@ class Catalog(object):
       # Integrated Y signal [sr]: int d^2theta n_e^2d sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
       data[:, 23] = self.integratedY # [sr]
+      #
+      # Integrated lensing deflection [sr]: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
+      # the f function is the one in forecast_schaan_2015.pdf
+      data[:, 24] = self.integratedDeflection # [sr]
+      #
+      # Integrated ML signal [sr]: v_transverse * integratedDeflection
+      # To get dT in muK*sr, multiply by Tcmb
+      data[:, 25] = self.integratedML # [sr]
       #
       np.savetxt(self.pathOutCatalog, data)
 
@@ -371,6 +379,14 @@ class Catalog(object):
       # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = data[:nObj, 23] # [sr]
+      #
+      # Integrated lensing deflection [sr]: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
+      # the f function is the one in forecast_schaan_2015.pdf
+      self.integratedY = data[:nObj, 24] # [sr]
+      #
+      # Integrated ML signal [sr]: v_transverse * integratedDeflection
+      # To get dT in muK*sr, multiply by Tcmb
+      self.integratedML = data[:nObj, 25] # [sr]
 
 
 
@@ -534,9 +550,13 @@ class Catalog(object):
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = np.concatenate((self.integratedY, newCat.integratedY)) # [sr]
       # 
-      # Integrated ML signal [?]: ?
-      # ?
-      self.integratedML = np.concatenate((self.integratedML, newCat.integratedML)) # [?]
+      # Integrated lensing deflection [sr]: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
+      # the f function is the one in forecast_schaan_2015.pdf
+      self.integratedDeflection = np.concatenate((self.integratedDeflection, newCat.integratedDeflection)) # [sr]
+      #
+      # Integrated ML signal [sr]: v_transverse * integratedDeflection
+      # To get dT in muK*sr, multiply by Tcmb
+      self.integratedML = np.concatenate((self.integratedML, newCat.integratedML)) # [sr]
       
 
       # Write the full catalog to the output path, if needed
@@ -649,6 +669,14 @@ class Catalog(object):
       # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = self.integratedY[I0Match]
+      #
+      # Integrated lensing deflection [sr]: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
+      # the f function is the one in forecast_schaan_2015.pdf
+      self.integratedDeflection = self.integratedDeflection[I0Match]
+      #
+      # Integrated ML signal [sr]: v_transverse * integratedDeflection
+      # To get dT in muK*sr, multiply by Tcmb
+      self.integratedML = self.integratedML[I0Match]
 
 
       # Write the full catalog to the output path, if needed
@@ -746,6 +774,14 @@ class Catalog(object):
       # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = np.concatenate((self.integratedY, newCat.integratedY)) # [sr]
+      # 
+      # Integrated lensing deflection [sr]: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
+      # the f function is the one in forecast_schaan_2015.pdf
+      self.integratedDeflection = np.concatenate((self.integratedDeflection, newCat.integratedDeflection)) # [sr]
+      #
+      # Integrated ML signal [sr]: v_transverse * integratedDeflection
+      # To get dT in muK*sr, multiply by Tcmb
+      self.integratedML = np.concatenate((self.integratedML, newCat.integratedML)) # [sr]
 
       # Write the full catalog to the output path, if needed
       if save:
