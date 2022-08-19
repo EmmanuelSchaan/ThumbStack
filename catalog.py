@@ -925,8 +925,28 @@ class Catalog(object):
       path = self.pathFig+"/hist_meanyvir.pdf"
       x = self.integratedY / (np.pi * Thetavir**2) # [dimless]
       myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{tSZ} / \left( \pi \theta_\text{vir} \right)$ [dimless]', semilogx=True, semilogy=True)
+        
+      # integrated deflection [arcmin^2]
+      path = self.pathFig+"/hist_integrateddeflection.pdf"
+      x = self.integratedDeflection * (180.*60./np.pi)**2 # [arcmin^2]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{Deflection}$ [arcmin$^2$]', semilogx=True, semilogy=True)
+        
+      # mean deflection within Rvir [dimless]
+      path = self.pathFig+"/hist_meandeflectionvir.pdf"
+      x = self.integratedDeflection / (np.pi * Thetavir**2) # [dimless]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{Deflection}$ / \left( \pi \theta_\text{vir} \right)$ [dimless]', semilogx=True, semilogy=True)
+    
+      # integrated ML [arcmin^2]
+      path = self.pathFig+"/hist_integratedml.pdf"
+      x = self.integratedML * (180.*60./np.pi)**2 # [arcmin^2]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{ML}$ [arcmin$^2$]', semilogx=True, semilogy=True)
 
-
+      # mean ML within Rvir [dimless]
+      path = self.pathFig+"/hist_meanmlvir.pdf"
+      x = self.integratedML / (np.pi * Thetavir**2) # [dimless]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{ML}$ / \left( \pi \theta_\text{vir} \right)$ [dimless]', semilogx=True, semilogy=True)
+      
+      
       # displacements?
       # displacements?
 
