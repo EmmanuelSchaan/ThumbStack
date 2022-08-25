@@ -224,7 +224,7 @@ class Catalog(object):
    def addIntegratedDeflection(self):
       """Integrated lensing deflection over the halo: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
       in [sr].
-      the f function is the one in forecast_schaan_2015.pdf 
+      the function f is the one in forecast_schaan_2015.pdf 
       which agrees with what we used from with Baxter et al 2015 for deflection angle of NFW halos.
       """
       print("- add integrated deflection")
@@ -242,7 +242,7 @@ class Catalog(object):
       # NFW scale density (comoving)
       rhoS = self.Mvir / (4.*np.pi*Rs**3) / (np.log(1.+cNFW) - cNFW/(1.+cNFW))
       
-      # (4G rhoS Rs^2 / c^2) times the integral of f function 
+      # (4G rhoS Rs^2 / c^2) times the integral of function f
       self.integratedDeflection = ((4*self.U.G*rhoS*Rs**2)/(self.U.c_kms)**2) * (np.pi* (np.log(cNFW)*np.log(cNFW/4)+(np.arccos(1/cNFW))**2))
 
    
@@ -252,7 +252,7 @@ class Catalog(object):
       To get dT in muK*sr, multiply by Tcmb
       """
       print("- add integrated ML")
-      self.integratedML = np.sqrt((self.vTheta)**2 + (self.vPhi)**2) * self.integratedTau
+      self.integratedML = np.sqrt((self.vTheta)**2 + (self.vPhi)**2) * self.integratedDeflection
          
 
 
@@ -382,7 +382,7 @@ class Catalog(object):
       #
       # Integrated lensing deflection [sr]: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
       # the f function is the one in forecast_schaan_2015.pdf
-      self.integratedY = data[:nObj, 24] # [sr]
+      self.integratedDeflection = data[:nObj, 24] # [sr]
       #
       # Integrated ML signal [sr]: v_transverse * integratedDeflection
       # To get dT in muK*sr, multiply by Tcmb
