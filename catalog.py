@@ -243,7 +243,7 @@ class Catalog(object):
       rhoS = self.Mvir / (4.*np.pi*Rs**3) / (np.log(1.+cNFW) - cNFW/(1.+cNFW))
       
       # (4G rhoS Rs^2 / c^2) times the integral of function f
-      self.integratedDeflection = ((4*self.U.G*rhoS*Rs**2)/(self.U.c_kms)**2) * (np.pi* (np.log(cNFW)*np.log(cNFW/4)+(np.arccos(1/cNFW))**2))
+      self.integratedDeflection = ((4*self.U.G*rhoS*Rs**2)/(self.U.c_kms)**2) * (0.24+np.pi* (np.log(cNFW)*np.log(cNFW/4)+(np.arccos(1/cNFW))**2))
 
    
    def addIntegratedML(self):
