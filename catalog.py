@@ -252,7 +252,7 @@ class Catalog(object):
       To get dT in muK*sr, multiply by Tcmb
       """
       print("- add integrated ML")
-      self.integratedML = np.sqrt((self.vTheta)**2 + (self.vPhi)**2) * self.integratedDeflection
+      self.integratedML = np.sqrt((self.vTheta)**2 + (self.vPhi)**2) * self.integratedDeflection/self.U.c_kms
          
 
 
@@ -854,31 +854,31 @@ class Catalog(object):
       
       # redshifts
       path = self.pathFig+"/hist_z.pdf"
-      myHistogram(self.Z, nBins=71, lim=(0., 1.), path=path, nameLatex=r'$z$', semilogy=True)
+      myHistogram(self.Z, nBins=71, lim=(0., 1.), path=path, nameLatex='z', semilogy=True)
       
       # spherical velocities
       path = self.pathFig+"/hist_vr.pdf"
-      myHistogram(self.vR, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_r$ [km/s]', doGauss=True)
+      myHistogram(self.vR, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex='v$_r$ [km/s]', doGauss=True)
       path = self.pathFig+"/hist_vtheta.pdf"
-      myHistogram(self.vTheta, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_\theta$ [km/s]', doGauss=True)
+      myHistogram(self.vTheta, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'v$_\theta$ [km/s]', doGauss=True)
       path = self.pathFig+"/hist_vphi.pdf"
-      myHistogram(self.vPhi, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_\phi$ [km/s]', doGauss=True)
+      myHistogram(self.vPhi, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex='v$_\phi$ [km/s]', doGauss=True)
       
       # cartesian velocities
       path = self.pathFig+"/hist_vx.pdf"
-      myHistogram(self.vX, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_x$ [km/s]', doGauss=True)
+      myHistogram(self.vX, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex='v$_x$ [km/s]', doGauss=True)
       path = self.pathFig+"/hist_vy.pdf"
-      myHistogram(self.vY, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_y$ [km/s]', doGauss=True)
+      myHistogram(self.vY, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex='v$_y$ [km/s]', doGauss=True)
       path = self.pathFig+"/hist_vz.pdf"
-      myHistogram(self.vZ, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex=r'$v_z$ [km/s]', doGauss=True)
+      myHistogram(self.vZ, nBins=71, lim=(-1000., 1000.), S2Theory=[s2v1d], path=path, nameLatex='v$_z$ [km/s]', doGauss=True)
       
       # stellar masses
       path = self.pathFig+"/hist_mstellar.pdf"
-      myHistogram(self.Mstellar, nBins=71, path=path, nameLatex=r'$M_\star$ [M$_\odot$]', semilogx=True, semilogy=True)
+      myHistogram(self.Mstellar, nBins=71, path=path, nameLatex=r'M$_{\star}$ [M$_\odot$]', semilogx=True, semilogy=True)
 
       # virial masses
       path = self.pathFig+"/hist_mvir.pdf"
-      myHistogram(self.Mvir, nBins=71, path=path, nameLatex=r'$M_\text{vir}$ [M$_\odot$]', semilogx=True, semilogy=True)
+      myHistogram(self.Mvir, nBins=71, path=path, nameLatex=r'M$_{vir}$ [M$_\odot$]', semilogx=True, semilogy=True)
       
       # comoving virial radius
       # need masses in Msun/h
@@ -887,64 +887,64 @@ class Catalog(object):
       Rvir = np.array(list(map(f, Par)))  # in Mpc/h
       #Rvir /= self.U.bg.h  # Mpc
       path = self.pathFig+"/hist_rvir.pdf"
-      myHistogram(Rvir/self.U.bg.h, nBins=71, path=path, nameLatex=r'$R_\text{vir}$ [Mpc]', semilogx=True, semilogy=True)
+      myHistogram(Rvir/self.U.bg.h, nBins=71, path=path, nameLatex='R$_{vir}$ [Mpc]', semilogx=True, semilogy=True)
       
       # virial angular radius
       Chi = np.array(list(map(self.U.bg.comoving_distance, self.Z))) # [Mpc/h]
       Thetavir = Rvir / Chi   # [rad]
       path = self.pathFig+"/hist_thetavir.pdf"
       x = Thetavir * (180.*60./np.pi)  # [arcmin]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\theta_\text{vir}$ [arcmin]', semilogx=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\theta$$_{vir}$ [arcmin]', semilogx=True, semilogy=True)
       
       # integrated tau [arcmin^2]
       path = self.pathFig+"/hist_integratedtau.pdf"
       x = self.integratedTau * (180.*60./np.pi)**2 # [arcmin^2]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; \tau$ [arcmin$^2$]', semilogx=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \tau$ [arcmin$^2$]', semilogx=True, semilogy=True)
       
       # mean tau within Rvir [dimless]
       path = self.pathFig+"/hist_meantauvir.pdf"
       x = self.integratedTau / (np.pi * Thetavir**2) # [dimless]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; \tau / \left( \pi \theta_\text{vir} \right)$ [dimless]', semilogx=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \tau / ( \pi \theta_{vir} )$ [dimless]', semilogx=True, semilogy=True)
 
       # expected kSZ [muK*arcmin^2]
       path = self.pathFig+"/hist_ksz.pdf"
       x = self.integratedKSZ * (180.*60./np.pi)**2 # [muK*arcmin^2]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; \delta T_\text{kSZ}$ [$\mu$K.arcmin$^2$]', doGauss=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{kSZ}$ [$\mu$K.arcmin$^2$]', doGauss=True, semilogy=True)
 
       # mean kSZ within Rvir [muK]
       path = self.pathFig+"/hist_meankszvir.pdf"
       x = self.integratedKSZ / (np.pi * Thetavir**2) # [muK]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; \delta T_\text{kSZ} / \left( \pi \theta_\text{vir} \right)$ [$\mu$K]', doGauss=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{kSZ} / ( \pi \theta_{vir} )$ [$\mu$K]', doGauss=True, semilogy=True)
 
       # expected Y [arcmin^2]
       path = self.pathFig+"/hist_y.pdf"
       x = self.integratedY * (180.*60./np.pi)**2 # [arcmin^2]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{tSZ}$ [arcmin$^2$]', semilogx=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; y_{tSZ}$ [arcmin$^2$]', semilogx=True, semilogy=True)
 
       # mean Y within Rvir [dimless]
       path = self.pathFig+"/hist_meanyvir.pdf"
       x = self.integratedY / (np.pi * Thetavir**2) # [dimless]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{tSZ} / \left( \pi \theta_\text{vir} \right)$ [dimless]', semilogx=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; y_{tSZ} / ( \pi  \theta_{vir} )$ [dimless]', semilogx=True, semilogy=True)
         
       # integrated deflection [arcmin^2]
       path = self.pathFig+"/hist_integrateddeflection.pdf"
       x = self.integratedDeflection * (180.*60./np.pi)**2 # [arcmin^2]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{Deflection}$ [arcmin$^2$]', semilogx=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \;$ Deflection [arcmin$^2$]', semilogx=True, semilogy=True)
         
       # mean deflection within Rvir [dimless]
       path = self.pathFig+"/hist_meandeflectionvir.pdf"
       x = self.integratedDeflection / (np.pi * Thetavir**2) # [dimless]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{Deflection}$ / \left( \pi \theta_\text{vir} \right)$ [dimless]', semilogx=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \;$ Deflection $/ ( \pi  \theta_{vir}^2 )$ [dimless]', semilogx=True, semilogy=True)
     
       # integrated ML [arcmin^2]
       path = self.pathFig+"/hist_integratedml.pdf"
       x = self.integratedML * (180.*60./np.pi)**2 # [arcmin^2]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{ML}$ [arcmin$^2$]', semilogx=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{ML}$ [arcmin$^2$]', semilogx=False, semilogy=True)
 
       # mean ML within Rvir [dimless]
       path = self.pathFig+"/hist_meanmlvir.pdf"
       x = self.integratedML / (np.pi * Thetavir**2) # [dimless]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2\theta \; y_\text{ML}$ / \left( \pi \theta_\text{vir} \right)$ [dimless]', semilogx=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{ML} / ( \pi \theta_{vir}^2 )$ [dimless]', semilogx=False, semilogy=True)
       
       
       # displacements?

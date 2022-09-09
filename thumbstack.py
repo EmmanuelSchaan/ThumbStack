@@ -110,7 +110,7 @@ class ThumbStack(object):
       if True:
          if doStackedMap:
             # save all stacked maps
-            #self.saveAllStackedMaps()
+            # self.saveAllStackedMaps()
             # save only the stacked maps for
             # the best tsz and ksz estimators,
             # and for the diskring weighting

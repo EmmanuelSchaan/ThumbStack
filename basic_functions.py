@@ -99,7 +99,7 @@ def floatExpForm(input):
 ##################################################################################
 
 
-def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=False, nameLatex=r'$x$', semilogx=False, semilogy=False, doGauss=False):
+def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=True, nameLatex=r'$x$', semilogx=False, semilogy=False, doGauss=False):
    """Generic histogram plotter.
    Flattens the input array X first thing.
    """
