@@ -222,10 +222,9 @@ class Catalog(object):
 
    
    def addIntegratedDeflection(self):
-      """Integrated lensing deflection over the halo: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
+      """Integrated lensing deflection over the halo: int d^2theta 16pi G rhoS Rs^2 f(r/r_s) / c^2
       in [sr].
-      the function f is the one in forecast_schaan_2015.pdf 
-      which agrees with what we used from with Baxter et al 2015 for deflection angle of NFW halos.
+      the function f is essentially the radial profile of lensing deflection angle by the cluster
       """
       print("- add integrated deflection")
       
@@ -236,23 +235,36 @@ class Catalog(object):
       cNFWaz = -0.47
       # from Duffy et al 2008: different pivot mass
       cNFW = cNFW0 * (self.Mvir/2.e12)**cNFWam * (1.+self.Z)**cNFWaz
-      # comoving virial radius and scale radius in h^-1 Mpc
-      Rvir = ( 3.*self.Mvir / (4*np.pi*self.U.rho_crit(self.Z) * self.U.Deltacrit_z(self.Z)) )**(1./3.)
-      Rs = Rvir / cNFW
+      # comoving virial radius and scale radius 
+      Rvir = ( 3.*self.Mvir / (4.*np.pi*self.U.rho_crit(self.Z) * self.U.Deltacrit_z(self.Z)) )**(1./3.)    # in Mpc
+      Rs = Rvir / cNFW     # in Mpc
       # NFW scale density (comoving)
       rhoS = self.Mvir / (4.*np.pi*Rs**3) / (np.log(1.+cNFW) - cNFW/(1.+cNFW))
+    
+      # Integrating f(x) from 0 to cNFW (0to1 contribution will be added as a constant 0.138783608936919)
+      x=np.transpose(np.linspace(1+1e-10, cNFW , 100))
+      fIntegrand = np.log(x/2) + np.arccos(1/x)/np.sqrt(x**2 -1)
+      fInt_1tocNFW = integrate.trapz(fIntegrand, x=x)
+      fInt_0to1 = 0.1387836089369198
+      # summing the contributions and converting the radial integral to angular area integral 
+      fInt = (fInt_0to1 + fInt_1tocNFW) * (2.* np.pi * Rs**2) / ((self.U.bg.comoving_distance(self.Z))**2)
       
-      # (4G rhoS Rs^2 / c^2) times the integral of function f
-      self.integratedDeflection = ((4*self.U.G*rhoS*Rs**2)/(self.U.c_kms)**2) * (0.24+np.pi* (np.log(cNFW)*np.log(cNFW/4)+(np.arccos(1/cNFW))**2))
+      c_ms = self.U.c_kms*10**3   # Speed of light in m/s
+      msun = 1.989e30   # solar mass in kg
+      mpc = 3.08567758e16*1.e6   # 1Mpc in m
+      
+      # (16 pi G rhoS Rs^2 / c^2) times the integral of function f
+      # (msun /mpc) is multiplied for unit conversions
+      self.integratedDeflection = (16.* np.pi * self.U.G * rhoS * Rs**2 / c_ms**2) * (msun /mpc) * (fInt)
 
    
    def addIntegratedML(self):
-      """Integrated Moving Lens effect: v_transverse * integratedDeflection
+      """Integrated Moving Lens effect: (v_transverse /c) * integratedDeflection
       in [sr].
       To get dT in muK*sr, multiply by Tcmb
       """
       print("- add integrated ML")
-      self.integratedML = np.sqrt((self.vTheta)**2 + (self.vPhi)**2) * self.integratedDeflection/self.U.c_kms
+      self.integratedML = np.sqrt((self.vTheta)**2 + (self.vPhi)**2)/self.U.c_kms * self.integratedDeflection
          
 
 
@@ -313,11 +325,11 @@ class Catalog(object):
       # needs to be multiplied by Tcmb * f(nu) to get muK
       data[:, 23] = self.integratedY # [sr]
       #
-      # Integrated lensing deflection [sr]: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
-      # the f function is the one in forecast_schaan_2015.pdf
+      # Integrated lensing deflection over the halo: int d^2theta 16pi G rhoS Rs^2 f(r/r_s) / c^2
+      # the function f is essentially the radial profile of lensing deflection angle by the cluster
       data[:, 24] = self.integratedDeflection # [sr]
       #
-      # Integrated ML signal [sr]: v_transverse * integratedDeflection
+      # Integrated ML signal [sr]: (v_transverse /c) * integratedDeflection
       # To get dT in muK*sr, multiply by Tcmb
       data[:, 25] = self.integratedML # [sr]
       #
@@ -380,11 +392,11 @@ class Catalog(object):
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = data[:nObj, 23] # [sr]
       #
-      # Integrated lensing deflection [sr]: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
-      # the f function is the one in forecast_schaan_2015.pdf
+      # Integrated lensing deflection over the halo: int d^2theta 16pi G rhoS Rs^2 f(r/r_s) / c^2
+      # the function f is essentially the radial profile of lensing deflection angle by the cluster
       self.integratedDeflection = data[:nObj, 24] # [sr]
       #
-      # Integrated ML signal [sr]: v_transverse * integratedDeflection
+      # Integrated ML signal [sr]: (v_transverse /c) * integratedDeflection
       # To get dT in muK*sr, multiply by Tcmb
       self.integratedML = data[:nObj, 25] # [sr]
 
@@ -550,11 +562,11 @@ class Catalog(object):
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = np.concatenate((self.integratedY, newCat.integratedY)) # [sr]
       # 
-      # Integrated lensing deflection [sr]: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
-      # the f function is the one in forecast_schaan_2015.pdf
+      # Integrated lensing deflection over the halo: int d^2theta 16pi G rhoS Rs^2 f(r/r_s) / c^2
+      # the function f is essentially the radial profile of lensing deflection angle by the cluster
       self.integratedDeflection = np.concatenate((self.integratedDeflection, newCat.integratedDeflection)) # [sr]
       #
-      # Integrated ML signal [sr]: v_transverse * integratedDeflection
+      # Integrated ML signal [sr]: (v_transverse /c) * integratedDeflection
       # To get dT in muK*sr, multiply by Tcmb
       self.integratedML = np.concatenate((self.integratedML, newCat.integratedML)) # [sr]
       
@@ -670,11 +682,11 @@ class Catalog(object):
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = self.integratedY[I0Match]
       #
-      # Integrated lensing deflection [sr]: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
-      # the f function is the one in forecast_schaan_2015.pdf
+      # Integrated lensing deflection over the halo: int d^2theta 16pi G rhoS Rs^2 f(r/r_s) / c^2
+      # the function f is essentially the radial profile of lensing deflection angle by the cluster
       self.integratedDeflection = self.integratedDeflection[I0Match]
       #
-      # Integrated ML signal [sr]: v_transverse * integratedDeflection
+      # Integrated ML signal [sr]: (v_transverse /c) * integratedDeflection
       # To get dT in muK*sr, multiply by Tcmb
       self.integratedML = self.integratedML[I0Match]
 
@@ -775,11 +787,11 @@ class Catalog(object):
       # needs to be multiplied by Tcmb * f(nu) to get muK
       self.integratedY = np.concatenate((self.integratedY, newCat.integratedY)) # [sr]
       # 
-      # Integrated lensing deflection [sr]: int_1^{cNFW} 4G rho_s r_s^2 f(r/r_s) / c^2
-      # the f function is the one in forecast_schaan_2015.pdf
+      # Integrated lensing deflection over the halo: int d^2theta 16pi G rhoS Rs^2 f(r/r_s) / c^2
+      # the function f is essentially the radial profile of lensing deflection angle by the cluster
       self.integratedDeflection = np.concatenate((self.integratedDeflection, newCat.integratedDeflection)) # [sr]
       #
-      # Integrated ML signal [sr]: v_transverse * integratedDeflection
+      # Integrated ML signal [sr]: (v_transverse /c) * integratedDeflection
       # To get dT in muK*sr, multiply by Tcmb
       self.integratedML = np.concatenate((self.integratedML, newCat.integratedML)) # [sr]
 

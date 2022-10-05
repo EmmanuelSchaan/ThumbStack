@@ -535,7 +535,7 @@ class Universe(object):
 
       # dlnP/ddelta
       fig = plt.figure(0)
-      ax = plt.subplot(111)
+      ax = plt.subplot(111) 
       #
       ax.semilogx(self.K, dP, 'b', label=r'$\frac{68}{21} - \frac{1}{3}\frac{d\ln k^3P_\text{lin}}{d\ln k}$')
       ax.axhline(68./21., color='r', label=r'$\frac{68}{21}$')

@@ -32,8 +32,10 @@ class ThumbStack(object):
          self.filterTypes = np.array(['disk'])
       elif filterTypes=='ring':
          self.filterTypes = np.array(['ring'])
+      elif filterTypes=='cosdisk':
+         self.filterTypes = np.array(['cosdisk'])
       elif filterTypes=='all':
-         self.filterTypes = np.array(['diskring', 'disk', 'ring'])
+         self.filterTypes = np.array(['diskring', 'disk', 'ring', 'cosdisk'])
 
       # estimators (ksz, tsz) and weightings (uniform, hit, var, ...)
       # for stacked profiles, bootstrap cov and v-shuffle cov
@@ -331,7 +333,7 @@ class ThumbStack(object):
    ##################################################################################
 
 
-   def aperturePhotometryFilter(self, opos, stampMap, stampMask, stampHit, r0, r1, filterType='diskring',  test=False):
+   def aperturePhotometryFilter(self, opos, stampMap, stampMask, stampHit, r0, r1, filterType='diskring', vTheta=0, vPhi=0, test=False):
       """Apply an AP filter (disk minus ring) to a stamp map:
       AP = int d^2theta * Filter * map.
       Unit is [map unit * sr]
@@ -354,8 +356,8 @@ class ThumbStack(object):
       ra = opos[1,:,:]
       radius = np.sqrt(ra**2 + dec**2)
       # exact angular area of a pixel [sr] (same for all pixels in CEA, not CAR)
-      pixArea = ra.area() / len(ra.flatten())
-      
+      pixArea = ra.area() / len(ra.flatten())          
+        
       # detect point sources within the filter:
       # gives 0 in the absence of point sources/edges; gives >=1 in the presence of point sources/edges
       filtMask = np.sum((radius<=r1) * (1-stampMask))   # [dimensionless]
@@ -382,6 +384,14 @@ class ThumbStack(object):
          filterW = inRing
       elif filterType=='meanring':
          filterW = inRing / np.sum(pixArea * inRing)
+      elif filterType=='cosdisk':
+         # angle between transverse velocity and horizontal axis
+         phi1 = np.arctan2(vTheta/vPhi)   # np.arctan2 = 2.*np.arctan(y/(x+sqrt(x**2+y**2))) chooses correct quadrant
+         # angle between lensing deflection vector of the cluster and the horizontal axis
+         phi2 = np.pi + np.arctan2(dec/ra)   # deflection vector is inward
+         # cosdisk filter [dimensionless]
+         inDisk = 1.*(radius<=r0)
+         filterW = inDisk * np.cos(phi1-phi2) 
 
       # apply the filter: int_disk d^2theta map -  disk_area / ring_area * int_ring d^2theta map
       filtMap = np.sum(pixArea * filterW * stampMap)   # [map unit * sr]
@@ -459,8 +469,10 @@ class ThumbStack(object):
       if self.overlapFlag[iObj]:
          # Object coordinates
          ra = self.Catalog.RA[iObj]   # in deg
-         dec = self.Catalog.DEC[iObj] # in deg
+         dec = self.Catalog.DEC[iObj]   # in deg
          z = self.Catalog.Z[iObj]
+         vTheta = self.Catalog.vTheta[iObj]   # [km/s]
+         vPhi = self.Catalog.vPhi[iObj]   # [km/s]
          # choose postage stamp size to fit the largest ring
          dArcmin = np.ceil(2. * self.rApMaxArcmin * np.sqrt(2.))
          dDeg = dArcmin / 60.
@@ -483,7 +495,7 @@ class ThumbStack(object):
                r1 = r0 * np.sqrt(2.)
                
                # perform the filtering
-               filtMap[filterType][iRAp], filtMask[filterType][iRAp], filtHitNoiseStdDev[filterType][iRAp], filtArea[filterType][iRAp] = self.aperturePhotometryFilter(opos, stampMap, stampMask, stampHit, r0, r1, filterType=filterType, test=test)
+               filtMap[filterType][iRAp], filtMask[filterType][iRAp], filtHitNoiseStdDev[filterType][iRAp], filtArea[filterType][iRAp] = self.aperturePhotometryFilter(opos, stampMap, stampMask, stampHit, r0, r1, filterType=filterType, vTheta=vTheta, vPhi=vPhi, test=test)
 
       if test:
          print(" plot the measured profile")

@@ -18,6 +18,7 @@ from timeit import timeit
 from time import time
 from copy import copy
 import sys
+from mpmath import polylog
 
 
 # For CMB maps
