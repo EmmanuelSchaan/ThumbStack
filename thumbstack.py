@@ -386,12 +386,12 @@ class ThumbStack(object):
          filterW = inRing / np.sum(pixArea * inRing)
       elif filterType=='cosdisk':
          # angle between transverse velocity and horizontal axis
-         phi1 = np.arctan2(vTheta/vPhi)   # np.arctan2 = 2.*np.arctan(y/(x+sqrt(x**2+y**2))) chooses correct quadrant
+         phi1 = np.arctan2(-vTheta,vPhi)   # np.arctan2 = 2.*np.arctan(y/(x+sqrt(x**2+y**2))) chooses correct quadrant
          # angle between lensing deflection vector of the cluster and the horizontal axis
-         phi2 = np.pi + np.arctan2(dec/ra)   # deflection vector is inward
+         phi2 = np.pi + np.arctan2(dec,ra)   # lensing deflection vector is inward
          # cosdisk filter [dimensionless]
          inDisk = 1.*(radius<=r0)
-         filterW = inDisk * np.cos(phi1-phi2) 
+         filterW = inDisk * np.cos(phi1-phi2)
 
       # apply the filter: int_disk d^2theta map -  disk_area / ring_area * int_ring d^2theta map
       filtMap = np.sum(pixArea * filterW * stampMap)   # [map unit * sr]

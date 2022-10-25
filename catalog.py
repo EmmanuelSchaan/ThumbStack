@@ -252,10 +252,11 @@ class Catalog(object):
       c_ms = self.U.c_kms*10**3   # Speed of light in m/s
       msun = 1.989e30   # solar mass in kg
       mpc = 3.08567758e16*1.e6   # 1Mpc in m
+      a = 1 / (1 + self.Z)   # scale factor
       
-      # (16 pi G rhoS Rs^2 / c^2) times the integral of function f
+      # (16 pi G rhoS Rs^2 / c^2 a) times the integral of function f
       # (msun /mpc) is multiplied for unit conversions
-      self.integratedDeflection = (16.* np.pi * self.U.G * rhoS * Rs**2 / c_ms**2) * (msun /mpc) * (fInt)
+      self.integratedDeflection = (16.* np.pi * self.U.G * rhoS * Rs**2 / (a * c_ms**2)) * (msun /mpc) * (fInt)
 
    
    def addIntegratedML(self):
