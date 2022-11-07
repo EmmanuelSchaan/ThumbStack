@@ -39,7 +39,7 @@ import rotfuncs
 #from multiprocess import Pool
 
 # Yu Feng's version of multiprocessing, relying on forking rather than pickling
-#import sharedmem
+import sharedmem
 
 #import vegas   # for Monte Carlo integration, for CMB lens reconstruction
 #import gvar as gv
@@ -59,7 +59,7 @@ import importlib
 
 # neutrino masses: https://github.com/ThomasTram/iCLASS/blob/master/neutrinohierarchy.ipynb
 # cosmo doc: https://lesgourg.github.io/class-tour/Narbonne.pdf
-#from classy import Class
+from classy import Class
 
 # http://classylss.readthedocs.io/en/stable/index.html
 import classylss

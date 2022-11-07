@@ -218,10 +218,20 @@ class ThumbStack(object):
       
 #      overlapFlag = np.array(map(foverlap, range(self.Catalog.nObj)))
       tStart = time()
-      with sharedmem.MapReduce(np=nProc) as pool:
-         overlapFlag = np.array(pool.map(foverlap, list(range(self.Catalog.nObj))))
+#       with sharedmem.MapReduce(np=nProc) as pool:
+#          overlapFlag = np.array(pool.map(foverlap, list(range(self.Catalog.nObj))))
+      overlapFlag = np.array(list(map(foverlap, list(range(self.Catalog.nObj)))))
       tStop = time()
       print("took", (tStop-tStart)/60., "min")
+#       print(self.Catalog.RA[0])
+#       print(self.Catalog.RA[7190])
+#       print(range(self.Catalog.nObj))
+#       print(list(range(self.Catalog.nObj)))
+#       print(list(map(foverlap, list(range(self.Catalog.nObj)))))
+#       print(self.Catalog.nObj)
+#       print(overlapFlag)
+#       print(np.sum(overlapFlag))
+#       print(np.sum(overlapFlag)/self.Catalog.nObj)
       print("Out of", self.Catalog.nObj, "objects,", np.sum(overlapFlag), "overlap, ie a fraction", np.sum(overlapFlag)/self.Catalog.nObj)
       np.savetxt(self.pathOut+"/overlap_flag.txt", overlapFlag)
    
@@ -518,9 +528,11 @@ class ThumbStack(object):
       # loop over all objects in catalog
 #      result = np.array(map(self.analyzeObject, range(self.Catalog.nObj)))
       tStart = time()
-      with sharedmem.MapReduce(np=nProc) as pool:
-         f = lambda iObj: self.analyzeObject(iObj, test=False)
-         result = np.array(pool.map(f, list(range(self.Catalog.nObj))))
+#       with sharedmem.MapReduce(np=nProc) as pool:
+#          f = lambda iObj: self.analyzeObject(iObj, test=False)
+#          result = np.array(pool.map(f, list(range(self.Catalog.nObj))))
+      f = lambda iObj: self.analyzeObject(iObj, test=False)
+      result = np.array(list(map(f, list(range(self.Catalog.nObj)))))
       tStop = time()
       print("took", (tStop-tStart)/60., "min")
 
@@ -1557,7 +1569,7 @@ class ThumbStack(object):
 
    ##################################################################################
 
-   def plotStackedProfile(self, filterType, Est, name=None, pathDir=None, theory=True, tsArr=None, plot=False, legend=True):
+   def plotStackedProfile(self, filterType, Est, name=None, pathDir=None, theory=True, tsArr=None, plot=True, legend=True):
       """Compares stacked profiles, and their uncertainties.
       If pathDir is not specified, save to local figure folder.
       """
@@ -1595,7 +1607,8 @@ class ThumbStack(object):
       if legend:
          ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
       ax.set_xlabel(r'$R$ [arcmin]')
-      ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
+#       ax.set_ylabel(r'$T$ [$\mu K\cdot\text{arcmin}^2$]')
+      ax.set_ylabel(r'$T$ [$\mu K\cdot {arcmin}^2$]')
       #ax.set_ylim((0., 2.))
       #
       path = pathDir+"/"+name+".pdf"
@@ -1632,7 +1645,8 @@ class ThumbStack(object):
       if legend:
          ax.legend(loc=2, fontsize='x-small', labelspacing=0.1)
       ax.set_xlabel(r'$R$ [arcmin]')
-      ax.set_ylabel(r'$\sigma(T)$ [$\mu K\cdot\text{arcmin}^2$]')
+#       ax.set_ylabel(r'$\sigma(T)$ [$\mu K\cdot\text{arcmin}^2$]')
+      ax.set_ylabel(r'$\sigma(T)$ [$\mu K\cdot {arcmin}^2$]')
       #ax.set_ylim((0., 2.))
       #
       path = pathDir+"/s_"+name+".pdf"
