@@ -18,12 +18,12 @@ class Universe(object):
                   'output': 'dTk vTk mPk',#'lCl tCl pCl mPk',
 #                  'l_max_scalars': 2000,
 #                  'lensing': 'yes',
-                  'A_s': 2.3e-9,
-                  'n_s': 0.9624,
-                  'h': 0.6711,
+                  'A_s': 2.1052e-9, 
+                  'n_s': 0.9665, 
+                  'h': 0.6766,
                   'N_ur': 3.046,
-                  'omega_b': 0.022068,
-                  'Omega_cdm': 0.32,
+                  'omega_b': 0.04897,
+                  'Omega_cdm': 0.26066,
                   'Omega_k': 0.,
                   'P_k_max_1/Mpc': 10.,
 #                  'N_ncdm': 3,
@@ -486,9 +486,9 @@ class Universe(object):
       """
 
       # concentration params from Duffy et al 2008, used by Tinker
-      cNFW0 = 5.71
-      cNFWam = -0.084
-      cNFWaz = -0.47
+      cNFW0 = 7.85
+      cNFWam = -0.081
+      cNFWaz = -0.71
 
       # from Duffy et al 2008: different pivot mass
       cNFW = cNFW0 * (m/2.e12)**cNFWam * (1.+z)**cNFWaz

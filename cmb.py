@@ -147,6 +147,10 @@ class CMB(object):
    
    def fdetectorNoise(self, l):
       return self.sensitivity**2 / self.fbeam(l)**2
+ 
+   #temporary
+   def highPassFilter(self, l, center=500, width=50):
+      return 1/(1 +np.exp(-(l-center)/width))
 
 
    ###############################################################################

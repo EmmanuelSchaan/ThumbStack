@@ -33,7 +33,6 @@ class Catalog(object):
       if not os.path.exists(self.pathFig):
          os.makedirs(self.pathFig)
       
-      
       if save:
          self.readInputCatalog()
          self.addHaloMass()
@@ -45,8 +44,21 @@ class Catalog(object):
          self.writeCatalog()
 
       self.loadCatalog(nObj=nObj)
-   
+    
+    
+   #TEMPORARY
+#    def __reduce__(self):
+#       # Get the class constructor
+#       class_constructor = self.__class__
 
+#       # Get all instance attributes using vars() and exclude internal attributes
+#       instance_attributes = {k: v for k, v in vars(self).items() if not k.startswith("__")}
+
+#       # Create the args tuple using a generator expression
+#       args = tuple(instance_attributes[attr] for attr in instance_attributes)
+
+#       return class_constructor, args
+   
    ##################################################################################
    ##################################################################################
 
@@ -161,6 +173,32 @@ class Catalog(object):
       else:
          self.Mstellar = 2.6e11   # random guess
          self.Mvir = self.MassConversion.fmStarTomVir(2.6e11)
+            
+            
+#       #TEMPORARY
+#    def addHaloMass(self):
+#       """just puts mvirs into mvirs
+#       """
+#       print("- add halo masses")
+#       # flag: 1 if object has mass
+#       self.hasM = np.zeros(self.nObj)
+#       self.Mvir = np.zeros(self.nObj)
+#       for iObj in range(self.nObj):
+#          mStellar = self.Mstellar[iObj]
+#          if (mStellar>1.e3) and not np.isnan(mStellar):
+#             self.hasM[iObj] = True
+#             self.Mvir[iObj] = mStellar
+#       # for object without a mass, use the mean mass from the others
+#       if np.sum(self.hasM)>0:
+#          meanMstellar = np.mean(self.Mstellar[self.hasM.astype('bool')])
+#          self.Mstellar[~self.hasM.astype('bool')] = meanMstellar
+#          #
+#          meanMvir = np.mean(self.Mvir[self.hasM.astype('bool')])
+#          self.Mvir[~self.hasM.astype('bool')] = meanMvir
+#       # if no object has a mass, make a random guess, rather than keeping 0
+#       else:
+#          self.Mstellar = 2.6e11   # random guess
+#          self.Mvir = self.MassConversion.fmStarTomVir(2.6e11)
 
 
    def addIntegratedTau(self):
@@ -220,60 +258,112 @@ class Catalog(object):
       
       self.integratedY = yCcyl
 
-   
+
+#    def addIntegratedDeflection(self):
+#       """Integrated lensing deflection over the halo: int d^2theta 16pi G rhoS Rs^2 f(r/r_s) / a / c^2
+#       in [sr].
+#       the function f is essentially the radial profile of lensing deflection angle by the cluster
+#       """
+#       print("- add integrated deflection")
+      
+#       # getting Rs and rhoS:
+#       # concentration params from Duffy et al 2008, used by Tinker
+#       cNFW0 = 7.85
+#       cNFWam = -0.081
+#       cNFWaz = -0.71
+#       # from Duffy et al 2008: different pivot mass
+#       cNFW = cNFW0 * (self.Mvir/2.e12)**cNFWam * (1.+self.Z)**cNFWaz
+#       # comoving virial radius and scale radius 
+#       Rvir = ( 3.*self.Mvir / (4.*np.pi*self.U.rho_crit(self.Z) * self.U.Deltacrit_z(self.Z)) )**(1./3.)    # in Mpc
+#       Rs = Rvir / cNFW     # in Mpc
+#       # NFW scale density (comoving)
+#       rhoS = self.Mvir / (4.*np.pi*Rs**3) / (np.log(1.+cNFW) - cNFW/(1.+cNFW))
+
+#       # Integrating f(x) from 0 to cNFW 
+#       x = np.transpose(np.linspace(0+1e-10, cNFW , 100))
+#       x = x.astype(complex)
+#       fIntegrand = np.log(x/2) + np.absolute( np.arccos(1/x)/np.sqrt(x**2 - 1) )
+#       fInt_0tocNFW = integrate.trapz(fIntegrand, x=x)
+#       # converting the radial integral to angular area integral 
+#       fInt = (fInt_0tocNFW.real) * (2.* np.pi * Rs**2) / ((self.U.bg.comoving_distance(self.Z))**2)
+      
+#       c_ms = self.U.c_kms*10**3   # Speed of light in m/s
+#       msun = 1.989e30   # solar mass in kg
+#       mpc = 3.08567758e16*1.e6   # 1Mpc in m
+#       a = 1 / (1 + self.Z)   # scale factor
+      
+#       # (16 pi G rhoS Rs^2 / c^2 a) times the integral of function f
+#       # (msun /mpc) is multiplied for unit conversions
+#       self.integratedDeflection = (16.* np.pi * self.U.G * rhoS * Rs**2 / (a * c_ms**2)) * (msun /mpc) * (fInt)
+    
    def addIntegratedDeflection(self):
-      """Integrated lensing deflection over the halo: int d^2theta 16pi G rhoS Rs^2 f(r/r_s) / c^2
+      """Integrated lensing deflection over the halo: int d^2theta 16pi G rhoS Rs^2 f(r/r_s) / a / c^2
       in [sr].
       the function f is essentially the radial profile of lensing deflection angle by the cluster
       """
       print("- add integrated deflection")
-      
-      # getting Rs and rhoS:
-      # concentration params from Duffy et al 2008, used by Tinker
-      cNFW0 = 5.71
-      cNFWam = -0.084
-      cNFWaz = -0.47
-      # from Duffy et al 2008: different pivot mass
-      cNFW = cNFW0 * (self.Mvir/2.e12)**cNFWam * (1.+self.Z)**cNFWaz
-      # comoving virial radius and scale radius 
-      Rvir = ( 3.*self.Mvir / (4.*np.pi*self.U.rho_crit(self.Z) * self.U.Deltacrit_z(self.Z)) )**(1./3.)    # in Mpc
-      Rs = Rvir / cNFW     # in Mpc
-      # NFW scale density (comoving)
-      rhoS = self.Mvir / (4.*np.pi*Rs**3) / (np.log(1.+cNFW) - cNFW/(1.+cNFW))
     
-      # Integrating f(x) from 0 to cNFW (0to1 contribution will be added as a constant 0.138783608936919)
-      x=np.transpose(np.linspace(1+1e-10, cNFW , 100))
-      fIntegrand = np.log(x/2) + np.arccos(1/x)/np.sqrt(x**2 -1)
-      fInt_1tocNFW = integrate.trapz(fIntegrand, x=x)
-      fInt_0to1 = 0.1387836089369198
-      # summing the contributions and converting the radial integral to angular area integral 
-      fInt = (fInt_0to1 + fInt_1tocNFW) * (2.* np.pi * Rs**2) / ((self.U.bg.comoving_distance(self.Z))**2)
-      
-      c_ms = self.U.c_kms*10**3   # Speed of light in m/s
+      # constants
       msun = 1.989e30   # solar mass in kg
-      mpc = 3.08567758e16*1.e6   # 1Mpc in m
-      a = 1 / (1 + self.Z)   # scale factor
+      mpc = 3.08567758e22   # Mpc in m
+      c_ms = self.U.c_kms*10**3   # Speed of light in m/s
+      G = self.U.G*(msun/mpc)   # from [m^3.kg^-1.s^-2] to [m^2.Mpc.c^-2.Msun^-1]
+      cNFW0 = 7.85  # from Duffy et al.
+      cNFWam = -0.081
+      cNFWaz = -0.71
       
-      # (16 pi G rhoS Rs^2 / c^2 a) times the integral of function f
-      # (msun /mpc) is multiplied for unit conversions
-      self.integratedDeflection = (16.* np.pi * self.U.G * rhoS * Rs**2 / (a * c_ms**2)) * (msun /mpc) * (fInt)
+      # objects info
+      z= np.array(self.Z) # redshift
+      a= 1/(1+z) # scale factor
+      Mvir = self.Mvir * self.U.bg.h  # from Msun to Msun/h
+      Rvir = ( 3.*Mvir / (4*np.pi*self.U.rho_crit(z)*self.U.Deltacrit_z(z)) )**(1./3.)  # (comoving) Mpc/h
+      Rvir /=  self.U.bg.h  # from (comoving) Mpc/h to (comoving) Mpc
+      cNFW = cNFW0 * (Mvir/2.e12)**cNFWam * (1.+z)**cNFWaz # (pivot mass 2e12 is in Msun/h)
+      Rs = Rvir/cNFW # (comoving) [Mpc]
+      rhoS = self.Mvir / (4.*np.pi*Rs**3) / (np.log(1.+cNFW) - cNFW/(1.+cNFW)) # (comoving) [Msun/Mpc^3]
+      c_tr = cNFW # truncation radius in units of Rs
+      comovDist = (self.U.bg.comoving_distance(z)/self.U.bg.h) # (comoving) Mpc
+      v_th= self.vTheta # km/s
+      v_ph= self.vPhi # km/s
+      
+      # array to store integrated deflections
+      integDefls = [] 
+      # loop over objects and perform the integration
+      for obj in range(len(Rs)):
+          # Integrating f(x) from 0 to cNFW 
+          # prepare the integration variable for inside the density truncation radius
+          x = np.transpose(np.linspace(0+1e-4, cNFW[obj] , 100))
+          x = x.astype(complex)
+          # integrand is the notorious f function inside the density truncation radius times x
+          fIntegrandIn = x*x*((-np.log(np.sqrt(c_tr[obj]**2 - x**2) + c_tr[obj]) + \
+                             (np.log(-x) -2j*(np.log(-x).imag) \
+                            - np.log(np.sqrt(1 - x**2)*np.sqrt(c_tr[obj]**2 - x**2) \
+                            - c_tr[obj] - x**2))/ np.sqrt(1 - x**2) + np.log(x))/x**2 + \
+                            ((1/np.sqrt(1 - x**2) + 1)*np.log(c_tr[obj] + 1))/x**2 - \
+                            1/((c_tr[obj] + 1)*(np.sqrt((c_tr[obj] - x)*(c_tr[obj] + x)) + c_tr[obj])))
+          # integrate along the aperture radius from 0 to cNFW 
+          fInt_0tocNFW = integrate.trapz(fIntegrandIn, x=x) 
+          # convert the radial integral result to the integral over circular aperture
+          fInt = (fInt_0tocNFW.real) * (2.*np.pi* Rs[obj]**2) # (comoving) Mpc^2
+          fInt /= comovDist[obj]**2 # from (comoving) Mpc^2 to sr
+          # obtain the integrated deflection over the circular aperture area
+          integDeflection = (16. *np.pi *G *rhoS[obj] *Rs[obj]**2 /(a[obj] *c_ms**2 )) * fInt # sr
+          integDefls.append(integDeflection) # sr
+      self.integratedDeflection = np.array(integDefls)
 
-   
    def addIntegratedML(self):
-      """Integrated Moving Lens effect: (v_transverse /c) * integratedDeflection
-      in [sr].
-      To get dT in muK*sr, multiply by Tcmb
+      """Integrated Moving Lens effect: (v_transverse /c) * integratedDeflection * Tcmb
+      in [muK * sr].
       """
       print("- add integrated ML")
-      self.integratedML = np.sqrt((self.vTheta)**2 + (self.vPhi)**2)/self.U.c_kms * self.integratedDeflection
-         
+      self.integratedML = (np.sqrt((self.vTheta)**2 + (self.vPhi)**2)/self.U.c_kms) * self.integratedDeflection * 2.726e6
 
 
    ##################################################################################
 
    def writeCatalog(self):
       print("- write full catalog to "+self.pathOutCatalog)
-      data = np.zeros((self.nObj,26))
+      data = np.zeros((self.nObj,27))
       #
       # sky coordinates and redshift
       data[:,0] = self.RA   # [deg]
@@ -330,17 +420,19 @@ class Catalog(object):
       # the function f is essentially the radial profile of lensing deflection angle by the cluster
       data[:, 24] = self.integratedDeflection # [sr]
       #
-      # Integrated ML signal [sr]: (v_transverse /c) * integratedDeflection
-      # To get dT in muK*sr, multiply by Tcmb
-      data[:, 25] = self.integratedML # [sr]
+      # Integrated ML signal [muK * sr]: (v_transverse /c) * integratedDeflection * Tcmb
+      data[:, 25] = self.integratedML # [muK * sr]
       #
+    
       np.savetxt(self.pathOutCatalog, data)
 
 
    def loadCatalog(self, nObj=None):
       print("- load full catalog from "+self.pathOutCatalog)
       data = np.genfromtxt(self.pathOutCatalog)
+      # temporary
       self.nObj = len(data[:nObj,0])
+#       self.nObj = 1
       #
       # sky coordinates and redshift
       self.RA = data[:nObj,0] # [deg]
@@ -387,20 +479,19 @@ class Catalog(object):
       self.integratedTau = data[:nObj,21]   # [sr]
       #
       # Integrated kSZ signal [muK * sr]: int d^2theta n_e sigma_T (-v/c) Tcmb
-      self.integratedKSZ = data[:nObj, 22] # [muK * sr]
+      self.integratedKSZ = data[:nObj,22] # [muK * sr]
       #
       # Integrated Y signal [sr]: int d^2theta n_e sigma_T (kB Te / me c^2)
       # needs to be multiplied by Tcmb * f(nu) to get muK
-      self.integratedY = data[:nObj, 23] # [sr]
+      self.integratedY = data[:nObj,23] # [sr]
       #
       # Integrated lensing deflection over the halo: int d^2theta 16pi G rhoS Rs^2 f(r/r_s) / c^2
       # the function f is essentially the radial profile of lensing deflection angle by the cluster
-      self.integratedDeflection = data[:nObj, 24] # [sr]
+      self.integratedDeflection = data[:nObj,24] # [sr]
       #
-      # Integrated ML signal [sr]: (v_transverse /c) * integratedDeflection
-      # To get dT in muK*sr, multiply by Tcmb
-      self.integratedML = data[:nObj, 25] # [sr]
-
+      # Integrated ML signal [muK * sr]: (v_transverse /c) * integratedDeflection * Tcmb
+      self.integratedML = data[:nObj,25] # [muK * sr]
+        
 
 
    ##################################################################################
@@ -567,9 +658,8 @@ class Catalog(object):
       # the function f is essentially the radial profile of lensing deflection angle by the cluster
       self.integratedDeflection = np.concatenate((self.integratedDeflection, newCat.integratedDeflection)) # [sr]
       #
-      # Integrated ML signal [sr]: (v_transverse /c) * integratedDeflection
-      # To get dT in muK*sr, multiply by Tcmb
-      self.integratedML = np.concatenate((self.integratedML, newCat.integratedML)) # [sr]
+      # Integrated ML signal [muK * sr]: (v_transverse /c) * integratedDeflection * Tcmb
+      self.integratedML = np.concatenate((self.integratedML, newCat.integratedML)) # [muK * sr]
       
 
       # Write the full catalog to the output path, if needed
@@ -687,8 +777,7 @@ class Catalog(object):
       # the function f is essentially the radial profile of lensing deflection angle by the cluster
       self.integratedDeflection = self.integratedDeflection[I0Match]
       #
-      # Integrated ML signal [sr]: (v_transverse /c) * integratedDeflection
-      # To get dT in muK*sr, multiply by Tcmb
+      # Integrated ML signal [muK * sr]: (v_transverse /c) * integratedDeflection * Tcmb
       self.integratedML = self.integratedML[I0Match]
 
 
@@ -792,9 +881,8 @@ class Catalog(object):
       # the function f is essentially the radial profile of lensing deflection angle by the cluster
       self.integratedDeflection = np.concatenate((self.integratedDeflection, newCat.integratedDeflection)) # [sr]
       #
-      # Integrated ML signal [sr]: (v_transverse /c) * integratedDeflection
-      # To get dT in muK*sr, multiply by Tcmb
-      self.integratedML = np.concatenate((self.integratedML, newCat.integratedML)) # [sr]
+      # Integrated ML signal [muK * sr]: (v_transverse /c) * integratedDeflection * Tcmb
+      self.integratedML = np.concatenate((self.integratedML, newCat.integratedML)) # [muK * sr]
 
       # Write the full catalog to the output path, if needed
       if save:
@@ -835,7 +923,7 @@ class Catalog(object):
       print("M_star [M_sun]: mean = "+str(np.mean(m))+", median = "+str(np.median(m)))
       m = self.Mvir[self.hasM==1]
       print("M_vir [M_sun]: mean = "+str(np.mean(m))+", median = "+str(np.median(m)))
-   
+
 
 
    ##################################################################################
@@ -922,12 +1010,14 @@ class Catalog(object):
       # expected kSZ [muK*arcmin^2]
       path = self.pathFig+"/hist_ksz.pdf"
       x = self.integratedKSZ * (180.*60./np.pi)**2 # [muK*arcmin^2]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{kSZ}$ [$\mu$K.arcmin$^2$]', doGauss=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{kSZ}$ [$\mu$K.arcmin$^2$]', doGauss=True, semilogy=True, kszExtraStats=True, integratedTau=self.integratedTau * (180.*60./np.pi)**2 , vR=self.vR )
+      #print("kSZ [muK*arcmin^2]: mean = "+str(np.mean(x))+", rms = "+str(np.sqrt(np.mean(x**2)))+", median = "+str(np.median(x)))
 
       # mean kSZ within Rvir [muK]
       path = self.pathFig+"/hist_meankszvir.pdf"
       x = self.integratedKSZ / (np.pi * Thetavir**2) # [muK]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{kSZ} / ( \pi \theta_{vir} )$ [$\mu$K]', doGauss=True, semilogy=True)
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{kSZ} / ( \pi \theta_{vir} )$ [$\mu$K]', doGauss=True, semilogy=True, kszExtraStats=True, integratedTau=self.integratedTau / (np.pi * Thetavir**2) , vR=self.vR )
+      #print("mean kSZ within Rvir [muK]: mean = "+str(np.mean(x))+", rms = "+str(np.sqrt(np.mean(x**2)))+", median = "+str(np.median(x)))
 
       # expected Y [arcmin^2]
       path = self.pathFig+"/hist_y.pdf"
@@ -949,15 +1039,17 @@ class Catalog(object):
       x = self.integratedDeflection / (np.pi * Thetavir**2) # [dimless]
       myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \;$ Deflection $/ ( \pi  \theta_{vir}^2 )$ [dimless]', semilogx=True, semilogy=True)
     
-      # integrated ML [arcmin^2]
+      # integrated ML [muK*arcmin^2]
       path = self.pathFig+"/hist_integratedml.pdf"
-      x = self.integratedML * (180.*60./np.pi)**2 # [arcmin^2]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{ML}$ [arcmin$^2$]', semilogx=False, semilogy=True)
+      x = self.integratedML * (180.*60./np.pi)**2 # [muK*arcmin^2]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{ML}$ [$\mu$K.arcmin$^2$]', semilogy=True, mlExtraStats=True)
+      #print("integrated ML [muK*arcmin^2]: mean = "+str(np.mean(x))+", rms = "+str(np.sqrt(np.mean(x**2)))+", median = "+str(np.median(x)))
 
-      # mean ML within Rvir [dimless]
+      # mean ML within Rvir [muK]
       path = self.pathFig+"/hist_meanmlvir.pdf"
-      x = self.integratedML / (np.pi * Thetavir**2) # [dimless]
-      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{ML} / ( \pi \theta_{vir}^2 )$ [dimless]', semilogx=False, semilogy=True)
+      x = self.integratedML / (np.pi * Thetavir**2) # [muK]
+      myHistogram(x, nBins=71, path=path, nameLatex=r'$\int d^2 \theta \; \delta T_{ML} / ( \pi \theta_{vir}^2 )$ [$\mu$K]', semilogy=True, mlExtraStats=True)
+      #print("mean ML within Rvir [muK]: mean = "+str(np.mean(x))+", rms = "+str(np.sqrt(np.mean(x**2)))+", median = "+str(np.median(x)))
       
       
       # displacements?

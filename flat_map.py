@@ -26,8 +26,8 @@ class FlatMap(object):
       self.data = np.zeros((nX,nY))
    
       lx = np.zeros(nX)
-      lx[:nX/2+1] = 2.*np.pi/sizeX * np.arange(nX//2+1)
-      lx[nX/2+1:] = 2.*np.pi/sizeX * np.arange(-nX//2+1, 0, 1)
+      lx[:nX//2+1] = 2.*np.pi/sizeX * np.arange(nX//2+1) # ali converted to python 3
+      lx[nX//2+1:] = 2.*np.pi/sizeX * np.arange(-nX//2+1, 0, 1) #ali converted to python 3
       ly = 2.*np.pi/sizeY * np.arange(nY//2+1)
       self.lx, self.ly = np.meshgrid(lx, ly, indexing='ij')
       
@@ -214,16 +214,16 @@ class FlatMap(object):
       # ie one more element, and offset by half a cell
       #
       # left part of plot
-      lxLeft = 2.*np.pi/self.sizeX * (np.arange(-self.nX/2+1, 1, 1) - 0.5)
+      lxLeft = 2.*np.pi/self.sizeX * (np.arange(-self.nX//2+1, 1, 1) - 0.5) #ali python3
       ly = 2.*np.pi/self.sizeY * (np.arange(self.nY//2+1+1) - 0.5)
       lx, ly = np.meshgrid(lxLeft, ly, indexing='ij')
-      cp1=ax.pcolormesh(lx, ly, dataFourier[self.nX/2+1:,:], linewidth=0, rasterized=True)
+      cp1=ax.pcolormesh(lx, ly, dataFourier[self.nX//2+1:,:], linewidth=0, rasterized=True) #ali python3
       #
       # right part of plot
-      lxRight = 2.*np.pi/self.sizeX * (np.arange(self.nX/2+1+1) - 0.5)
+      lxRight = 2.*np.pi/self.sizeX * (np.arange(self.nX//2+1+1) - 0.5) #ali python3
       ly = 2.*np.pi/self.sizeY * (np.arange(self.nY//2+1+1) - 0.5)
       lx, ly = np.meshgrid(lxRight, ly, indexing='ij')
-      cp2=ax.pcolormesh(lx, ly, dataFourier[:self.nX/2+1,:], linewidth=0, rasterized=True)
+      cp2=ax.pcolormesh(lx, ly, dataFourier[:self.nX//2+1,:], linewidth=0, rasterized=True) #ali python3
       #
       # choose color map: jet, summer, winter, Reds, gist_gray, YlOrRd, bwr, seismic
       cp1.set_cmap(cmap); cp2.set_cmap(cmap)
@@ -453,6 +453,8 @@ class FlatMap(object):
          sCl = Cl*np.sqrt(2)
       else:
          sCl = np.array(list(map(fsCl, lCen)))
+#       print("sCl",sCl) #ali
+#       print("Nmodes",Nmodes) #ali
       sCl /= np.sqrt(Nmodes)
       sCl = np.nan_to_num(sCl)
       
@@ -463,8 +465,8 @@ class FlatMap(object):
          fig=plt.figure(0)
          ax=fig.add_subplot(111)
          #
-         ax.errorbar(lCen, factor*Cl, yerr=factor* sCl, c='b', fmt='.')
-         ax.errorbar(lCen, -factor*Cl, yerr=factor* sCl, c='r', fmt='.')
+         ax.errorbar(lCen, factor*Cl, yerr=factor* np.abs(sCl), c='b', fmt='.') #ali: added abs
+         ax.errorbar(lCen, -factor*Cl, yerr=factor* np.abs(sCl), c='r', fmt='.') #ali: added abs
          #
          for f in theory:
             L = np.logspace(np.log10(1.), np.log10(np.max(ell)), 201, 10.)
@@ -472,8 +474,8 @@ class FlatMap(object):
             ax.plot(L, factor*ClExpected, 'k')
          #
 #         ax.axhline(0.)
-         ax.set_xscale('log', nonposx='clip')
-         ax.set_yscale('log', nonposy='clip')
+         ax.set_xscale('log')#, nonposx='clip') #ali: commented
+         ax.set_yscale('log')#, nonposy='clip') #ali: commented
          #ax.set_xlim(1.e1, 4.e4)
          #ax.set_ylim(1.e-5, 2.e5)
          ax.set_xlabel(r'$\ell$')

@@ -45,7 +45,9 @@ def Ci(x):
    return special.sici(x)[1]
 
 def sinc(x):
-   return special.sph_jn(0, x)[0][0]
+   print(x.shape)
+   print(type(x))
+   return special.spherical_jn(0, x)#[0][0] #ali: sph_jn is deprecated in scipy -> replaced & removed indices
 
 def j0(x):
    """relevant for isotropic Fourier transform in 2d
@@ -99,7 +101,7 @@ def floatExpForm(input):
 ##################################################################################
 
 
-def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=True, nameLatex=r'$x$', semilogx=False, semilogy=False, doGauss=False):
+def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=True, nameLatex=r'$x$', semilogx=False, semilogy=False, doGauss=False, mlExtraStats=False, kszExtraStats=False, integratedTau=None, vR=None):
    """Generic histogram plotter.
    Flattens the input array X first thing.
    """
@@ -153,6 +155,30 @@ def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=True, nameLa
       histTheory = np.array(list(map(g, list(range(nBins-1)))))
       histTheory *= len(X)
       ax.step(Bins[:-1], histTheory, color='r', lw=3, where='post')#, label=r'Theory')
+    
+    
+   # temporay
+   if mlExtraStats:
+      mean = np.mean(X)
+      rms = np.sqrt(np.mean(X**2))
+      ax.axvline(1.*mean, c='c', ls='--', label='Mean: {:.4f}'.format(mean))
+      #plt.text(mean*1.2, yMax*0.6, 'Mean: {:.4f}'.format(mean))
+      ax.axvline(1.*rms, c='c', label='RMS: {:.4f}'.format(rms))
+      #plt.text(rms*1.2, yMax*0.3, 'RMS: {:.4f}'.format(rms))
+   if kszExtraStats:
+      mean = np.mean(X)
+      rms = np.sqrt(np.mean(X**2))
+      ax.axvline(1.*mean, c='c', ls='--', label='Mean: {:.4f}'.format(mean))
+      #plt.text(mean*1.2, yMax*0.6, 'Mean: {:.4f}'.format(mean))
+      ax.axvline(1.*rms, c='c', label='RMS: {:.4f}'.format(rms))
+      #plt.text(rms*1.2, yMax*0.3, 'RMS: {:.4f}'.format(rms))
+      meanIntegratedTau = np.mean(integratedTau)
+      rmsvR = np.sqrt(np.mean(vR**2))
+      newKszRMS = meanIntegratedTau * (rmsvR/3.e5) * 2.726e6
+      ax.axvline(1.*newKszRMS, c='c', ls='-.', label='<intTau> RMS(vR/c): {:.4f}'.format(newKszRMS))
+      
+
+        
    #
    ax.legend(loc=1)
    ax.set_xlim((lim[0], lim[1]))
@@ -172,6 +198,7 @@ def myHistogram(X, nBins=71, lim=None, S2Theory=[], path=None, plot=True, nameLa
    ax.set_ylim((yMin, yMax))
    ax.set_xlabel(nameLatex)
    ax.set_ylabel(r'number of objects')
+    
    if path is not None:
       fig.savefig(path, bbox_inches='tight')
    if plot:
